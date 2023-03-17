@@ -13,3 +13,4 @@ __pycache__/
 db_data/
 /config/
 /config.py
+.DS_Store
