@@ -18,10 +18,16 @@ class Database:
     def mute(self, user_id):
         with self.connection:
             user = self.connection.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
-            return user[3] == '1'
+            return user[5] == 1
 
     def add_mute(self, user_id, is_mute=1):
         return self.connection.execute("UPDATE users SET moderator_username = ? WHERE user_id = ?", (is_mute, user_id))
 
-    def unmute(self, user_id, is_mute=''):
-        return self.connection.execute("UPDATE users SET moderator_username = ? WHERE user_id = ?", (is_mute, user_id))
+    def unmute(self, user_id, is_muted=''):
+        with self.connection:
+            lifes = self.cursor.execute("SELECT lifes FROM users WHERE user_id = ?", (user_id,)).fetchone()
+            print(lifes[0])
+        return (
+            (self.connection.execute("UPDATE users SET is_muted = ? WHERE user_id = ?", (is_muted, user_id))),
+            (self.connection.execute("UPDATE users SET lifes = ? WHERE user_id = ?", (lifes[0]-1, user_id)))
+        )
