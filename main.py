@@ -3,7 +3,6 @@ import os
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
 from aiogram import Bot, types
-# from databases import Database
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +12,6 @@ TOKEN = os.getenv('BOT_TOKEN')
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
 # Initialize bot and dispatcher
-# db = Database('sqlite:///db.db')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
@@ -85,7 +83,6 @@ async def unmute(message: types.Message):
         user_message.from_user.id,
         permissions=new
     )
-    # db.unmute(user_id)
     await message.answer('done')
 
 
@@ -94,17 +91,8 @@ async def unmute(message: types.Message):
 async def new_chat(message: types.Message):
     await message.delete()
 
-# @dp.message_handler(content_types=['text'])
-# async def text(message: types.Message):
-#     if not db.exist_user(message.from_user.id):
-#         db.add(message.from_user.id)
-#     if not db.mute(message.from_user.id):
-#         print(db.mute(message.from_user.id))
-#     else:
-#         await message.delete()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     start_webhook(
         dispatcher=dp,
         webhook_path=WEBHOOK_PATH,
