@@ -62,16 +62,13 @@ async def mute(message: types.Message):
         user_message.from_user.id,
         permissions=new
     )
-    await message.answer('muted')
+    await message.answer('message.chat.id')
 
 
-@dp.message_handler(commands=['unmute'], is_chat_admin=True)
+@dp.message_handler(commands=['unmute'], ChatType.private)
 async def unmute(message: types.Message):
-    user_message = message.reply_to_message
-    if not message.reply_to_message:
-        await message.reply('Команда должна быть ответом на сообщение!')
-
-    user_id = message.reply_to_message.from_user.id
+    
+    user_id = message.from_user.id
     new = types.ChatPermissions(
         can_send_messages=True,
         can_send_media_messages=True,
@@ -79,7 +76,7 @@ async def unmute(message: types.Message):
         can_add_web_page_previews=True
     )
     await bot.restrict_chat_member(
-        message.chat.id,
+        message.text[7:],
         user_message.from_user.id,
         permissions=new
     )
