@@ -38,7 +38,7 @@ async def send_welcome(message: types.Message):
     """
     This handler will be called when user sends `/start` or `/help` command
     """
-    await message.answer(f'Hello, {message.from_user.first_name}')
+    await message.answer(f'Hello, {message.from_user.first_name}\n {message}')
 
 
 @dp.message_handler(commands=['mute'], is_chat_admin=True)
