@@ -65,7 +65,7 @@ async def mute(message: types.Message):
     await message.answer('message.chat.id')
 
 
-@dp.message_handler(commands=['unmute'], ChatType.private)
+@dp.message_handler(chat_type=['is_private'], commands=['unmute'])
 async def unmute(message: types.Message):
     
     user_id = message.from_user.id
@@ -76,8 +76,8 @@ async def unmute(message: types.Message):
         can_add_web_page_previews=True
     )
     await bot.restrict_chat_member(
-        message.text[7:],
-        user_message.from_user.id,
+        message.text[8:],  # chat id
+        message.from_user.id,
         permissions=new
     )
     await message.answer('done')
