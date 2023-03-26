@@ -47,9 +47,9 @@ async def mute(message: types.Message):
         await message.reply('Команда должна быть ответом на сообщение!')
 
     user_message = message.reply_to_message
-    user_id = message.reply_to_message.from_user.id
-    user_username = message.reply_to_message.from_user.username
-    moderator_username = message.from_user.username
+    # user_id = message.reply_to_message.from_user.id
+    # user_username = message.reply_to_message.from_user.username
+    # moderator_username = message.from_user.username
     # db.add_mute(user_id)
     new = types.ChatPermissions(
         can_send_messages=False,
