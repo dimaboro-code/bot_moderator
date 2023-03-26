@@ -62,7 +62,7 @@ async def mute(message: types.Message):
         user_message.from_user.id,
         permissions=new
     )
-    await message.answer('message.chat.id')
+    await message.answer(message.chat.id)
 
 
 @dp.message_handler(chat_type=['is_private'], commands=['unmute'])
