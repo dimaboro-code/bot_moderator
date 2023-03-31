@@ -55,11 +55,12 @@ async def in_database(user_id):
                                        values={'user_id': user_id})
     return bool(len(results))
 
-async def add_user(message: types.Message):
+async def add_user(user_id):
     # date = datetime.datetime.now()
-    await database.execute(f'INSERT INTO users (user_id, ) '
-                           f'VALUES (:user_id, )',
-                           values={'user_id': message.reply_to_message.from_user.id,})
+    await database.execute(f'INSERT INTO users (user_id, is_muted) '
+                           f'VALUES (:user_id, :is_muted)',
+                           values={'user_id': user_id,
+                                   'is_muted': True})
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
@@ -131,7 +132,7 @@ async def mute(message: types.Message):
     }
     # add user to database
     if not in_database(mute_data['user_id']):
-        await add_user(message)
+        await add_user(message.reply_to_message.from_user.id)
     # add mute to database
     await add_mute(mute_data)
 
