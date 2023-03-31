@@ -56,11 +56,11 @@ async def in_database(user_id):
     return bool(len(results))
 
 async def add_user(user_id):
-    # date = datetime.datetime.now()
     await database.execute(f'INSERT INTO users (user_id, is_muted) '
                            f'VALUES (:user_id, :is_muted)',
                            values={'user_id': user_id,
                                    'is_muted': True})
+    logging.INFO(user_id)
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
