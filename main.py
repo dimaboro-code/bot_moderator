@@ -71,15 +71,14 @@ async def add_mute(mute_data):
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
                              values={'user_id': user_id})
     lives = int(lives[0]) - 1
-    await bot.send_message(mute_data['chat_id'], lives)
     await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = TRUE '
                            f'WHERE user_id = :user_id',
                            values={'user_blocks': lives, 'user_id': user_id})
 
 async def remove_from_mute(user_id):
     results = await database.fetch_all(
-        f'SELECT * FROM mutes WHERE user_id = :user_id AND date_of_mute = ('
-        f'SELECT MAX (date_of_mute) FROM mutes WHERE user_id = :user_id)',
+        f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
+        f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
         values={'user_id': user_id}
     )
     user_data = [next(result.values()) for result in results]
@@ -108,7 +107,7 @@ async def unmute(message: types.Message):
         can_add_web_page_previews=True
     )
     await bot.restrict_chat_member(
-        message.text[8:],  # chat id
+
         user_id,
         permissions=unmute_hammer
     )
