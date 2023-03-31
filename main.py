@@ -128,7 +128,7 @@ async def mute(message: types.Message):
         'user_id': message.reply_to_message.from_user.id,
         'message_id': message.reply_to_message.message_id,
         'moderator_message': message.text[5:],
-        'date_on_mute': str(datetime.datetime.now())[:19],
+        'date_on_mute': datetime.datetime.now(),
         'admin_username': message.from_user.username
     }
     # add user to database
