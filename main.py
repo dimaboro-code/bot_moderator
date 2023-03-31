@@ -82,7 +82,7 @@ async def remove_from_mute(user_id):
         values={'user_id': user_id}
     )
     user_data = [res.values() for res in results]
-    return str(next(user_data))
+    return user_data[0]
 
 # private chat functions
 @dp.message_handler(commands=['start', 'help'], chat_type='private')
