@@ -81,8 +81,8 @@ async def remove_from_mute(user_id):
         f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
         values={'user_id': user_id}
     )
-    user_data = [[x for x in res.values()] for res in results]
-    return user_data
+    user_data = [res.values() for res in results]
+    return [str(x) for x in user_data]
 
 # private chat functions
 @dp.message_handler(commands=['start', 'help'], chat_type='private')
