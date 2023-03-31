@@ -72,7 +72,7 @@ async def add_mute(mute_data):
                              values={'user_id': user_id})
     lives = str(int(lives[0]) - 1)
     await bot.send_message(mute_data['chat_id'], lives)
-    await database.execute(f'UPDATE users SET (user_blocks = :user_block, is_muted = :is_muted)'
+    await database.execute(f'UPDATE users SET (user_blocks = :user_blocks, is_muted = :is_muted)'
                            f'WHERE user_id = :user_id',
                            values={'user_blocks': lives, 'user_id': user_id, 'is_muted': 'TRUE'})
 
