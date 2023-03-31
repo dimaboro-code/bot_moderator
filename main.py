@@ -74,7 +74,7 @@ async def add_mute(mute_data):
     await bot.send_message(mute_data['chat_id'], lives)
     await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = :is_muted'
                            f'WHERE user_id = :user_id',
-                           values={'user_blocks': lives, 'user_id': user_id, 'is_muted': 'TRUE'})
+                           values={'user_blocks': lives, 'user_id': user_id, 'is_muted': True})
 
 async def remove_from_mute(user_id):
     results = await database.fetch_all(
