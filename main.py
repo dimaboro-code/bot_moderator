@@ -81,7 +81,7 @@ async def remove_from_mute(user_id):
         f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
         values={'user_id': user_id}
     )
-    user_data = results
+    user_data = [res for res in results]
     return user_data
 
 # private chat functions
