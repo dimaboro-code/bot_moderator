@@ -57,16 +57,15 @@ async def in_database(user_id):
 
 async def add_user(message: types.Message):
     # date = datetime.datetime.now()
-    await database.execute(f'INSERT INTO users (user_id, date_add) '
-                           f'VALUES (:user_id, :date_add)',
-                           values={'user_id': message.reply_to_message.from_user.id,
-                                   'date_add': 'NUll'})
+    await database.execute(f'INSERT INTO users (user_id, ) '
+                           f'VALUES (:user_id, )',
+                           values={'user_id': message.reply_to_message.from_user.id,})
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
-                           f'moderator_message, date_of_mute, admin_username) '
+                           f'moderator_message, admin_username) '
                            f'VALUES (:user_id, :message_id, :chat_id, '
-                           f':moderator_message, NULL, :admin_username)',
+                           f':moderator_message, :admin_username)',
                            values=mute_data)
     user_id = mute_data['user_id']
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
