@@ -56,7 +56,7 @@ async def in_database(user_id):
     return bool(len(results))
 
 async def add_user(message: types.Message):
-    date = str(datetime.datetime.now())[:19]
+    date = datetime.datetime.now()
     await database.execute(f'INSERT INTO users (user_id, date_add) '
                            f'VALUES (:user_id, :date_add)',
                            values={'user_id': message.reply_to_message.from_user.id,
