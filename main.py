@@ -60,7 +60,6 @@ async def add_user(user_id):
                            f'VALUES (:user_id, :is_muted)',
                            values={'user_id': user_id,
                                    'is_muted': True})
-    logging.INFO(user_id)
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
@@ -71,7 +70,7 @@ async def add_mute(mute_data):
     user_id = mute_data['user_id']
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
                              values={'user_id': user_id})
-    lives = int(lives[1]) - 1
+    lives = int(lives[0]) - 1
     await database.execute(f'UPDATE users SET (user_block = :user_block, is_muted = :is_muted)'
                            f'WHERE user_id = :user_id',
                            values={'user_blocks': lives, 'user_id': user_id, 'is_muted': 'TRUE'})
