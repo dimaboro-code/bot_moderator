@@ -71,9 +71,10 @@ async def add_mute(mute_data):
     user_id = mute_data['user_id']
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
                              values={'user_id': user_id})
+    lives = int(lives[1]) - 1
     await database.execute(f'UPDATE users SET (user_block = :user_block, is_muted = :is_muted)'
                            f'WHERE user_id = :user_id',
-                           values={'user_blocks': int(lives) - 1, 'user_id': user_id, 'is_muted': 'TRUE'})
+                           values={'user_blocks': , 'user_id': user_id, 'is_muted': 'TRUE'})
 
 async def remove_from_mute(user_id):
     results = await database.fetch_all(
