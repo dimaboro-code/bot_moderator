@@ -51,11 +51,12 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
 
 
 # database functions
+@dp.message_handler(commands=['in_database'])
 async def in_database(user_id):
     results = await database.fetch_all(f'SELECT * FROM users '
                                        f'WHERE user_id = :user_id ',
                                        values={'user_id': user_id})
-    logging.info(str(bool(len(results))))
+    logging.info(results)
     return bool(len(results))
 
 
