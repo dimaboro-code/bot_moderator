@@ -55,7 +55,7 @@ async def in_database(user_id):
     results = await database.fetch_all(f'SELECT * FROM users '
                                        f'WHERE user_id = :user_id ',
                                        values={'user_id': user_id})
-    logging.info(str(results))
+    logging.info(bool(len(results)))
     return bool(len(results))
 
 
