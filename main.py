@@ -37,6 +37,7 @@ async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     await database.connect()
 
+
 async def on_shutdown(dispatcher):
     await database.disconnect()
     await bot.delete_webhook()
@@ -48,18 +49,22 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
     with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await message.delete()
 
+
 # database functions
 async def in_database(user_id):
     results = await database.fetch_all(f'SELECT * FROM users '
                                        f'WHERE user_id = :user_id ',
                                        values={'user_id': user_id})
+    logging.info(str(results))
     return bool(len(results))
+
 
 async def add_user(user_id):
     await database.execute(f'INSERT INTO users (user_id, is_muted) '
                            f'VALUES (:user_id, :is_muted)',
                            values={'user_id': user_id,
                                    'is_muted': True})
+
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
@@ -69,11 +74,12 @@ async def add_mute(mute_data):
                            values=mute_data)
     user_id = mute_data['user_id']
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
-                             values={'user_id': user_id})
+                                     values={'user_id': user_id})
     lives = int(lives[0]) - 1
     await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = TRUE '
                            f'WHERE user_id = :user_id',
                            values={'user_blocks': lives, 'user_id': user_id})
+
 
 async def remove_from_mute(user_id):
     results = await database.fetch_all(
@@ -81,8 +87,10 @@ async def remove_from_mute(user_id):
         f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
         values={'user_id': user_id}
     )
-    user_data = [res.values() for res in results]
+    user_data = [next(res.values()) for res in results]
+    logging.info(user_data)
     return [str(x) for x in user_data]
+
 
 # private chat functions
 @dp.message_handler(commands=['start', 'help'], chat_type='private')
@@ -95,7 +103,7 @@ async def unmute(message: types.Message):
     user_id = message.from_user.id
 
     if not in_database(user_id):
-        return message.answer('Вы вне системы. Совершите противоправное действие, чтобы присоединиться')
+        return message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
 
     user_data = await remove_from_mute(user_id)
     await message.answer(str(user_data))
