@@ -55,9 +55,9 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
 async def in_database(message: types.Message):
     user_id = message.from_user.id
     results = await database.fetch_all(f'SELECT * FROM users '
-                                       f'WHERE user_id = :user_id ',
+                                       f'WHERE user_id = :user_id',
                                        values={'user_id': user_id})
-    logging.info(results)
+    logging.info(bool(len(results)))
     return bool(len(results))
 
 
