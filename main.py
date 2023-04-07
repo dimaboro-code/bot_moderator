@@ -104,7 +104,7 @@ async def send_welcome(message: types.Message):
 async def unmute(message: types.Message):
     user_id = message.from_user.id
 
-    if not in_database(message):
+    if not await in_database(message):
         return message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
 
     user_data = await remove_from_mute(user_id)
