@@ -1,35 +1,16 @@
 import asyncio
 import logging
-import os
 from contextlib import suppress
-from aiogram.dispatcher import Dispatcher
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
-from aiogram.utils.executor import start_webhook
-from aiogram import Bot, types
-from databases import Database
+from aiogram.utils.executor import start_webhook, start_polling
+from aiogram import types
+from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+from db import database, in_database, add_mute, add_user, remove_from_mute
+from cleaner import messages_for_delete
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-# Initialize vars
-TOKEN = os.getenv('BOT_TOKEN')
-HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-# Initialize bot, database and dispatcher
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
-database = Database(DATABASE_URL)
-
-# webhook settings
-WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-WEBHOOK_PATH = f'/webhook/{TOKEN}'
-WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-
-# webserver settings
-WEBAPP_HOST = '0.0.0.0'
-WEBAPP_PORT = os.getenv('PORT', default=8000)
 
 
 # webhook control
@@ -59,39 +40,6 @@ async def in_database(message: types.Message):
                                        values={'user_id': user_id})
     logging.info(bool(len(results)))
     return bool(len(results))
-
-
-async def add_user(user_id):
-    await database.execute(f'INSERT INTO users (user_id, is_muted) '
-                           f'VALUES (:user_id, :is_muted)',
-                           values={'user_id': user_id,
-                                   'is_muted': True})
-
-
-async def add_mute(mute_data):
-    await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
-                           f'moderator_message, admin_username) '
-                           f'VALUES (:user_id, :message_id, :chat_id, '
-                           f':moderator_message, :admin_username)',
-                           values=mute_data)
-    user_id = mute_data['user_id']
-    lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
-                                     values={'user_id': user_id})
-    lives = int(lives[0]) - 1
-    await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = TRUE '
-                           f'WHERE user_id = :user_id',
-                           values={'user_blocks': lives, 'user_id': user_id})
-
-
-async def remove_from_mute(user_id):
-    results = await database.fetch_all(
-        f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
-        f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
-        values={'user_id': user_id}
-    )
-    user_data = [next(res.values()) for res in results]
-    logging.info(user_data)
-    return [str(x) for x in user_data]
 
 
 # private chat functions
@@ -164,33 +112,19 @@ async def mute(message: types.Message):
     await message.delete()
 
 
-# delete messages about join and left group
-
-messages_for_delete = [
-    'new_chat_members',
-    'left_chat_member',
-    'delete_chat_photo',
-    'delete_chat_sticker_set',
-    'delete_chat_title',
-    'pinned_message',
-    'unpinned_message',
-    'new_chat_title',
-    'new_chat_description',
-]
-
-
 @dp.message_handler(content_types=messages_for_delete)
 async def delete_messages(message: types.Message):
     await message.delete()
 
 
-if __name__ == '__main__':
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+# if __name__ == '__main__':
+#     start_polling(dp, skip_updates=True)
+    # start_webhook(
+    #     dispatcher=dp,
+    #     webhook_path=WEBHOOK_PATH,
+    #     skip_updates=True,
+    #     on_startup=on_startup,
+    #     on_shutdown=on_shutdown,
+    #     host=WEBAPP_HOST,
+    #     port=WEBAPP_PORT,
+    # )

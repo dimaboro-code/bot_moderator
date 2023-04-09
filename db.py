@@ -1,34 +1,45 @@
+from databases import Database
+from config import DATABASE_URL
+
+database = Database(DATABASE_URL)
 
 
+# database functions
+async def in_database(user_id):
+    results = await database.fetch_all(f'SELECT * FROM users '
+                                       f'WHERE user_id = :user_id',
+                                       values={'user_id': user_id})
+    return bool(len(results))
 
-# class Database:
-#     def __init__(self, db_file):
-#         self.connection = sqlite3.connect(db_file)
-#         self.cursor = self.connection.cursor()
-#
-#     def exist_user(self, user_id):
-#         with self.connection:
-#             res = self.cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id, )).fetchall()
-#             return bool(len(res))
-#
-#     def add(self, user_id):
-#         with self.connection:
-#             return self.connection.execute("INSERT INTO users ('user_id') VALUES (?)", (user_id,))
-#
-#     def mute(self, user_id):
-#         with self.connection:
-#             user = self.connection.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
-#             return user[5] == 1
-#
-#     def add_mute(self, user_id, is_mute=1):
-#         return self.connection.execute("UPDATE users SET moderator_username = ? WHERE user_id = ?",
-#         (is_mute, user_id))
-#
-#     def unmute(self, user_id, is_muted=''):
-#         with self.connection:
-#             lifes = self.cursor.execute("SELECT lifes FROM users WHERE user_id = ?", (user_id,)).fetchone()
-#             print(lifes[0])
-#         return (
-#             (self.connection.execute("UPDATE users SET is_muted = ? WHERE user_id = ?", (is_muted, user_id))),
-#             (self.connection.execute("UPDATE users SET lifes = ? WHERE user_id = ?", (lifes[0]-1, user_id)))
-#         )
+
+async def add_user(user_id):
+    await database.execute(f'INSERT INTO users (user_id, is_muted) '
+                           f'VALUES (:user_id, :is_muted)',
+                           values={'user_id': user_id,
+                                   'is_muted': True})
+
+
+async def add_mute(mute_data):
+    await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
+                           f'moderator_message, admin_username) '
+                           f'VALUES (:user_id, :message_id, :chat_id, '
+                           f':moderator_message, :admin_username)',
+                           values=mute_data)
+    user_id = mute_data['user_id']
+    lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+                                     values={'user_id': user_id})
+    lives = int(lives[0]) - 1
+    await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = TRUE '
+                           f'WHERE user_id = :user_id',
+                           values={'user_blocks': lives, 'user_id': user_id})
+
+
+async def remove_from_mute(user_id):
+    results = await database.fetch_all(
+        f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
+        f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)',
+        values={'user_id': user_id}
+    )
+    user_data = [next(res.values()) for res in results]
+    return [str(x) for x in user_data]
+

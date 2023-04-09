@@ -11,7 +11,5 @@ jsons/
 *.session
 __pycache__/
 db_data/
-/config/
-/config.py
 .DS_Store
 heroku.session.sql
