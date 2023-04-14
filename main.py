@@ -4,7 +4,7 @@ from contextlib import suppress
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID
 from db import *
 from cleaner import messages_for_delete
 
@@ -43,7 +43,7 @@ async def send_welcome(message: types.Message):
     :param message:
     :return:
     '''
-    await message.answer(f'')
+    await message.answer(message.chat.id)
 
 
 @dp.message_handler(commands=['help'], chat_type='private', state='*')
@@ -59,7 +59,6 @@ async def bot_help(message: types.Message):
     await message.answer(text, reply_markup=types.ReplyKeyboardRemove())
 
 
-
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
 async def unmute(message: types.Message):
     user_id = message.from_user.id
@@ -71,7 +70,7 @@ async def unmute(message: types.Message):
     last_mute = user_data[0]
     user_data = user_data[1]
     print(user_data['is_muted'], user_data['user_blocks'], last_mute['chat_id'])
-    if user_data['is_muted'] == False:
+    if user_data['is_muted'] is False:
         await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
         return
     if user_data['user_blocks'] >= 0:
@@ -93,7 +92,6 @@ async def unmute(message: types.Message):
         await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
 
 
-
 # group chat functions
 @dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 async def mute(message: types.Message):
@@ -110,7 +108,7 @@ async def mute(message: types.Message):
         'moderator_message': message.text[5:],
         'admin_username': message.from_user.username
     }
-    asyncio.create_task(delete_message(message, 10))
+
     # add user to database
     if not await in_database(mute_data['user_id']):
         await add_user(message.reply_to_message.from_user.id)
@@ -130,30 +128,62 @@ async def mute(message: types.Message):
         message.reply_to_message.from_user.id,
         permissions=mute_hummer
     )
-    tmp = await message.answer(message.chat.id)
+    tmp = await message.answer('Успешно')
+    await delete_message(tmp, 9)
+    await delete_message(message, 10)
+
+
+@dp.message_handler(commands=['ban'],  is_chat_admin=True, commands_prefix='!/')
+async def ban(message: types.Message):
+    if not message.reply_to_message:
+        tmp = await message.reply('Команда должна быть ответом на сообщение!', )
+        asyncio.create_task(delete_message(tmp, 10))
+    await bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
+    text = '{} c айди {} забанен в чате {} за {} админом {}'.format(
+        message.reply_to_message.from_user.username,
+        message.reply_to_message.from_user.id,
+        message.chat.id,
+        message.text[5:],
+        message.from_user.username
+    )
+    await bot.send_message(chat_id=LOG_CHANNEL_ID, text=text)
+    tmp = await message.answer(f'User {message.reply_to_message.from_user.username} is banned')
     asyncio.create_task(delete_message(tmp, 10))
+
+
+@dp.message_handler(commands=['unban'], commands_prefix='!/')
+async def unban(message: types.Message):
+    '''
+    в чате после команды через пробел пишется чат айди и юзер айди
+    :param message:
+    :return:
+    '''
+    cmd, chat_id, user_id = str(message.text).strip().split(' ')
+    await bot.unban_chat_member(chat_id=chat_id, user_id=user_id)
+    tmp = await message.answer('Разбанен')
+    asyncio.create_task(delete_message(tmp, 10))
+
 
 @dp.message_handler(content_types=messages_for_delete)
 async def delete_messages(message: types.Message):
     await message.delete()
 
 
-
-async def startup(dp):
-    await database.connect()
-async def shutdown(dp):
-    await database.disconnect()
+# async def startup(dp):
+#     await database.connect()
+# async def shutdown(dp):
+#     await database.disconnect()
 
 
 if __name__ == '__main__':
 
     # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    # start_webhook(
-    #     dispatcher=dp,
-    #     webhook_path=WEBHOOK_PATH,
-    #     skip_updates=True,
-    #     on_startup=on_startup,
-    #     on_shutdown=on_shutdown,
-    #     host=WEBAPP_HOST,
-    #     port=WEBAPP_PORT,
-    # )
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        skip_updates=True,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
