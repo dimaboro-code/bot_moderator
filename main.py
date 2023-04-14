@@ -5,7 +5,7 @@ from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFo
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
 from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
-from db import database, in_database, add_mute, add_user, remove_from_mute
+from db import *
 from cleaner import messages_for_delete
 
 
@@ -31,45 +31,67 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
         await message.delete()
 
 
-# database functions
-@dp.message_handler(commands=['in_database'])
-async def in_database(message: types.Message):
-    user_id = message.from_user.id
-    results = await database.fetch_all(f'SELECT * FROM users '
-                                       f'WHERE user_id = :user_id',
-                                       values={'user_id': user_id})
-    logging.info(bool(len(results)))
-    return bool(len(results))
+@dp.message_handler(commands=['delete_user'])
+async def delete_user(message: types.Message):
+    await delete_row(message.from_user.id)
 
 
 # private chat functions
-@dp.message_handler(commands=['start', 'help'], chat_type='private')
+@dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
-    await message.answer(f'Hello, {message.from_user.first_name}')
+    '''
+    :param message:
+    :return:
+    '''
+    await message.answer(f'')
+
+
+@dp.message_handler(commands=['help'], chat_type='private', state='*')
+async def bot_help(message: types.Message):
+    """
+    :param message:
+    :return:
+    """
+    text = 'Доступные команды\n\n'
+    text += '/start - запустить бота\n'
+    text += '/unmute - разблокироваться\n'
+    text += '/help - список доступных команд\n'
+    await message.answer(text, reply_markup=types.ReplyKeyboardRemove())
+
 
 
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
 async def unmute(message: types.Message):
     user_id = message.from_user.id
 
-    if not await in_database(message):
+    if not await in_database(user_id):
         return await message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
 
-    user_data = await remove_from_mute(user_id)
-    await message.answer(str(user_data))
+    user_data = await get_user_data(user_id)
+    last_mute = user_data[0]
+    user_data = user_data[1]
+    print(user_data['is_muted'], user_data['user_blocks'], last_mute['chat_id'])
+    if user_data['is_muted'] == False:
+        await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
+        return
+    if user_data['user_blocks'] >= 0:
+        await db_unmute()
 
-    unmute_hammer = types.ChatPermissions(
-        can_send_messages=True,
-        can_send_media_messages=True,
-        can_send_other_messages=True,
-        can_add_web_page_previews=True
-    )
-    await bot.restrict_chat_member(
-        -1001868029361,
-        user_id,
-        permissions=unmute_hammer
-    )
-    await message.answer('done')
+        unmute_hammer = types.ChatPermissions(
+            can_send_messages=True,
+            can_send_media_messages=True,
+            can_send_other_messages=True,
+            can_add_web_page_previews=True
+        )
+        await bot.restrict_chat_member(
+            last_mute['chat_id'],
+            user_data['user_id'],
+            permissions=unmute_hammer
+        )
+        await message.answer('Вы разблокированы! у вас осталось {} разблоков'.format(user_data['user_blocks']))
+    else:
+        await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
+
 
 
 # group chat functions
@@ -88,8 +110,9 @@ async def mute(message: types.Message):
         'moderator_message': message.text[5:],
         'admin_username': message.from_user.username
     }
+    asyncio.create_task(delete_message(message, 10))
     # add user to database
-    if not in_database(mute_data['user_id']):
+    if not await in_database(mute_data['user_id']):
         await add_user(message.reply_to_message.from_user.id)
     # add mute to database
     await add_mute(mute_data)
@@ -109,16 +132,22 @@ async def mute(message: types.Message):
     )
     tmp = await message.answer(message.chat.id)
     asyncio.create_task(delete_message(tmp, 10))
-    await message.delete()
-
 
 @dp.message_handler(content_types=messages_for_delete)
 async def delete_messages(message: types.Message):
     await message.delete()
 
 
-# if __name__ == '__main__':
-#     start_polling(dp, skip_updates=True)
+
+async def startup(dp):
+    await database.connect()
+async def shutdown(dp):
+    await database.disconnect()
+
+
+if __name__ == '__main__':
+
+    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
     # start_webhook(
     #     dispatcher=dp,
     #     webhook_path=WEBHOOK_PATH,
