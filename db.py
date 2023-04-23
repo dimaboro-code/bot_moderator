@@ -6,6 +6,11 @@ database = Database(DATABASE_URL + '?ssl=true')
 
 
 # database functions
+"""
+Table
+Users - user_id, is_muted, user_blocks
+Mutes - message_id, chat_id, admin_username (switch to id), moderator_message, date_of_mute
+"""
 
 
 async def in_database(user_id):
@@ -24,7 +29,7 @@ async def add_user(user_id):
 
 async def add_mute(mute_data):
     await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
-                           f'moderator_message, admin_username, date_of_mute) '
+                           f'moderator_message, admin_username, date_of_mute) '  # admin un switch to admin_id
                            f'VALUES (:user_id, :message_id, :chat_id, '
                            f':moderator_message, :admin_username, NOW())',
                            values=mute_data)
@@ -37,11 +42,26 @@ async def add_mute(mute_data):
                            values={'user_blocks': lives, 'user_id': user_id})
 
 
+# Говнокод. Переделать.
+async def add_lifes(user_id, lifes: int = 1):
+    lives_in_db = await database.fetch_one(
+        f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+        values={'user_id': user_id}
+    )
+    lifes = int(lives_in_db[0]) + lifes
+    await database.execute(
+        f'UPDATE users '
+        f'SET user_blocks=:lifes '
+        f'WHERE user_id=:user_id',
+        values={'lifes': lifes, 'user_id': user_id}
+    )
+
+
 async def get_user_data(user_id):
     # из мьютов мне нужен айди чата
     # из юзердаты количество жизней
     get_last_mute = (f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
-                 f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)')
+                     f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)')
     get_user_data = f'SELECT * FROM users WHERE user_id = :user_id'
     last_mute = await database.fetch_one(
         query=get_last_mute,
@@ -52,7 +72,7 @@ async def get_user_data(user_id):
         values={'user_id': user_id}
     )
 
-    return (last_mute, user_data)
+    return last_mute, user_data
 
 
 async def db_unmute():

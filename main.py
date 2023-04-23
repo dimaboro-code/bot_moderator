@@ -4,7 +4,7 @@ from contextlib import suppress
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID
+from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID, CHATS
 from db import *
 from cleaner import messages_for_delete
 
@@ -39,11 +39,38 @@ async def delete_user(message: types.Message):
 # private chat functions
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
-    '''
+    await bot_help(message)
+    await status(message)
+
+
+@dp.message_handler(commands=['status'], chat_type='private')
+async def status(message: types.Message):
+    ''' start func
     :param message:
     :return:
     '''
-    await message.answer(message.chat.id)
+    user_id = message.from_user.id
+    is_in_database = await in_database(user_id=user_id)
+    if not is_in_database:
+        await message.answer('Здравствуйте!\n Вы не блокировались ботом.')
+        return
+    last_mute, user_data = await get_user_data(user_id=user_id)
+    chat = await bot.get_chat(last_mute["chat_id"])
+    reason_to_mute = await bot.send_message(chat_id=last_mute["chat_id"],
+                                            reply_to_message_id=last_mute["message_id"],
+                                            text='text')
+    answer = (f'Статус\n'
+ 
+              f'Текущее состояние: {("разблокирован", "заблокирован")[user_data["is_muted"]]}\n' 
+              f'Осталось разблокировок: {user_data["user_blocks"]}\n\n' 
+              f'Последний мьют\n' 
+              f'Причина: {last_mute["moderator_message"]}\n' 
+              f'Чат: {chat.username}\n' 
+              f'Админ: {last_mute["admin_username"]}\n' 
+              f'Сообщение: {reason_to_mute.reply_to_message.text}\n' 
+              f'Дата мьюта: {last_mute["date_of_mute"]}')
+    await delete_message(reason_to_mute)
+    await message.answer(answer)
 
 
 @dp.message_handler(commands=['help'], chat_type='private', state='*')
@@ -59,18 +86,26 @@ async def bot_help(message: types.Message):
     await message.answer(text, reply_markup=types.ReplyKeyboardRemove())
 
 
+@dp.message_handler(commands=['chat_id'], chat_type='private')
+async def get_chat_id(message: types.Message):
+    username = message.text[9:]
+    chat = await bot.get_chat(username)
+    await message.answer(chat.id)
+
+
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
 async def unmute(message: types.Message):
     user_id = message.from_user.id
 
     if not await in_database(user_id):
-        return await message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
+        await message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
+        return
 
     user_data = await get_user_data(user_id)
     last_mute = user_data[0]
     user_data = user_data[1]
-    print(user_data['is_muted'], user_data['user_blocks'], last_mute['chat_id'])
-    if user_data['is_muted'] is False:
+    member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
+    if member.can_send_messages:
         await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
         return
     if user_data['user_blocks'] >= 0:
@@ -87,7 +122,7 @@ async def unmute(message: types.Message):
             user_data['user_id'],
             permissions=unmute_hammer
         )
-        await message.answer('Вы разблокированы! у вас осталось {} разблоков'.format(user_data['user_blocks']))
+        await status(message)
     else:
         await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
 
@@ -98,7 +133,7 @@ async def mute(message: types.Message):
     # checking form to be right
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        asyncio.create_task(delete_message(tmp, 10))
+        await delete_message(tmp, 10)
 
     # data added to db
     mute_data = {
@@ -133,11 +168,18 @@ async def mute(message: types.Message):
     await delete_message(message, 10)
 
 
+@dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
+async def add_unblocks(message: types.Message):
+    user_id = message.reply_to_message.from_user.id
+    lifes = int(message.text[14:]) if len(str(message.text)) == 15 else 1
+    await add_lifes(user_id, lifes)
+
+
 @dp.message_handler(commands=['ban'],  is_chat_admin=True, commands_prefix='!/')
 async def ban(message: types.Message):
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        asyncio.create_task(delete_message(tmp, 10))
+        await delete_message(tmp, 10)
     await bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
     text = '{} c айди {} забанен в чате {} за {} админом {}'.format(
         message.reply_to_message.from_user.username,
@@ -171,6 +213,8 @@ async def delete_messages(message: types.Message):
 
 # async def startup(dp):
 #     await database.connect()
+#
+#
 # async def shutdown(dp):
 #     await database.disconnect()
 

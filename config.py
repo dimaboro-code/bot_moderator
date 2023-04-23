@@ -7,6 +7,7 @@ TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
+CHATS = [-1001302438185, -1001808148145]  #figmachat, figmaforum
 
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
