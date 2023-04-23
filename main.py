@@ -135,6 +135,10 @@ async def mute(message: types.Message):
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
         await delete_message(tmp, 10)
 
+    if len(message.text.strip()) < 6:
+        await message.answer('Нужно указать причину мьюта')
+        await delete_message(message, 10)
+
     # data added to db
     mute_data = {
         'chat_id': message.chat.id,
@@ -173,6 +177,7 @@ async def add_unblocks(message: types.Message):
     user_id = message.reply_to_message.from_user.id
     lifes = int(message.text[14:]) if len(str(message.text)) == 15 else 1
     await add_lifes(user_id, lifes)
+    await message.delete()
 
 
 @dp.message_handler(commands=['ban'],  is_chat_admin=True, commands_prefix='!/')
@@ -211,23 +216,23 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-# async def startup(dp):
-#     await database.connect()
-#
-#
-# async def shutdown(dp):
-#     await database.disconnect()
+async def startup(dp):
+    await database.connect()
+
+
+async def shutdown(dp):
+    await database.disconnect()
 
 
 if __name__ == '__main__':
 
-    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+    # start_webhook(
+    #     dispatcher=dp,
+    #     webhook_path=WEBHOOK_PATH,
+    #     skip_updates=True,
+    #     on_startup=on_startup,
+    #     on_shutdown=on_shutdown,
+    #     host=WEBAPP_HOST,
+    #     port=WEBAPP_PORT,
+    # )
