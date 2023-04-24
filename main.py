@@ -56,9 +56,7 @@ async def status(message: types.Message):
         return
     last_mute, user_data = await get_user_data(user_id=user_id)
     chat = await bot.get_chat(last_mute["chat_id"])
-    reason_to_mute = await bot.send_message(chat_id=last_mute["chat_id"],
-                                            reply_to_message_id=last_mute["message_id"],
-                                            text='text')
+    reason_to_mute = await bot.get_message(chat_id=last_mute["chat_id"])
     answer = (f'Статус\n'
  
               f'Текущее состояние: {("разблокирован", "заблокирован")[user_data["is_muted"]]}\n' 
@@ -67,7 +65,7 @@ async def status(message: types.Message):
               f'Причина: {last_mute["moderator_message"]}\n' 
               f'Чат: {chat.username}\n' 
               f'Админ: {last_mute["admin_username"]}\n' 
-              f'Сообщение: {reason_to_mute.reply_to_message.text}\n' 
+              f'Сообщение: {reason_to_mute.text}\n' 
               f'Дата мьюта: {last_mute["date_of_mute"]}')
     await delete_message(reason_to_mute)
     await message.answer(answer)
