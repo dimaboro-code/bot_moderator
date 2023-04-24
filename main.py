@@ -165,7 +165,8 @@ async def mute(message: types.Message):
     await bot.restrict_chat_member(
         message.chat.id,
         message.reply_to_message.from_user.id,
-        permissions=mute_hummer
+        permissions=mute_hummer, 
+        until_date=10
     )
     tmp = await message.answer('Успешно')
     await delete_message(tmp, 9)
