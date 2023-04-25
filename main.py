@@ -131,11 +131,11 @@ async def mute(message: types.Message):
     # checking form to be right
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        await delete_message(tmp, 10)
+        await delete_message(tmp, 5)
 
     if len(message.text.strip()) < 6:
         await message.answer('Нужно указать причину мьюта')
-        await delete_message(message, 10)
+        await delete_message(message, 5)
 
     # data added to db
     mute_data = {
@@ -167,8 +167,8 @@ async def mute(message: types.Message):
         until_date=10
     )
     tmp = await message.answer('Успешно')
-    await delete_message(tmp, 9)
-    await delete_message(message, 10)
+    await delete_message(tmp, 5)
+    await delete_message(message, 5)
 
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
@@ -194,7 +194,7 @@ async def ban(message: types.Message):
     )
     await bot.send_message(chat_id=LOG_CHANNEL_ID, text=text)
     tmp = await message.answer(f'User {message.reply_to_message.from_user.username} is banned')
-    asyncio.create_task(delete_message(tmp, 10))
+    asyncio.create_task(delete_message(tmp, 5))
 
 
 @dp.message_handler(commands=['unban'], commands_prefix='!/')
