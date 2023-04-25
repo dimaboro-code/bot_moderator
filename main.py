@@ -167,8 +167,8 @@ async def mute(message: types.Message):
         until_date=10
     )
     tmp = await message.answer('Успешно')
-    await delete_message(tmp, 5)
-    await delete_message(message, 5)
+    await delete_message(tmp, 1)
+    await delete_message(message, 2)
 
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
