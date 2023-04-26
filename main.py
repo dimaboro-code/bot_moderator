@@ -88,9 +88,11 @@ async def bot_help(message: types.Message):
 async def get_chat_id(message: types.Message):
     chat_ids = []
     text = message.text.strip().split()
-    for chat in text[:1]:
+    text.pop(0)
+    for chat in text:
+        print(chat)
         chat_id = await bot.get_chat(chat)
-        chat_ids.append(chat_id)
+        chat_ids.append(chat_id.id)
     await message.answer(chat_ids)
 
 
@@ -221,12 +223,12 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-# async def startup(dp):
-#     await database.connect()
-#
-#
-# async def shutdown(dp):
-#     await database.disconnect()
+async def startup(dp):
+    await database.connect()
+
+
+async def shutdown(dp):
+    await database.disconnect()
 
 
 if __name__ == '__main__':
