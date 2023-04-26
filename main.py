@@ -31,6 +31,25 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
         await message.delete()
 
 
+async def restrict(message: types.Message, chat, mute_hummer):
+    await bot.restrict_chat_member(
+        chat_id=chat,
+        user_id=message.reply_to_message.from_user.id,
+        permissions=mute_hummer,
+        until_date=10
+    )
+    tmp = await message.answer('Успешно')
+    await delete_message(tmp, 5)
+
+
+async def unrestrict(chat, unmute_hummer, user_data: dict):
+    await bot.restrict_chat_member(
+        chat_id=chat,
+        permissions=unmute_hummer,
+        user_id=user_data['user_id']
+    )
+
+
 @dp.message_handler(commands=['delete_user'])
 async def delete_user(message: types.Message):
     await delete_row(message.from_user.id)
@@ -56,18 +75,17 @@ async def status(message: types.Message):
         return
     last_mute, user_data = await get_user_data(user_id=user_id)
     chat = await bot.get_chat(last_mute["chat_id"])
-    reason_to_mute = await bot.get_message(chat_id=last_mute["chat_id"], message_id=last_mute["message_id"])
+    # reason_to_mute = await bot.forward_message(from_chat_id=last_mute["chat_id"], message_id=last_mute["message_id"])
     answer = (f'Статус\n'
- 
               f'Текущее состояние: {("разблокирован", "заблокирован")[user_data["is_muted"]]}\n' 
               f'Осталось разблокировок: {user_data["user_blocks"]}\n\n' 
               f'Последний мьют\n' 
               f'Причина: {last_mute["moderator_message"]}\n' 
               f'Чат: {chat.username}\n' 
               f'Админ: {last_mute["admin_username"]}\n' 
-              f'Сообщение: {reason_to_mute.text}\n' 
+              # f'Сообщение: {reason_to_mute.text}\n' 
               f'Дата мьюта: {last_mute["date_of_mute"]}')
-    await delete_message(reason_to_mute)
+    # await delete_message(reason_to_mute)
     await message.answer(answer)
 
 
@@ -112,14 +130,12 @@ async def unmute(message: types.Message):
         unmute_hammer = types.ChatPermissions(
             can_send_messages=True,
             can_send_media_messages=True,
+            can_send_polls=True,
             can_send_other_messages=True,
             can_add_web_page_previews=True
         )
-        await bot.restrict_chat_member(
-            last_mute['chat_id'],
-            user_data['user_id'],
-            permissions=unmute_hammer
-        )
+        for chat in CHATS:
+            await unrestrict(chat, unmute_hammer, user_data)
         await status(message)
     else:
         await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
@@ -160,15 +176,10 @@ async def mute(message: types.Message):
         can_add_web_page_previews=False
     )
     # change permissions
-    await bot.restrict_chat_member(
-        message.chat.id,
-        message.reply_to_message.from_user.id,
-        permissions=mute_hummer, 
-        until_date=10
-    )
-    tmp = await message.answer('Успешно')
-    await delete_message(tmp, 5)
+    for chat in CHATS:
+        await restrict(message, chat, mute_hummer)
     await delete_message(message, 5)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
 
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
@@ -207,7 +218,7 @@ async def unban(message: types.Message):
     cmd, chat_id, user_id = str(message.text).strip().split(' ')
     await bot.unban_chat_member(chat_id=chat_id, user_id=user_id)
     tmp = await message.answer('Разбанен')
-    asyncio.create_task(delete_message(tmp, 10))
+    await delete_message(tmp, 10)
 
 
 @dp.message_handler(content_types=messages_for_delete)
