@@ -4,6 +4,7 @@ from contextlib import suppress
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
+from aiogram.dispatcher.filters import BoundFilter
 from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID, CHATS
 from db import *
 from cleaner import messages_for_delete
@@ -12,6 +13,21 @@ from cleaner import messages_for_delete
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
+class ChatAdminFilter(BoundFilter):
+    key = 'admin_id'
+
+    def __init__(self):
+        pass
+
+    def check(self, message: types.Message) -> bool:
+        chat = -1001302438185
+        member = await bot.get_chat_member(chat, message.from_user.id)
+        admin = await member.is_chat_admin()
+        return admin
+
+
+dp.filters_factory.bind(ChatAdminFilter, event_handlers=[dp.message_handlers])
 
 # webhook control
 async def on_startup(dispatcher):
@@ -37,6 +53,9 @@ async def delete_user(message: types.Message):
 
 
 async def restrict(user, chat, hummer):
+    member = await bot.get_chat_member(chat, user)
+    if not member.is_chat_member():
+        return
     await bot.restrict_chat_member(
         chat_id=chat,
         user_id=user,
@@ -46,6 +65,9 @@ async def restrict(user, chat, hummer):
 
 
 # private chat functions
+
+
+
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
     await bot_help(message)
@@ -63,7 +85,8 @@ async def status(message: types.Message):
     if not is_in_database:
         await message.answer('Здравствуйте!\n Вы не блокировались ботом.')
         return
-    last_mute, user_data = await get_user_data(user_id=user_id)
+    last_mute = await get_last_mute(user_id)
+    user_data = await get_user(user_id)
     chat = await bot.get_chat(last_mute["chat_id"])
     reason_to_mute = await bot.get_message(chat_id=last_mute["chat_id"], message_id=last_mute["message_id"])
     answer = (f'Статус\n'
@@ -98,6 +121,7 @@ async def get_chat_id(message: types.Message):
     chat_ids = []
     text = message.text.strip().split()
     text.pop(0)
+    answer = None
     for chat in text:
         print(chat)
         chat_id = await bot.get_chat(chat)
@@ -114,27 +138,24 @@ async def unmute(message: types.Message):
         await message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
         return
 
-    user_data = await get_user_data(user_id)
-    last_mute = user_data[0]
-    user_data = user_data[1]
+    last_mute = await get_last_mute(user_id)
+    user_data = await get_user(user_id)
     member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
     if member.can_send_messages:
         await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
         return
     if user_data['user_blocks'] >= 0:
-        await db_unmute()
+        await db_unmute(user_id)
 
         unmute_hammer = types.ChatPermissions(
             can_send_messages=True,
             can_send_media_messages=True,
             can_send_other_messages=True,
+            can_send_polls=True,
             can_add_web_page_previews=True
         )
-        await bot.restrict_chat_member(
-            last_mute['chat_id'],
-            user_data['user_id'],
-            permissions=unmute_hammer
-        )
+        for chat in CHATS:
+            await restrict(user_id, chat, unmute_hammer)
         await status(message)
     else:
         await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
@@ -195,8 +216,8 @@ async def mute(message: types.Message):
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
 async def add_unblocks(message: types.Message):
     user_id = message.reply_to_message.from_user.id
-    lifes = int(message.text[14:]) if len(str(message.text)) == 15 else 1
-    await add_lifes(user_id, lifes)
+    lives = int(message.text[14:]) if len(str(message.text)) == 15 else 1
+    await add_lives(user_id, lives)
     await message.delete()
 
 
