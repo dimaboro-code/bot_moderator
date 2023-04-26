@@ -57,7 +57,7 @@ async def add_lifes(user_id, lifes: int = 1):
     )
 
 
-async def get_user_data(user_id):
+async def get_user_data(user_id):  # переделать в get_user и get_mutes
     # из мьютов мне нужен айди чата
     # из юзердаты количество жизней
     get_last_mute = (f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('

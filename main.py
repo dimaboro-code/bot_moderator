@@ -86,9 +86,12 @@ async def bot_help(message: types.Message):
 
 @dp.message_handler(commands=['chat_id'], chat_type='private')
 async def get_chat_id(message: types.Message):
-    username = message.text[9:]
-    chat = await bot.get_chat(username)
-    await message.answer(chat.id)
+    chat_ids = []
+    text = message.text.strip().split()
+    for chat in text[:1]:
+        chat_id = await bot.get_chat(chat)
+        chat_ids.append(chat_id)
+    await message.answer(chat_ids)
 
 
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
@@ -131,11 +134,12 @@ async def mute(message: types.Message):
     # checking form to be right
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        await delete_message(tmp, 5)
+        await delete_message(tmp, 1)
 
     if len(message.text.strip()) < 6:
-        await message.answer('Нужно указать причину мьюта')
-        await delete_message(message, 5)
+        tmp = await message.answer('Нужно указать причину мьюта')
+        await delete_message(message, 1)
+        await delete_message(tmp, 1)
 
     # data added to db
     mute_data = {
@@ -149,6 +153,7 @@ async def mute(message: types.Message):
     # add user to database
     if not await in_database(mute_data['user_id']):
         await add_user(message.reply_to_message.from_user.id)
+
     # add mute to database
     await add_mute(mute_data)
 
@@ -168,7 +173,8 @@ async def mute(message: types.Message):
     )
     tmp = await message.answer('Успешно')
     await delete_message(tmp, 1)
-    await delete_message(message, 2)
+    await delete_message(message, 1)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
 
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
