@@ -36,6 +36,15 @@ async def delete_user(message: types.Message):
     await delete_row(message.from_user.id)
 
 
+async def restrict(user, chat, hummer):
+    await bot.restrict_chat_member(
+        chat_id=chat,
+        user_id=user,
+        permissions=hummer,
+        until_date=10
+    )
+
+
 # private chat functions
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
@@ -93,7 +102,8 @@ async def get_chat_id(message: types.Message):
         print(chat)
         chat_id = await bot.get_chat(chat)
         chat_ids.append(chat_id.id)
-    await message.answer(chat_ids)
+        answer = ' '.join(chat_ids)
+    await message.answer(answer)
 
 
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
@@ -133,6 +143,8 @@ async def unmute(message: types.Message):
 # group chat functions
 @dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 async def mute(message: types.Message):
+
+    user_id = message.reply_to_message.from_user.id
     # checking form to be right
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
@@ -156,9 +168,6 @@ async def mute(message: types.Message):
     if not await in_database(mute_data['user_id']):
         await add_user(message.reply_to_message.from_user.id)
 
-    # add mute to database
-    await add_mute(mute_data)
-
     # set permissions to forbidden
     mute_hummer = types.ChatPermissions(
         can_send_messages=False,
@@ -167,15 +176,19 @@ async def mute(message: types.Message):
         can_add_web_page_previews=False
     )
     # change permissions
-    await bot.restrict_chat_member(
-        message.chat.id,
-        message.reply_to_message.from_user.id,
-        permissions=mute_hummer, 
-        until_date=10
-    )
+    for chat in CHATS:
+        member = await bot.get_chat_member(chat, user_id)
+        if not member.is_chat_member():
+            continue
+        await restrict(user_id, chat, mute_hummer)
     tmp = await message.answer('Успешно')
+
+    # add mute to database
+    await add_mute(mute_data)
+
+    # delete messages
     await delete_message(tmp, 1)
-    await delete_message(message, 1)
+    await delete_message(message)
     await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
 
 
