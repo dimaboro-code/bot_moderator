@@ -144,11 +144,12 @@ async def unmute(message: types.Message):
 # group chat functions
 @dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 async def mute(message: types.Message):
-    # checking form to be right
+    # checking form to be correct
     if not message.reply_to_message:
         tmp = await message.reply('Команда должна быть ответом на сообщение!', )
         await delete_message(tmp, 5)
 
+    # checking to admin message
     if len(message.text.strip()) < 6:
         await message.answer('Нужно указать причину мьюта')
         await delete_message(message, 5)
