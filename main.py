@@ -60,6 +60,20 @@ async def restrict(user, chat, hummer):
 
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
+    hello_message = (
+        f'Привет!\n'
+        f'Раз ты тут, то, наверное, тебя лишили голоса (замьютили) в чатах проекта @slashdesigner. '
+        f'Мьют в одном чате действует во всех наших чатах сразу.\n'
+        f'Я помогу тебе разблокироваться, только прочитай перед этим наши правила, '
+        f'чтобы избежать новых блокировок в будущем.\n'
+        f'@figmachat        <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
+        f'@designchat2     <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
+        f'@whatthefontt    <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
+        f'@systemschat     <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
+        f'У каждого участника чатов есть 3 разблока — возможности вернуть голос во всех чатах. '
+        f'После третьего мьюта нам придётся навсегда оставить тебя в режиме читателя.'
+    )
+    await message.answer(hello_message, parse_mode='HTML', disable_web_page_preview=True)
     await bot_help(message)
     await status(message)
 
@@ -264,13 +278,13 @@ async def shutdown(dp):
 
 if __name__ == '__main__':
 
-    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+    # start_webhook(
+    #     dispatcher=dp,
+    #     webhook_path=WEBHOOK_PATH,
+    #     skip_updates=True,
+    #     on_startup=on_startup,
+    #     on_shutdown=on_shutdown,
+    #     host=WEBAPP_HOST,
+    #     port=WEBAPP_PORT,
+    # )
