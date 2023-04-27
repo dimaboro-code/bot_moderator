@@ -268,12 +268,12 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-async def startup(dp):
-    await database.connect()
-
-
-async def shutdown(dp):
-    await database.disconnect()
+# async def startup(dp):
+#     await database.connect()
+#
+#
+# async def shutdown(dp):
+#     await database.disconnect()
 
 
 if __name__ == '__main__':
