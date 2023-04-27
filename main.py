@@ -1,6 +1,8 @@
 import asyncio
 import logging
 from contextlib import suppress
+
+import aiogram.utils.exceptions
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
@@ -38,8 +40,11 @@ async def delete_user(message: types.Message):
 
 
 async def restrict(user, chat, hummer):
-    member = await bot.get_chat_member(chat, user)
-    if not member.is_chat_member():
+    try:
+        member = await bot.get_chat_member(chat, user)
+        if not member.is_chat_member():
+            return
+    except aiogram.exceptions.BadRequest:
         return
     await bot.restrict_chat_member(
         chat_id=chat,
@@ -125,12 +130,17 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
-    member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
-    print(member.can_send_messages)
-    if member.can_send_messages is True:
-        await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
-        return
-    if user_data['user_blocks'] >= 0:
+    print(last_mute['chat_id'], user_id, last_mute['user_id'])
+    # для получения инфы о пользователе нужно быть админом группы
+    try:
+        member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
+        print(member)
+        if member.can_send_messages is True:
+            await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
+            return
+    except aiogram.exceptions.BadRequest:
+        pass
+    if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
 
         unmute_hammer = types.ChatPermissions(
@@ -184,8 +194,9 @@ async def mute(message: types.Message):
     )
     # change permissions
     for chat in CHATS:
-        member = await bot.get_chat_member(chat, user_id)
-        if not member.is_chat_member():
+        try:
+            member = await bot.get_chat_member(chat, user_id)
+        except aiogram.utils.exceptions.BadRequest:
             continue
         await restrict(user_id, chat, mute_hummer)
     tmp = await message.answer('Успешно')
@@ -202,7 +213,7 @@ async def mute(message: types.Message):
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
 async def add_unblocks(message: types.Message):
     user_id = message.reply_to_message.from_user.id
-    lives = int(message.text[14:]) if len(str(message.text)) == 15 else 1
+    lives = int(message.text[14:]) if len(str(message.text)) >= 15 else 1
     await add_lives(user_id, lives)
     await message.delete()
 

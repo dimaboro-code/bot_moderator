@@ -63,7 +63,7 @@ async def get_user(user_id):  # переделать в get_user и get_mutes
     return user_data
 
 
-async def get_last_mute(user_id):  # переделать в get_user и get_mutes
+async def get_last_mute(user_id):
     # из мьютов мне нужен айди чата
     query = (f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
                      f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)')
@@ -83,7 +83,7 @@ async def db_unmute(user_id):
     lives = await database.fetch_one(f'SELECT user_blocks FROM users WHERE user_id = :user_id',
                                      values={'user_id': user_id})
     lives = int(lives[0]) - 1
-    await database.execute(f'UPDATE users SET user_blocks = :user_blocks, is_muted = TRUE '
+    await database.execute(f'UPDATE users SET user_blocks = :user_blocks '
                            f'WHERE user_id = :user_id',
                            values={'user_blocks': lives, 'user_id': user_id})
 
