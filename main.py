@@ -110,7 +110,7 @@ async def get_chat_id(message: types.Message):
     for chat in text:
         print(chat)
         chat_id = await bot.get_chat(chat)
-        chat_ids.append(chat_id.id)
+        chat_ids.append(str(chat_id.id))
         answer = ' '.join(chat_ids)
     await message.answer(answer)
 
