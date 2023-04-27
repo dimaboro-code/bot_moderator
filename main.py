@@ -67,9 +67,9 @@ async def send_welcome(message: types.Message):
         f'Я помогу тебе разблокироваться, только прочитай перед этим наши правила, '
         f'чтобы избежать новых блокировок в будущем.\n\n'
         f'@figmachat        <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
-        f'@designchat2     <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
-        f'@whatthefontt    <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
-        f'@systemschat     <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n\n'
+        f'@designchat2     <a href="https://slashdesigner.ru/designchat/rules">Правила</a>\n'
+        f'@whatthefontt    <a href="https://slashdesigner.ru/whatthefont/rules">Правила</a>\n'
+        f'@systemschat     <a href="http://slashd.ru/systemschat/rules">Правила</a>\n\n'
         f'У каждого участника чатов есть 3 разблока — возможности вернуть голос во всех чатах. '
         f'После третьего мьюта нам придётся навсегда оставить тебя в режиме читателя.'
     )
