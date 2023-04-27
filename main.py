@@ -14,21 +14,6 @@ from cleaner import messages_for_delete
 logging.basicConfig(level=logging.INFO)
 
 
-class ChatAdminFilter(BoundFilter):
-    key = 'admin_id'
-
-    def __init__(self):
-        pass
-
-    def check(self, message: types.Message) -> bool:
-        chat = -1001302438185
-        member = await bot.get_chat_member(chat, message.from_user.id)
-        admin = await member.is_chat_admin()
-        return admin
-
-
-dp.filters_factory.bind(ChatAdminFilter, event_handlers=[dp.message_handlers])
-
 # webhook control
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
@@ -141,7 +126,8 @@ async def unmute(message: types.Message):
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
     member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
-    if member.can_send_messages:
+    print(member.can_send_messages)
+    if member.can_send_messages is True:
         await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
         return
     if user_data['user_blocks'] >= 0:
@@ -158,7 +144,7 @@ async def unmute(message: types.Message):
             await restrict(user_id, chat, unmute_hammer)
         await status(message)
     else:
-        await message.answer('У Вас закончились разблоки. Ожидайте, когда Дима напишет нужный функционал.')
+        await message.answer('У Вас закончились разблоки.')
 
 
 # group chat functions
@@ -267,13 +253,13 @@ async def shutdown(dp):
 
 if __name__ == '__main__':
 
-    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+    # start_webhook(
+    #     dispatcher=dp,
+    #     webhook_path=WEBHOOK_PATH,
+    #     skip_updates=True,
+    #     on_startup=on_startup,
+    #     on_shutdown=on_shutdown,
+    #     host=WEBAPP_HOST,
+    #     port=WEBAPP_PORT,
+    # )
