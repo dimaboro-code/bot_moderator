@@ -43,9 +43,9 @@ async def restrict(user, chat, hummer):
     try:
         member = await bot.get_chat_member(chat, user)
         if not member.is_chat_member():
-            return
+            return None
     except aiogram.exceptions.BadRequest:
-        return
+        return None
     await bot.restrict_chat_member(
         chat_id=chat,
         user_id=user,
@@ -144,7 +144,6 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
-    print(last_mute['chat_id'], user_id, last_mute['user_id'])
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
