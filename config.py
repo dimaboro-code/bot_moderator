@@ -11,7 +11,7 @@ LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
 #figmachat, figmaforum, designchat2, systemchat, framerchat, whatthefontt, notionchatt, slashcomments
 # тест бота
 CHATS = [-1001302438185, -1001808148145, -1001398488197, -1001214185649, -1001124768091
-         -1001753295642, -1001834470919, -1001191920744, -1001868029361]
+         -1001753295642, -1001191920744, -1001868029361]
 
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
