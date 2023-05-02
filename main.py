@@ -86,17 +86,20 @@ async def status(message: types.Message):
     user_id = message.from_user.id
     is_in_database = await in_database(user_id=user_id)
     if not is_in_database:
-        await message.answer('Здравствуйте!\n Вы не блокировались ботом.')
+        await message.answer('Статус:\n Вы не блокировались ботом.')
         return None
     last_mute = await get_last_mute(user_id)
+    if last_mute is None:
+        await message.answer('Нет данных о мьюте')
+    else:
+        chat = await bot.get_chat(last_mute["chat_id"])
     user_data = await get_user(user_id)
-    chat = await bot.get_chat(last_mute["chat_id"])
     # reason_to_mute = await bot.get_message(chat_id=last_mute["chat_id"], message_id=last_mute["message_id"])
     answer = (f'Статус\n'
  
               f'Текущее состояние: {("разблокирован", "заблокирован")[user_data["is_muted"]]}\n' 
               f'Осталось разблокировок: {user_data["user_blocks"]}\n\n' 
-              f'Последний мьют\n' 
+              f'Последний мьют\n'
               f'Причина: {last_mute["moderator_message"]}\n' 
               f'Чат: {chat.username}\n' 
               f'Админ: {last_mute["admin_username"]}\n' 
@@ -151,7 +154,7 @@ async def unmute(message: types.Message):
         if member.can_send_messages is True:
             await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
             return
-    except aiogram.exceptions.BadRequest:
+    except AttributeError:
         pass
     if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
@@ -268,23 +271,23 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-async def startup(dp):
-    await database.connect()
-
-
-async def shutdown(dp):
-    await database.disconnect()
+# async def startup(dp):
+#     await database.connect()
+#
+#
+# async def shutdown(dp):
+#     await database.disconnect()
 
 
 if __name__ == '__main__':
 
-    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    # start_webhook(
-    #     dispatcher=dp,
-    #     webhook_path=WEBHOOK_PATH,
-    #     skip_updates=True,
-    #     on_startup=on_startup,
-    #     on_shutdown=on_shutdown,
-    #     host=WEBAPP_HOST,
-    #     port=WEBAPP_PORT,
-    # )
+    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        skip_updates=True,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
