@@ -59,19 +59,17 @@ async def get_user(user_id):  # переделать в get_user и get_mutes
         query=get_user_data,
         values={'user_id': user_id}
     )
-
     return user_data
 
 
 async def get_last_mute(user_id):
     # из мьютов мне нужен айди чата
     query = (f'SELECT * FROM mutes WHERE user_id = :user_id AND id = ('
-                     f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)')
+             f'SELECT MAX (id) FROM mutes WHERE user_id = :user_id)')
     last_mute = await database.fetch_one(
         query=query,
         values={'user_id': user_id}
     )
-
     return last_mute
 
 

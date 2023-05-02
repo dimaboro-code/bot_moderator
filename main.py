@@ -57,7 +57,6 @@ async def restrict(user, chat, hummer):
 # private chat functions
 
 
-
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
     hello_message = (
@@ -88,7 +87,7 @@ async def status(message: types.Message):
     is_in_database = await in_database(user_id=user_id)
     if not is_in_database:
         await message.answer('Здравствуйте!\n Вы не блокировались ботом.')
-        return
+        return None
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
     chat = await bot.get_chat(last_mute["chat_id"])
@@ -144,6 +143,7 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
+    print(last_mute)
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
@@ -268,23 +268,23 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-# async def startup(dp):
-#     await database.connect()
-#
-#
-# async def shutdown(dp):
-#     await database.disconnect()
+async def startup(dp):
+    await database.connect()
+
+
+async def shutdown(dp):
+    await database.disconnect()
 
 
 if __name__ == '__main__':
 
-    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+    # start_webhook(
+    #     dispatcher=dp,
+    #     webhook_path=WEBHOOK_PATH,
+    #     skip_updates=True,
+    #     on_startup=on_startup,
+    #     on_shutdown=on_shutdown,
+    #     host=WEBAPP_HOST,
+    #     port=WEBAPP_PORT,
+    # )
