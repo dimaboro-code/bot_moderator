@@ -197,9 +197,6 @@ async def mute(message: types.Message):
         'admin_username': message.from_user.username
     }
 
-    # add user to database
-    if not await in_database(mute_data['user_id']):
-        await add_user(message.reply_to_message.from_user.id)
 
     # set permissions to forbidden
     mute_hummer = types.ChatPermissions(
@@ -216,6 +213,10 @@ async def mute(message: types.Message):
             continue
         await restrict(user_id, chat, mute_hummer)
     tmp = await message.answer('Успешно')
+
+    # add user to database
+    if not await in_database(mute_data['user_id']):
+        await add_user(message.reply_to_message.from_user.id)
 
     # add mute to database
     await add_mute(mute_data)
