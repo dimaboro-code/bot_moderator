@@ -8,9 +8,9 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
 
-#figmachat, figmaforum, designchat2, systemchat, framerchat, whatthefontt, slashcomments
+#figmachat, figmaforum, designchat2, systemschat, framerchat, whatthefontt, slashcomments
 # тест бота
-CHATS = [-1001302438185, -1001808148145, -1001398488197, -1001214185649, -1001124768091
+CHATS = [-1001302438185, -1001808148145, -1001398488197, -1001535946932, -1001124768091
          -1001753295642, -1001191920744]
 # CHATS = [-1001868029361]
 
