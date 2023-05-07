@@ -6,7 +6,6 @@ import aiogram.utils.exceptions
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
-from aiogram.dispatcher.filters import BoundFilter
 from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID, CHATS
 from db import *
 from cleaner import messages_for_delete
