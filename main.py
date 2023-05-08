@@ -247,7 +247,7 @@ async def ban(message: types.Message):
         message.text[5:],
         message.from_user.username
     )
-    await bot.send_message(chat_id=LOG_CHANNEL_ID, text=text)
+    # tmp_2 = await bot.send_message(chat_id=message.chat.id, text=text)
     tmp = await message.answer(f'User {message.reply_to_message.from_user.username} is banned')
     asyncio.create_task(delete_message(tmp, 5))
     await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
