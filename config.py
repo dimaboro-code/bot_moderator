@@ -9,9 +9,19 @@ dp = Dispatcher(bot)
 LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
 
 #figmachat, figmaforum, designchat2, systemschat, framerchat, whatthefontt, slashcomments
-# тест бота
-CHATS = [-1001302438185, -1001808148145, -1001398488197, -1001535946932, -1001124768091, -1001753295642, -1001191920744]
-# CHATS = [-1001868029361]
+
+CHATS = [
+    -1001302438185,  # figmachat
+    -1001808148145,
+    -1001398488197,
+    -1001535946932,
+    -1001124768091,
+    -1001753295642,
+    -1001191920744,  # slashcomments 
+    -1001769444523   # slashimagineai
+]
+
+# CHATS = [-1001868029361] тестовый чат
 
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
