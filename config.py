@@ -34,6 +34,33 @@ MESSAGES_FOR_DELETE = [
     'new_chat_description',
 ]
 
+MUTE_SETTINGS = types.ChatPermissions(
+    can_send_messages=False,
+    can_send_media_messages=False,
+    can_send_other_messages=False,
+    can_add_web_page_previews=False,
+    can_invite_users=True
+)
+
+
+
+UNMUTE_SETTINGS = types.ChatPermissions(
+    can_send_messages=True,
+
+    # photo, video, stickers
+    can_send_media_messages=True,
+
+    # files
+    can_send_other_messages=True,
+    
+    can_send_polls=True,
+
+    # links
+    can_add_web_page_previews=True
+
+    can_invite_users=True
+)
+
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
 

@@ -3,6 +3,9 @@
 # it is needed for delete_message()
 import asyncio
 
+# types – our object models, like Message or Chat
+from aiogram import types
+
 # all actions logger, currently doesn't exist
 import logging
 
@@ -10,13 +13,19 @@ import logging
 from contextlib import suppress
 
 import aiogram.utils.exceptions
+
+# defines exceptions for delete_message()
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
-from aiogram.utils.executor import start_webhook, start_polling
-from aiogram import types
+
+# run webhook
+from aiogram.utils.executor import start_webhook
 
 # settings import
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, CHATS, MESSAGES_FOR_DELETE
+from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, CHATS, MESSAGES_FOR_DELETE, MUTE_SETTINGS, UNMUTE_SETTINGS
+
+# full database import
 from db import *
+
 
 
 # Configure logging
@@ -54,24 +63,139 @@ async def delete_user(message: types.Message):
     await delete_row(message.from_user.id)
 
 
-async def restrict(user, chat, hummer):
-    try:
-        member = await bot.get_chat_member(chat, user)
-        if not member.is_chat_member():
-            return None
-    except aiogram.exceptions.BadRequest:
-        print('Bad Request, chat: ', chat)
-        # return None
+# MUTER
+async def restrict(user_id, chat_id, permissions):
+
+    # mute action
     await bot.restrict_chat_member(
-        chat_id=chat,
-        user_id=user,
-        permissions=hummer,
+        chat_id=chat_id,
+        user_id=user_id,
+        
+        # permissions = default parameter name
+        permissions=permissions,
+
+        # mute time, if < 30 = forever
         until_date=10
     )
 
 
-# private chat functions
 
+# GROUP CHAT FUNCTIONS
+
+# 1. MUTE
+
+@dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
+
+# init
+async def mute(message: types.Message):
+    
+    user_id = message.reply_to_message.from_user.id
+    
+    # checking message formal conditions 
+    # Message isReply
+    if not message.reply_to_message:
+        tmp = await message.reply('Команда должна быть ответом на сообщение', )
+
+        #
+        await delete_message(tmp, 1)
+        
+        # prevent function from muting a non-existing user
+        return
+
+    # Message hasMuteReason
+    if len(message.text.strip()) < 6:
+        tmp = await message.answer('Нужно указать причину мьюта')
+        await delete_message(message, 1)
+        await delete_message(tmp, 1)
+        
+        # prevent function from muting a user without a reason
+        return
+
+    # set permissions to forbidden user 
+    # ...
+
+    # checking user status in current chat
+    # member ojbect
+    member = await bot.get_chat_member(message.chat.id, user_id)
+
+    if member.status == 'restricted':
+
+        tmp = await message.answer('Пользователь уже в мьюте')
+
+        # delay 1 sec
+        await delete_message(tmp, 1)
+        return
+    
+    # change permissions everywhere
+    for chat in CHATS:
+
+        try:
+            # check if user_id exsists in the chat
+            await bot.get_chat_member(chat, user_id)
+        
+            # if a user isn't muted
+
+            # async mute action
+            await restrict(user_id, chat, MUTE_SETTINGS)
+
+
+        # if we catch bad request when user_id is not found
+        except aiogram.utils.exceptions.BadRequest:
+
+            # we skip to next chat
+            continue
+    
+
+    # in_database() - is Boolean
+    # if user doesn't exist (true)
+    if not await in_database(user_id):
+
+        # add him to database once
+        await add_user(user_id)
+
+    # dict to add to db
+    mute_data = {
+        'chat_id': message.chat.id,
+        'user_id': message.reply_to_message.from_user.id,
+        'message_id': message.reply_to_message.message_id,
+        'moderator_message': message.text[5:],
+        'admin_username': message.from_user.username
+    }    
+
+    # add mute to database
+    await add_mute(mute_data)
+
+
+    # delete messages   
+    # tmp = await message.answer('Успешно')
+    # await delete_message(tmp, 1) - sends SUCCESS
+
+
+    await delete_message(message)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+
+
+#ADD UNBLOCKS
+
+@dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
+async def add_unblocks(message: types.Message):
+    user_id = message.reply_to_message.from_user.id
+    lives = int(message.text[14:]) if len(str(message.text)) >= 15 else 1
+    await add_lives(user_id, lives)
+    await message.delete()
+
+
+# JOIN CLEANER
+
+@dp.message_handler(content_types=MESSAGES_FOR_DELETE)
+async def delete_messages(message: types.Message):
+    await message.delete()
+
+
+# PRIVATE CHAT FUNCTIONS 
+
+
+# /start
 
 @dp.message_handler(commands=['start'], chat_type='private')
 async def send_welcome(message: types.Message):
@@ -81,10 +205,10 @@ async def send_welcome(message: types.Message):
         f'Мьют в одном чате действует во всех наших чатах сразу.\n'
         f'Я помогу тебе разблокироваться, только прочитай перед этим наши правила, '
         f'чтобы избежать новых блокировок в будущем.\n\n'
-        f'@figmachat        <a href="https://slashdesigner.ru/figmachat/rules">Правила</a>\n'
-        f'@designchat2     <a href="https://slashdesigner.ru/designchat/rules">Правила</a>\n'
-        f'@whatthefontt    <a href="https://slashdesigner.ru/whatthefont/rules">Правила</a>\n'
-        f'@systemschat     <a href="http://slashd.ru/systemschat/rules">Правила</a>\n\n'
+        f'@figmachat        <a href="https://slashdesigner.ru/figmachat">Правила</a>\n'
+        f'@designchat2     <a href="https://slashdesigner.ru/designchat">Правила</a>\n'
+        f'@whatthefontt    <a href="https://slashdesigner.ru/whatthefont">Правила</a>\n'
+        f'@systemschat     <a href="http://slashd.ru/systemschat">Правила</a>\n\n'
         f'У каждого участника чатов есть 3 разблока — возможности вернуть голос во всех чатах. '
         f'После третьего мьюта нам придётся навсегда оставить тебя в режиме читателя.'
     )
@@ -183,101 +307,13 @@ async def unmute(message: types.Message):
     if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
 
-        unmute_hammer = types.ChatPermissions(
-            can_send_messages=True,
-            can_send_media_messages=True,
-            can_send_other_messages=True,
-            can_send_polls=True,
-            can_add_web_page_previews=True
-        )
+
+
         for chat in CHATS:
-            await restrict(user_id, chat, unmute_hammer)
+            await restrict(user_id, chat, UNMUTE_SETTINGS)
         await status(message)
     else:
-        await message.answer('У Вас закончились разблоки.')
-
-
-
-# GROUP CHAT FUNCTIONS
-
-# 1. MUTE
-
-@dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
-async def mute(message: types.Message):
-
-    user_id = message.reply_to_message.from_user.id
-    # checking form to be right
-    if not message.reply_to_message:
-        tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        await delete_message(tmp, 1)
-
-    if len(message.text.strip()) < 6:
-        tmp = await message.answer('Нужно указать причину мьюта')
-        await delete_message(message, 1)
-        await delete_message(tmp, 1)
-
-    # data added to db
-    mute_data = {
-        'chat_id': message.chat.id,
-        'user_id': message.reply_to_message.from_user.id,
-        'message_id': message.reply_to_message.message_id,
-        'moderator_message': message.text[5:],
-        'admin_username': message.from_user.username
-    }
-
-
-    # set permissions to forbidden
-    mute_hummer = types.ChatPermissions(
-        can_send_messages=False,
-        can_send_media_messages=False,
-        can_send_other_messages=False,
-        can_add_web_page_previews=False
-    )
-    # change permissions
-    for chat in CHATS:
-        try:
-            member = await bot.get_chat_member(chat, user_id)
-        except aiogram.utils.exceptions.BadRequest:
-            continue
-        await restrict(user_id, chat, mute_hummer)
-    tmp = await message.answer('Успешно')
-
-    # add user to database
-    if not await in_database(mute_data['user_id']):
-        await add_user(message.reply_to_message.from_user.id)
-
-    # add mute to database
-    await add_mute(mute_data)
-
-    # delete messages
-    await delete_message(tmp, 1)
-    await delete_message(message)
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
-
-
-#ADD UNBLOCKS
-
-@dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
-async def add_unblocks(message: types.Message):
-    user_id = message.reply_to_message.from_user.id
-    lives = int(message.text[14:]) if len(str(message.text)) >= 15 else 1
-    await add_lives(user_id, lives)
-    await message.delete()
-
-
-# JOIN CLEANER
-
-@dp.message_handler(content_types=MESSAGES_FOR_DELETE)
-async def delete_messages(message: types.Message):
-    await message.delete()
-
-
-# async def startup(dp):
-#     await database.connect()
-#
-#
-# async def shutdown(dp):
-#     await database.disconnect()
+        await message.answer('У вас закончились разблоки.')
 
 
 if __name__ == '__main__':
