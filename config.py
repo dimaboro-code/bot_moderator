@@ -4,6 +4,8 @@ import os
 # import framework
 from aiogram import Bot, Dispatcher
 
+from aiogram import types
+
 # init bot and dispatcher
 TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN)
