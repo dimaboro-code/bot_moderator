@@ -41,7 +41,6 @@ MUTE_SETTINGS = types.ChatPermissions(
     can_send_media_messages=False,
     can_send_other_messages=False,
     can_add_web_page_previews=False,
-    can_invite_users=True
 )
 
 
