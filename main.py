@@ -1,14 +1,22 @@
+
+# direct import of async lib IO
+# it is needed for delete_message()
 import asyncio
+
+# all actions logger, currently doesn't exist
 import logging
+
+# helper for delete_message()
 from contextlib import suppress
 
 import aiogram.utils.exceptions
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
 from aiogram.utils.executor import start_webhook, start_polling
 from aiogram import types
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID, CHATS
+
+# settings import
+from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, CHATS, MESSAGES_FOR_DELETE
 from db import *
-from cleaner import messages_for_delete
 
 
 # Configure logging
@@ -26,9 +34,17 @@ async def on_shutdown(dispatcher):
     await bot.delete_webhook()
 
 
-# help_functions
+
+# DELETE MESSAGE
+
 async def delete_message(message: types.Message, sleep_time: int = 0):
+
+    # message removal after delay
     await asyncio.sleep(sleep_time)
+
+    # error handling, which avoide try-except block
+    # handling exception messages.
+
     with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await message.delete()
 
@@ -84,16 +100,22 @@ async def status(message: types.Message):
     :return:
     '''
     user_id = message.from_user.id
+
     is_in_database = await in_database(user_id=user_id)
+
     if not is_in_database:
         await message.answer('Статус:\n Вы не блокировались ботом.')
         return None
+
     last_mute = await get_last_mute(user_id)
+
     if last_mute is None:
         await message.answer('Нет данных о мьюте')
     else:
         chat = await bot.get_chat(last_mute["chat_id"])
+
     user_data = await get_user(user_id)
+
     # reason_to_mute = await bot.get_message(chat_id=last_mute["chat_id"], message_id=last_mute["message_id"])
     answer = (f'Статус\n'
  
@@ -136,6 +158,8 @@ async def get_chat_id(message: types.Message):
     await message.answer(answer)
 
 
+# UNMUTE
+
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
 async def unmute(message: types.Message):
     user_id = message.from_user.id
@@ -146,6 +170,7 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
+ 
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
@@ -172,7 +197,11 @@ async def unmute(message: types.Message):
         await message.answer('У Вас закончились разблоки.')
 
 
-# group chat functions
+
+# GROUP CHAT FUNCTIONS
+
+# 1. MUTE
+
 @dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 async def mute(message: types.Message):
 
@@ -226,6 +255,8 @@ async def mute(message: types.Message):
     await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
 
 
+#ADD UNBLOCKS
+
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
 async def add_unblocks(message: types.Message):
     user_id = message.reply_to_message.from_user.id
@@ -234,39 +265,9 @@ async def add_unblocks(message: types.Message):
     await message.delete()
 
 
-@dp.message_handler(commands=['ban'],  is_chat_admin=True, commands_prefix='!/')
-async def ban(message: types.Message):
-    if not message.reply_to_message:
-        tmp = await message.reply('Команда должна быть ответом на сообщение!', )
-        await delete_message(tmp, 10)
-    await bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-    text = '{} c айди {} забанен в чате {} за {} админом {}'.format(
-        message.reply_to_message.from_user.username,
-        message.reply_to_message.from_user.id,
-        message.chat.id,
-        message.text[5:],
-        message.from_user.username
-    )
-    # tmp_2 = await bot.send_message(chat_id=message.chat.id, text=text)
-    tmp = await message.answer(f'User {message.reply_to_message.from_user.username} is banned')
-    asyncio.create_task(delete_message(tmp, 5))
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+# JOIN CLEANER
 
-
-@dp.message_handler(commands=['unban'], commands_prefix='!/')
-async def unban(message: types.Message):
-    '''
-    в чате после команды через пробел пишется чат айди и юзер айди
-    :param message:
-    :return:
-    '''
-    cmd, chat_id, user_id = str(message.text).strip().split(' ')
-    await bot.unban_chat_member(chat_id=chat_id, user_id=user_id)
-    tmp = await message.answer('Разбанен')
-    asyncio.create_task(delete_message(tmp, 10))
-
-
-@dp.message_handler(content_types=messages_for_delete)
+@dp.message_handler(content_types=MESSAGES_FOR_DELETE)
 async def delete_messages(message: types.Message):
     await message.delete()
 

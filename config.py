@@ -1,27 +1,38 @@
+# os
 import os
-from aiogram import Bot, Dispatcher
 
+# import framework
+from aiogram import Bot, Dispatcher
 
 # init bot and dispatcher
 TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
-
-#figmachat, figmaforum, designchat2, systemschat, framerchat, whatthefontt, slashcomments
 
 CHATS = [
     -1001302438185,  # figmachat
-    -1001808148145,
-    -1001398488197,
-    -1001535946932,
-    -1001124768091,
-    -1001753295642,
+    -1001808148145,  # figmaforum
+    -1001398488197,  # designchat2
+    -1001535946932,  # systemschat
+    -1001124768091,  # framerchat
+    -1001753295642,  # whatthefontt
     -1001191920744,  # slashcomments 
     -1001769444523   # slashimagineai
 ]
 
 # CHATS = [-1001868029361] тестовый чат
+
+MESSAGES_FOR_DELETE = [
+    'new_chat_members',
+    'left_chat_member',
+    'delete_chat_photo',
+    'delete_chat_sticker_set',
+    'delete_chat_title',
+    'pinned_message',
+    'unpinned_message',
+    'new_chat_title',
+    'new_chat_description',
+]
 
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
