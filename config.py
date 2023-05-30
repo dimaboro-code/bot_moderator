@@ -56,7 +56,7 @@ UNMUTE_SETTINGS = types.ChatPermissions(
     can_send_polls=True,
 
     # links
-    can_add_web_page_previews=True
+    can_add_web_page_previews=True,
 
     can_invite_users=True
 )
