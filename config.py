@@ -1,8 +1,9 @@
-# os
+# python standard library
 import os
 
 # import framework
 from aiogram import Bot, Dispatcher
+
 
 from aiogram import types
 
@@ -19,10 +20,9 @@ CHATS = [
     -1001124768091,  # framerchat
     -1001753295642,  # whatthefontt
     -1001191920744,  # slashcomments 
-    -1001769444523   # slashimagineai
+    -1001769444523,  # slashimagineaiп
+    -1001838011289,  # Bot Sandbox
 ]
-
-# CHATS = [-1001868029361] тестовый чат
 
 MESSAGES_FOR_DELETE = [
     'new_chat_members',

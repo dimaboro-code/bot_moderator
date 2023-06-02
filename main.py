@@ -26,22 +26,18 @@ from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT,
 # full database import
 from db import *
 
-
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
 
 # webhook control
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     await database.connect()
 
-
+# stopping app
 async def on_shutdown(dispatcher):
     await database.disconnect()
     await bot.delete_webhook()
-
 
 
 # DELETE MESSAGE
@@ -59,6 +55,7 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
 
 
 @dp.message_handler(commands=['delete_user'])
+
 async def delete_user(message: types.Message):
     await delete_row(message.from_user.id)
 
@@ -78,13 +75,15 @@ async def restrict(user_id, chat_id, permissions):
         until_date=10
     )
 
-
-
 # GROUP CHAT FUNCTIONS
 
 # 1. MUTE
 
+# mute - symbol combination from chat
 @dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
+
+async def mute(message: types.Message):
+    await message.answer("mute")
 
 # init
 async def mute(message: types.Message):
@@ -173,11 +172,13 @@ async def mute(message: types.Message):
 
     await delete_message(message)
     await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+    # end of mute()
 
 
 #ADD UNBLOCKS
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
+
 async def add_unblocks(message: types.Message):
     user_id = message.reply_to_message.from_user.id
     lives = int(message.text[14:]) if len(str(message.text)) >= 15 else 1
@@ -228,7 +229,7 @@ async def status(message: types.Message):
     is_in_database = await in_database(user_id=user_id)
 
     if not is_in_database:
-        await message.answer('Статус:\n Вы не блокировались ботом.')
+        await message.answer('Статус: У вас осталось 3 разблока.')
         return None
 
     last_mute = await get_last_mute(user_id)
