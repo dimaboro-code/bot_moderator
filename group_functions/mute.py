@@ -42,12 +42,12 @@ async def mute(message: types.Message):
     # member ojbect
     member = await bot.get_chat_member(message.chat.id, user_id)
 
-    if member.status == 'restricted':
+    if member.status == 'restricted' and member.can_send_messages == True:
 
         # tmp = await message.answer('Пользователь уже в мьюте')
 
         # delay 1 sec
-        await delete_message(tmp, 1)
+        # await delete_message(tmp, 1)
         return
     
     # change permissions everywhere
