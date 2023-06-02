@@ -44,7 +44,7 @@ async def mute(message: types.Message):
 
     if member.status == 'restricted':
 
-        tmp = await message.answer('Пользователь уже в мьюте')
+        # tmp = await message.answer('Пользователь уже в мьюте')
 
         # delay 1 sec
         await delete_message(tmp, 1)

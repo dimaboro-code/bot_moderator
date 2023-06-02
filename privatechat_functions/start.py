@@ -1,5 +1,8 @@
 from aiogram import types
 
+from privatechat_functions.status import status
+
+
 async def send_welcome(message: types.Message):
     hello_message = (
         f'Привет!\n\n'

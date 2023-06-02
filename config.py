@@ -43,8 +43,6 @@ MUTE_SETTINGS = types.ChatPermissions(
     can_add_web_page_previews=False,
 )
 
-
-
 UNMUTE_SETTINGS = types.ChatPermissions(
     can_send_messages=True,
 
