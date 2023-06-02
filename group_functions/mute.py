@@ -3,9 +3,10 @@ import aiogram
 
 from aiogram import types
 
-from main import delete_message, restrict
-
 from config import bot, CHATS, MUTE_SETTINGS
+
+from system_functions.delete_message import delete_message
+from system_functions.restrict import restrict
 
 from db import *
 
