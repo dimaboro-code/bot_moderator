@@ -1,9 +1,7 @@
 from databases import Database
 from config import DATABASE_URL
 
-
-database = Database(DATABASE_URL + '?ssl=true')
-
+database = Database(DATABASE_URL)
 
 # database functions
 """
@@ -20,6 +18,13 @@ async def in_database(user_id):
     return bool(len(results))
 
 
+async def check_db():
+    try:
+        results = await database.fetch_one('SELECT * FROM users')
+    except Exception:
+        results = ''
+    return bool(len(results))
+
 async def add_user(user_id):
     await database.execute(f'INSERT INTO users (user_id, is_muted) '
                            f'VALUES (:user_id, :is_muted)',
@@ -33,8 +38,6 @@ async def add_mute(mute_data):
                            f'VALUES (:user_id, :message_id, :chat_id, '
                            f':moderator_message, :admin_username, NOW())',
                            values=mute_data)
-    user_id = mute_data['user_id']
-
 
 
 # Говнокод. Переделать.

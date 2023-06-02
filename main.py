@@ -4,28 +4,21 @@ from contextlib import suppress
 
 import aiogram.utils.exceptions
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound)
-from aiogram.utils.executor import start_webhook, start_polling
+from aiogram.utils.executor import start_polling
 from aiogram import types
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, LOG_CHANNEL_ID, CHATS
+from config import bot, dp, CHATS, mute_hammer, unmute_hammer
 from db import *
 from cleaner import messages_for_delete
 
+from testfunc import *
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 
-# webhook control
-async def on_startup(dispatcher):
-    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
-    await database.connect()
 
 
-async def on_shutdown(dispatcher):
-    await database.disconnect()
-    await bot.delete_webhook()
-
-
+dp.register_message_handler(testfunc, commands=['test'])
 # help_functions
 async def delete_message(message: types.Message, sleep_time: int = 0):
     await asyncio.sleep(sleep_time)
@@ -42,7 +35,7 @@ async def restrict(user, chat, hummer):
     try:
         member = await bot.get_chat_member(chat, user)
         if not member.is_chat_member():
-            return None
+            return
     except aiogram.exceptions.BadRequest:
         print('Bad Request, chat: ', chat)
         # return None
@@ -55,6 +48,10 @@ async def restrict(user, chat, hummer):
 
 
 # private chat functions
+@dp.message_handler(commands=['check_db'], chat_type='private')
+async def check_database(message: types.Message):
+    check = ('No', 'Yes')[await check_db()]
+    await message.answer(check)
 
 
 @dp.message_handler(commands=['start'], chat_type='private')
@@ -86,11 +83,12 @@ async def status(message: types.Message):
     user_id = message.from_user.id
     is_in_database = await in_database(user_id=user_id)
     if not is_in_database:
-        await message.answer('Статус:\n Вы не блокировались ботом.')
-        return None
+        await message.answer('Статус:\nВы не блокировались ботом.')
+        return
     last_mute = await get_last_mute(user_id)
     if last_mute is None:
         await message.answer('Нет данных о мьюте')
+        return
     else:
         chat = await bot.get_chat(last_mute["chat_id"])
     user_data = await get_user(user_id)
@@ -139,8 +137,8 @@ async def get_chat_id(message: types.Message):
 @dp.message_handler(chat_type='private', commands=['unmute'], commands_prefix='!/')
 async def unmute(message: types.Message):
     user_id = message.from_user.id
-
-    if not await in_database(user_id):
+    is_in_database: bool = await in_database(user_id)
+    if not is_in_database:
         await message.answer('Вы вне системы. Совершите противоправное действие, чтобы стать частью')
         return
 
@@ -149,7 +147,6 @@ async def unmute(message: types.Message):
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
-        print(member)
         if member.can_send_messages is True:
             await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
             return
@@ -158,15 +155,8 @@ async def unmute(message: types.Message):
     if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
 
-        unmute_hammer = types.ChatPermissions(
-            can_send_messages=True,
-            can_send_media_messages=True,
-            can_send_other_messages=True,
-            can_send_polls=True,
-            can_add_web_page_previews=True
-        )
         for chat in CHATS:
-            await restrict(user_id, chat, unmute_hammer)
+            await restrict(user_id, chat, hummer=None)
         await status(message)
     else:
         await message.answer('У Вас закончились разблоки.')
@@ -197,20 +187,14 @@ async def mute(message: types.Message):
     }
 
 
-    # set permissions to forbidden
-    mute_hummer = types.ChatPermissions(
-        can_send_messages=False,
-        can_send_media_messages=False,
-        can_send_other_messages=False,
-        can_add_web_page_previews=False
-    )
+
     # change permissions
     for chat in CHATS:
         try:
             member = await bot.get_chat_member(chat, user_id)
         except aiogram.utils.exceptions.BadRequest:
             continue
-        await restrict(user_id, chat, mute_hummer)
+        await restrict(user_id, chat, mute_hammer)
     tmp = await message.answer('Успешно')
 
     # add user to database
@@ -224,7 +208,6 @@ async def mute(message: types.Message):
     await delete_message(tmp, 1)
     await delete_message(message)
     await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
-
 
 @dp.message_handler(commands=['add_unblocks'],  is_chat_admin=True, commands_prefix='!/')
 async def add_unblocks(message: types.Message):
@@ -271,23 +254,15 @@ async def delete_messages(message: types.Message):
     await message.delete()
 
 
-# async def startup(dp):
-#     await database.connect()
-#
-#
-# async def shutdown(dp):
-#     await database.disconnect()
+async def startup(dp):
+    await database.connect()
+
+
+async def shutdown(dp):
+    await database.disconnect()
 
 
 if __name__ == '__main__':
 
-    # start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start_polling(dp, skip_updates=True, on_startup=startup, on_shutdown=shutdown)
+
