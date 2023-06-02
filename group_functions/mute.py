@@ -62,7 +62,7 @@ async def mute(message: types.Message):
             await restrict(user_id, chat, MUTE_SETTINGS)
 
 
-        # if we catch bad request when user_id is not found
+        # if we catch bad request when user_id is not found we catch except and continue
         except aiogram.utils.exceptions.BadRequest:
 
             # we skip to next chat
