@@ -26,7 +26,7 @@ from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT,
 # full database import
 from db import *
 
-from group_functions.testfunc import testfunc
+from group_functions.mute import mute
 
 
 # Configure logging
@@ -43,8 +43,8 @@ async def on_shutdown(dispatcher):
     await bot.delete_webhook()
 
 
-#testfunc
-dp.register_message_handler(testfunc, commands=["testfunc"])
+#mute
+dp.register_message_handler(mute, commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 
 
 
@@ -88,7 +88,7 @@ async def restrict(user_id, chat_id, permissions):
 # 1. MUTE
 
 # mute - symbol combination from chat
-@dp.message_handler(commands=['mute'], is_chat_admin=True, commands_prefix='!/')
+
 
 async def mute(message: types.Message):
     await message.answer("mute")
