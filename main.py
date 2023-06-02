@@ -20,8 +20,6 @@ from db import *
 
 from group_functions.mute import mute
 
-from system_functions.restrict import restrict
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +53,8 @@ async def delete_user(message: types.Message):
 
 
 # GROUP CHAT FUNCTIONS
+
+dp.register_message_handler(mute, commands=['mute'], is_chat_admin=True, commands_prefix='!/')
 
 
 #ADD UNBLOCKS
