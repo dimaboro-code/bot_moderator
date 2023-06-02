@@ -26,6 +26,9 @@ from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT,
 # full database import
 from db import *
 
+from group_functions.testfunc import testfunc
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -38,6 +41,11 @@ async def on_startup(dispatcher):
 async def on_shutdown(dispatcher):
     await database.disconnect()
     await bot.delete_webhook()
+
+
+#testfunc
+dp.register_message_handler(testfunc, commands=["testfunc"])
+
 
 
 # DELETE MESSAGE
