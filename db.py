@@ -34,6 +34,9 @@ async def add_mute(mute_data):
                            f':moderator_message, :admin_username, NOW())',
                            values=mute_data)
     user_id = mute_data['user_id']
+    change_mute = f'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
+    values = {'user_id': user_id}
+    await database.execute(query=change_mute, values=values)
 
 
 
