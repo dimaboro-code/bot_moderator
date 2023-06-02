@@ -28,7 +28,7 @@ from system_functions.eraser import eraser
 from system_functions.get_chat_id import get_chat_id
 
 # PRIVATECHAT FUCNTION IMPORTS
-from privatechat_functions.start import start
+from privatechat_functions.send_welcome import send_welcome
 from privatechat_functions.unmute import unmute
 from privatechat_functions.status import status
 from privatechat_functions.bot_help import bot_help
@@ -57,7 +57,7 @@ dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_adm
 dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
 
 # PRIVATE HANDLERS
-dp.register_message_handler(start, commands_prefix='!/', commands=['start'], chat_type='private')
+dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
 dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
