@@ -32,11 +32,12 @@ async def unmute(message: types.Message):
         await db_unmute(user_id)
 
 
-        try:
-            for chat in CHATS:
+        
+        for chat in CHATS:
+            try:
                 await restrict(user_id, chat, UNMUTE_SETTINGS)
-        except:
-            continue
+            except:
+                continue
         await status(message)
     else:
         await message.answer('К сожалению, у вас закончились разблоки. Теперь вы можете остаться в чатах в режиме читателя.')
