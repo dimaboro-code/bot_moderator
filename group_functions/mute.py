@@ -11,14 +11,14 @@ from system_functions.restrict import restrict
 from db import *
 
 # init
-async def mute(message: types.Message):
+async def mute(moderator_message: types.Message):
     
-    user_id = message.reply_to_message.from_user.id
+    user_id = moderator_message.reply_to_message.from_user.id
     
     # checking message formal conditions 
     # Message isReply
-    if not message.reply_to_message:
-        tmp = await message.reply('Команда должна быть ответом на сообщение', )
+    if not moderator_message.reply_to_message:
+        tmp = await moderator_message.reply('Команда должна быть ответом на сообщение', )
 
         #
         await delete_message(tmp, 1)
@@ -27,29 +27,26 @@ async def mute(message: types.Message):
         return
 
     # Message hasMuteReason
-    if len(message.text.strip()) < 6:
-        tmp = await message.answer('Нужно указать причину мьюта')
-        await delete_message(message, 1)
+    if len(moderator_message.text.strip()) < 6:
+        tmp = await moderator_message.answer('Нужно указать причину мьюта')
+        await delete_message(moderator_message, 1)
         await delete_message(tmp, 1)
         
         # prevent function from muting a user without a reason
         return
 
-    # set permissions to forbidden user 
-    # ...
-
     # checking user status in current chat
     # member ojbect
-    member = await bot.get_chat_member(message.chat.id, user_id)
+    member = await bot.get_chat_member(moderator_message.chat.id, user_id)
 
     if member.status == 'restricted' and member.can_send_messages == False:
 
-        # tmp = await message.answer('Пользователь уже в мьюте')
+        tmp = await moderator_message.answer('Пользователь уже в мьюте')
 
         # delay 1 sec
-        # await delete_message(tmp, 1)
+        await delete_message(tmp, 1)
         return
-    
+
     # change permissions everywhere
     for chat in CHATS:
 
@@ -79,22 +76,27 @@ async def mute(message: types.Message):
 
     # dict to add to db
     mute_data = {
-        'chat_id': message.chat.id,
-        'user_id': message.reply_to_message.from_user.id,
-        'message_id': message.reply_to_message.message_id,
-        'moderator_message': message.text[5:],
-        'admin_username': message.from_user.username
+        'chat_id': moderator_message.chat.id,
+        'user_id': moderator_message.reply_to_message.from_user.id,
+        'message_id': moderator_message.reply_to_message.message_id,
+        'moderator_message': moderator_message.text[5:],
+        'admin_username': moderator_message.from_user.username
     }    
 
     # add mute to database
     await add_mute(mute_data)
 
-
-    # delete messages   
-    # tmp = await message.answer('Успешно')
-    # await delete_message(tmp, 1) - sends SUCCESS
+    success_message = await moderator_message.answer(f'{moderator_message.from_user.first_name} попал в мьют.')
 
 
-    await delete_message(message)
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
-    # end of mute()
+    # DELETE MESSAGES
+
+    try:
+        await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+    except:
+        # nu i pohui
+        pass
+
+    await delete_message(moderator_message)
+
+    await delete_message(success_message, 1)
