@@ -1,11 +1,3 @@
-
-# direct import of async lib IO
-# it is needed for delete_message()
-import asyncio
-
-# types – our object models, like Message or Chat
-from aiogram import types
-
 # all actions logger, currently doesn't exist
 import logging
 

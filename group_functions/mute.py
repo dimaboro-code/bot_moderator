@@ -1,6 +1,3 @@
-
-import aiogram
-
 from aiogram import types
 
 from config import bot, CHATS, MUTE_SETTINGS
@@ -64,7 +61,7 @@ async def mute(message: types.Message):
 
 
         # if we catch bad request when user_id is not found we catch except and continue
-        except aiogram.utils.exceptions.BadRequest:
+        except:
 
             # we skip to next chat
             continue
