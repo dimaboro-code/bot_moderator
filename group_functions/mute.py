@@ -83,7 +83,7 @@ async def mute(moderator_message: types.Message):
     # add mute to database
     await add_mute(mute_data)
 
-    success_message = await moderator_message.answer(f'{moderator_message.from_user.first_name} попал в мьют.')
+    success_message = await moderator_message.answer(f'{moderator_message.reply_to_message.from_user.first_name} попал в мьют.')
 
 
     # DELETE MESSAGES
