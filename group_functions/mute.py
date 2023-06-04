@@ -83,13 +83,18 @@ async def mute(moderator_message: types.Message):
     # add mute to database
     await add_mute(mute_data)
 
-    success_message = await moderator_message.answer(f'{moderator_message.reply_to_message.from_user.first_name} попал в мьют.')
+    success_message = await moderator_message.answer(
+        f'{moderator_message.reply_to_message.from_user.first_name} попал в мьют.'
+    )
 
 
     # DELETE MESSAGES
 
     try:
-        await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+        await bot.delete_message(
+            chat_id=moderator_message.chat.id,
+            message_id=moderator_message.reply_to_message.message_id
+        )
     except:
         # nu i pohui
         pass
