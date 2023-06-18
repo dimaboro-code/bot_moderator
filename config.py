@@ -1,17 +1,62 @@
+# python standard library
 import os
+
+# import framework
 from aiogram import Bot, Dispatcher
 
+
+from aiogram import types
 
 # init bot and dispatcher
 TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
 
-#figmachat, figmaforum, designchat2, systemschat, framerchat, whatthefontt, slashcomments
-# тест бота
-CHATS = [-1001302438185, -1001808148145, -1001398488197, -1001535946932, -1001124768091, -1001753295642, -1001191920744]
-# CHATS = [-1001868029361]
+CHATS = [
+    -1001302438185,  # figmachat
+    -1001808148145,  # figmaforum
+    -1001398488197,  # designchat2
+    -1001535946932,  # systemschat
+    -1001124768091,  # framerchat
+    -1001753295642,  # whatthefontt
+    -1001191920744,  # slashcomments 
+    -1001769444523,  # slashimagineaiп
+    -1001838011289,  # Bot Sandbox
+]
+
+MESSAGES_FOR_DELETE = [
+    'new_chat_members',
+    'left_chat_member',
+    'delete_chat_photo',
+    'delete_chat_sticker_set',
+    'delete_chat_title',
+    'pinned_message',
+    'unpinned_message',
+    'new_chat_title',
+    'new_chat_description',
+]
+
+MUTE_SETTINGS = types.ChatPermissions(
+    can_send_messages=False,
+    can_send_media_messages=False,
+    can_send_other_messages=False,
+    can_add_web_page_previews=False,
+)
+
+UNMUTE_SETTINGS = types.ChatPermissions(
+    can_send_messages=True,
+
+    # photo, video, stickers
+    can_send_media_messages=True,
+
+    # files
+    can_send_other_messages=True,
+    
+    can_send_polls=True,
+
+    # links
+    can_add_web_page_previews=True
+)
 
 HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
