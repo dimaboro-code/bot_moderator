@@ -1,5 +1,6 @@
 from databases import Database
 from config import DATABASE_URL
+from datetime import datetime, timedelta
 
 
 database = Database(DATABASE_URL + '?ssl=true')
@@ -11,6 +12,14 @@ Table
 Users - user_id, is_muted, user_blocks
 Mutes - message_id, chat_id, admin_username (switch to id), moderator_message, date_of_mute
 """
+
+async def create_table_ids():
+    query = f'CREATE TABLE IF NOT EXISTS ids (' \
+            f'id SERIAL PRIMARY KEY,' \
+            f'user_id NUMERIC NOT NULL,' \
+            f'username TEXT,' \
+            f'created_at TIMESTAMP DEFAULT NOW())'
+    await database.execute(query=query)
 
 
 async def in_database(user_id):
@@ -95,3 +104,42 @@ async def delete_row(user_id):
 
     params = {'user_id': user_id}
     await database.execute(query=delete_user, values=params)
+
+
+async def add_id(username, user_id):
+    try:
+        query = 'INSERT INTO ids (username, user_id) VALUES (:username, :user_id)'
+        params = {'username': username, 'user_id': user_id}
+        await database.execute(query=query, values=params)
+    except Exception as e:
+        print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
+
+
+async def get_id(username):
+    try:
+        query = 'SELECT user_id FROM ids WHERE username = :username'
+        values = {'username': username}
+        user_id = await database.fetch_val(query=query, values=values)
+        if user_id is not None:
+            print(user_id)
+            return user_id
+        else:
+            return None
+    except Exception as e:
+        print(f"Произошла ошибка при получении идентификатора: {str(e)}")
+
+
+async def delete_old_data():
+    try:
+        print('Deleting old data')
+
+        table_name = 'ids'
+        field_name = 'created_at'
+
+        two_days_ago = datetime.now() - timedelta(days=2)
+
+        query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
+
+        await database.execute(query, values={'one_day_ago': two_days_ago})
+    except Exception as e:
+        print(f"Произошла ошибка при удалении старых данных: {str(e)}")
