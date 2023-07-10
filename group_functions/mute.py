@@ -69,7 +69,7 @@ async def mute(moderator_message: types.Message):
         name_of_user = moderator_message.reply_to_message.from_user.first_name
     else:
         name_of_user = username
-
+    
     success_message = await moderator_message.answer(
         f'{name_of_user} попал в мьют.'
     )
@@ -79,7 +79,9 @@ async def mute(moderator_message: types.Message):
             chat_id=moderator_message.chat.id,
             message_id=moderator_message.reply_to_message.message_id
         )
+
         await delete_message(moderator_message)
         await delete_message(success_message, 1)
+
     except:
         pass
