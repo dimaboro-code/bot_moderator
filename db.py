@@ -139,6 +139,7 @@ async def delete_old_data():
 
         two_days_ago = datetime.now() - timedelta(days=15)
 
+
         query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
 
         await database.execute(query, values={'one_day_ago': two_days_ago})
