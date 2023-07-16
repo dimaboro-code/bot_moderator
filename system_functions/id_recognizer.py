@@ -10,8 +10,7 @@ async def know_id(message: types.Message):
         if await get_id(username) is not None:
             return
 
-        async with add_id(username=username, user_id=user_id):
-            pass
+        await add_id(username=username, user_id=user_id)
 
     except Exception as e:
         print(f"Произошла ошибка: {str(e)}")

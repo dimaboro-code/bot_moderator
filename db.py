@@ -111,6 +111,7 @@ async def add_id(username, user_id):
         query = 'INSERT INTO ids (username, user_id) VALUES (:username, :user_id)'
         params = {'username': username, 'user_id': user_id}
         await database.execute(query=query, values=params)
+        print('ID успешно добавлен в базу')
     except Exception as e:
         print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
 

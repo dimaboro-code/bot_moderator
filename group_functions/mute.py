@@ -22,7 +22,16 @@ async def mute(moderator_message: types.Message):
 
     if username is not None:
         user_id = await get_id(username)
+        if user_id is None:
+            tmp = await moderator_message.answer('К сожалению, пользователя нет в базе.')
+            try:
+                await delete_message(tmp, 1)
+                await delete_message(moderator_message)
+            except Exception as e:
+                print(f'Mute, string 28, exception {e}')
+            return
         print(user_id)
+
     else:
         if not moderator_message.reply_to_message:
             tmp = await moderator_message.reply('Команда должна быть ответом на сообщение')
@@ -30,7 +39,6 @@ async def mute(moderator_message: types.Message):
             return
 
         user_id = moderator_message.reply_to_message.from_user.id
-
 
     if len(moderator_message.text.strip().split()) < 2:
         ans = await moderator_message.answer('Нужно указать причину мьюта')
@@ -49,7 +57,7 @@ async def mute(moderator_message: types.Message):
         try:
             await bot.get_chat_member(chat, user_id)
             await restrict(user_id, chat, MUTE_SETTINGS)
-        except:
+        except Exception:
             continue
 
     if not await in_database(user_id):
@@ -83,5 +91,5 @@ async def mute(moderator_message: types.Message):
         await delete_message(moderator_message)
         await delete_message(success_message, 1)
 
-    except:
+    except Exception:
         pass
