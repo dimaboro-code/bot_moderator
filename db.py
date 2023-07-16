@@ -136,7 +136,7 @@ async def delete_old_data():
         table_name = 'ids'
         field_name = 'created_at'
 
-        two_days_ago = datetime.now() - timedelta(days=14)
+        two_days_ago = datetime.now() - timedelta(days=15)
 
         query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
 
