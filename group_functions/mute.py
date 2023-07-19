@@ -88,8 +88,9 @@ async def mute(moderator_message: types.Message):
             message_id=moderator_message.reply_to_message.message_id
         )
 
-        await delete_message(moderator_message)
-        await delete_message(success_message, 1)
 
     except Exception:
         pass
+
+    await delete_message(moderator_message)
+    await delete_message(success_message, 1)
