@@ -2,22 +2,25 @@
 import logging
 
 # run webhook
-from aiogram.utils.executor import start_webhook
+from aiogram.utils.executor import start_polling
 
 # settings import
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, MESSAGES_FOR_DELETE
+from config import dp, MESSAGES_FOR_DELETE
 
 # full database import
 from db import *
 
 # GROUP FUNCTION IMPORTS
-from group_functions.mute import mute
+from group_functions.mute_new.mute_main import mute
 from group_functions.join_cleaner import join_cleaner
 from group_functions.add_unblocks import add_unblocks
+from group_functions.id_recognizer import know_id
 
 # SYSTEM FUNCTION IMPORTS
 from system_functions.eraser import eraser
 from system_functions.get_chat_id import get_chat_id
+from system_functions.delete_old_ids import setup_schedule
+
 
 # PRIVATECHAT FUCNTION IMPORTS
 from privatechat_functions.send_welcome import send_welcome
@@ -28,15 +31,18 @@ from privatechat_functions.bot_help import bot_help
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
 # webhook control
 async def on_startup(dispatcher):
-    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     await database.connect()
+    await setup_schedule()
+    await create_table_ids()
+
 
 # stopping app
 async def on_shutdown(dispatcher):
     await database.disconnect()
-    await bot.delete_webhook()
+
 
 # HANDLERS
 
@@ -54,16 +60,14 @@ dp.register_message_handler(status, commands_prefix='!/', commands=['status'], c
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
 dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
+dp.register_message_handler(know_id)
 
 
 if __name__ == '__main__':
 
-    start_webhook(
+    start_polling(
         dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
         skip_updates=True,
         on_startup=on_startup,
         on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
     )

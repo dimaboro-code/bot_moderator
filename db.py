@@ -1,8 +1,8 @@
 from databases import Database
-from config import DATABASE_URL
+from datetime import datetime, timedelta
 
 
-database = Database(DATABASE_URL + '?ssl=true')
+database = Database('postgresql://postgres:2026523@localhost:5432/postgres')
 
 
 # database functions
@@ -37,7 +37,6 @@ async def add_mute(mute_data):
     change_mute = f'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
     values = {'user_id': user_id}
     await database.execute(query=change_mute, values=values)
-
 
 
 # Говнокод. Переделать.
@@ -95,3 +94,50 @@ async def delete_row(user_id):
 
     params = {'user_id': user_id}
     await database.execute(query=delete_user, values=params)
+
+
+async def add_id(username, user_id):
+    # функция создает пару юзернейм - айди, чтобы можно быо мьютить по айди
+    query = f'INSERT INTO ids (username, user_id) VALUES (:username, :user_id)'
+    params = {'username': username, 'user_id': user_id}
+    await database.execute(query=query, values=params)
+
+
+async def get_id(username):
+    query = 'SELECT * FROM ids WHERE username = :username'
+    values = {'username': username}
+    print(username)
+    user_id = await database.fetch_one(query=query, values=values)
+    if user_id is not None:
+        print(user_id[1])
+
+        return user_id[1]
+    else:
+        return None
+
+
+async def delete_old_data():
+    print('delete old data')
+
+    # Определите таблицу и поле для удаления данных
+    table_name = 'ids'
+    field_name = 'created_at'
+
+    # Вычислите временную метку, представляющую время 1 дня назад
+    one_day_ago = datetime.now() - timedelta(days=1)
+
+    # Сформируйте SQL-запрос для удаления старых данных
+    query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
+
+    # Выполните SQL-запрос для удаления старых данных
+    await database.execute(query, values={'one_day_ago': one_day_ago})
+
+
+async def create_table_ids():
+    query = f'CREATE TABLE IF NOT EXISTS ids (' \
+            f'id SERIAL PRIMARY KEY,' \
+            f'user_id NUMERIC NOT NULL,' \
+            f'username TEXT,' \
+            f'created_at TIMESTAMP DEFAULT NOW())'
+    await database.execute(query=query)
+    print('таблица создана')

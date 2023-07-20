@@ -1,8 +1,8 @@
-def is_username(text: str):
-    # if in text is word started with @ return this word
-    # else returns None
+async def is_username(text: str):
+    # если в тексте есть слово, начинающееся с @, возвращает это слово
+    # в противном случае возвращает None
     text_list = text.strip().split()
-    username = None
-    for word in text_list[1:]:
-        username = word.startswith('@')
-    return username
+    for word in text_list:
+        if word[0] == '@':
+            return word[1:]
+    return None
