@@ -49,8 +49,8 @@ async def mute(moderator_message: types.Message):
     member = await bot.get_chat_member(moderator_message.chat.id, user_id)
 
     if member.status == 'restricted' and not member.can_send_messages:
-        async with moderator_message.answer('Пользователь уже в мьюте') as ans:
-            await delete_message(ans, 1)
+        ans = await moderator_message.answer('Пользователь уже в мьюте')
+        await delete_message(ans, 1)
         return
 
     for chat in CHATS:
