@@ -11,7 +11,7 @@ from config import dp, MESSAGES_FOR_DELETE
 from db import *
 
 # GROUP FUNCTION IMPORTS
-from group_functions.mute import mute
+from group_functions.mute_new.mute_main import mute
 from group_functions.join_cleaner import join_cleaner
 from group_functions.add_unblocks import add_unblocks
 from group_functions.id_recognizer import know_id
