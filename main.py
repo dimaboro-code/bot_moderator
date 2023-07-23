@@ -11,7 +11,7 @@ from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT,
 from db import *
 
 # GROUP FUNCTION IMPORTS
-from group_functions.mute_new.mute_main import mute
+from group_functions.mute import mute
 from group_functions.join_cleaner import join_cleaner
 from group_functions.add_unblocks import add_unblocks
 
@@ -31,14 +31,12 @@ from privatechat_functions.bot_help import bot_help
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-
 # webhook control
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     await database.connect()
     await create_table_ids()  # можно удалить в следующем обновлении. Нужно, чтобы разово создать таблицу
     await setup_schedule()
-
 
 # stopping app
 async def on_shutdown(dispatcher):
@@ -61,7 +59,7 @@ dp.register_message_handler(status, commands_prefix='!/', commands=['status'], c
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
 dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
-dp.register_message_handler(know_id)  # перехватываем все сообщения, вносим в базу
+dp.register_message_handler(know_id) # перехватываем все сообщения, вносим в базу
 
 
 if __name__ == '__main__':
