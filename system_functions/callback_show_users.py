@@ -3,7 +3,7 @@ from config import bot
 import asyncio
 from db import add_lives, delete_lives, delete_all_lives, get_id
 from system_functions.is_username import is_username
-from privatechat_functions import show_user
+from privatechat_functions.show_user import show_user
 
 
 react_funcs = {
