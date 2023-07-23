@@ -3,6 +3,7 @@ import logging
 
 # run webhook
 from aiogram.utils.executor import start_webhook
+from aiogram import filters
 
 # settings import
 from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, MESSAGES_FOR_DELETE
@@ -20,6 +21,7 @@ from system_functions.eraser import eraser
 from system_functions.get_chat_id import get_chat_id
 from system_functions.id_recognizer import know_id
 from system_functions.delete_old_ids import setup_schedule
+from system_functions.callback_show_users import show_user_react
 
 
 # PRIVATECHAT FUCNTION IMPORTS
@@ -27,6 +29,8 @@ from privatechat_functions.send_welcome import send_welcome
 from privatechat_functions.unmute import unmute
 from privatechat_functions.status import status
 from privatechat_functions.bot_help import bot_help
+from privatechat_functions.show_user import show_user
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +51,8 @@ async def on_shutdown(dispatcher):
 
 # HANDLERS
 
+dp.register_callback_query_handler(show_user_react, filters.Text(startswith='show_user'))
+
 # debug
 dp.register_message_handler(eraser, commands=['eraser'], commands_prefix='!/')
 
@@ -61,6 +67,7 @@ dp.register_message_handler(status, commands_prefix='!/', commands=['status'], c
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
 dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
+dp.register_message_handler(show_user, commands_prefix='!/', commands=['show_user'], chat_type='private')
 dp.register_message_handler(know_id)  # перехватываем все сообщения, вносим в базу
 
 
