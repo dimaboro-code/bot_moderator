@@ -25,7 +25,7 @@ async def checks(moderator_message: types.Message):
             return False, 'Команда не содержит сообщение о причине мьюта'
 
         member = await bot.get_chat_member(moderator_message.chat.id, user_id)
-        print('Статус:', member.status, '\n', 'разрешение:', member.can_send_messages)
+        print('Статус:', member.status, '\n')
         if member.status == 'restricted' and not member.can_send_messages:
             return False, 'Пользователь уже в мьюте'
 

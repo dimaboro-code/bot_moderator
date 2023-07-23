@@ -13,13 +13,13 @@ Users - user_id, is_muted, user_blocks
 Mutes - message_id, chat_id, admin_username (switch to id), moderator_message, date_of_mute
 """
 
-async def create_table_ids():
-    query = f'CREATE TABLE IF NOT EXISTS ids (' \
-            f'id SERIAL PRIMARY KEY,' \
-            f'user_id NUMERIC NOT NULL,' \
-            f'username TEXT,' \
-            f'created_at TIMESTAMP DEFAULT NOW())'
-    await database.execute(query=query)
+# async def create_table_ids():
+#     query = f'CREATE TABLE IF NOT EXISTS ids (' \
+#             f'id SERIAL PRIMARY KEY,' \
+#             f'user_id NUMERIC NOT NULL,' \
+#             f'username TEXT,' \
+#             f'created_at TIMESTAMP DEFAULT NOW())'
+#     await database.execute(query=query)
 
 
 async def in_database(user_id):
@@ -51,17 +51,89 @@ async def add_mute(mute_data):
 
 # Говнокод. Переделать.
 async def add_lives(user_id, lives: int = 1):
-    lives_in_db = await database.fetch_one(
-        f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+    lives_in_db = await database.fetch_val(
+        query=f'SELECT user_blocks FROM users WHERE user_id = :user_id',
         values={'user_id': user_id}
     )
-    lives = int(lives_in_db[0]) + lives
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = -int(lives_in_db)
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = int(lives_in_db) + lives
     await database.execute(
         f'UPDATE users '
         f'SET user_blocks=:lifes '
         f'WHERE user_id=:user_id',
         values={'lifes': lives, 'user_id': user_id}
     )
+
+
+async def delete_lives(user_id, lives: int = 1):
+    lives_in_db = await database.fetch_val(
+        f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+        values={'user_id': user_id}
+    )
+    if int(lives_in_db) == 0:
+        print('Пользователь: ', user_id, 'нет разблоков, нельзя уменьшить')
+        return
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = -int(lives_in_db)
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = int(lives_in_db) - lives
+    await database.execute(
+        f'UPDATE users '
+        f'SET user_blocks=:lifes '
+        f'WHERE user_id=:user_id',
+        values={'lifes': lives, 'user_id': user_id}
+    )
+
+
+async def delete_all_lives(user_id):
+    lives_in_db = await database.fetch_val(
+        f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+        values={'user_id': user_id}
+    )
+
+    if int(lives_in_db) == 0:
+        print('Пользователь: ', user_id, 'нет разблоков, нельзя уменьшить')
+        return
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = -int(lives_in_db)
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = 0
+    await database.execute(
+        f'UPDATE users '
+        f'SET user_blocks=:lifes '
+        f'WHERE user_id=:user_id',
+        values={'lifes': lives, 'user_id': user_id}
+    )
+
 
 
 async def get_user(user_id):  # переделать в get_user и get_mutes
@@ -137,7 +209,7 @@ async def delete_old_data():
         table_name = 'ids'
         field_name = 'created_at'
 
-        two_days_ago = datetime.now() - timedelta(days=15)
+        two_days_ago = datetime.now() - timedelta(days=5)
 
 
         query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
