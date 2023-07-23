@@ -1,4 +1,4 @@
-def is_username(text: str):
+async def is_username(text: str):
     # если в тексте есть слово, начинающееся с @, возвращает это слово
     # в противном случае возвращает None
     text_list = text.strip().split()
