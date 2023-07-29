@@ -51,6 +51,7 @@ async def show_user(message: types.Message):
                              f'Статус: без ограничений\n'
                              f'Осталось разблоков: 3'
                              f'Пользователь не блокировался')
+        return
 
     chat = await bot.get_chat(user_last_mute["chat_id"])
     answer = (f'Пользователь: @{username}\n'
