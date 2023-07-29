@@ -10,14 +10,13 @@ from db import get_id
 from db import get_user, get_last_mute
 
 
-
-
 async def show_user(message: types.Message):
     moderator_id = message.from_user.id
     is_chat_admin = False
 
     for chat_id in CHATS:
-        moderator: types.ChatMember = await bot.get_chat_member(chat_id=chat_id, user_id=moderator_id)
+        moderator: types.ChatMember = await bot.get_chat_member(
+            chat_id=chat_id, user_id=moderator_id)
         moderators = await bot.get_chat_administrators(chat_id)
 
         if moderator in moderators:
@@ -29,16 +28,19 @@ async def show_user(message: types.Message):
         return
 
     username = await is_username(message.text)
+    print('юзернейм из сообщения:', username)
     if username is None:
         await message.answer('Не указан username')
         return
 
     user_id = await get_id(username)
+    print('юзер айди из базы:', user_id)
     if user_id is None:
         await message.answer('Пользователя нет в базе данных айди')
         return
 
     user_status = await get_user(user_id)
+    print('Инфа о пользователе из базы мьютов:', user_status)
     if user_status is None:
         await message.answer('Пользователя нет в базе данных мьютов')
         return

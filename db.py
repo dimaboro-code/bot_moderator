@@ -1,6 +1,6 @@
+from datetime import datetime, timedelta
 from databases import Database
 from config import DATABASE_URL
-from datetime import datetime, timedelta
 
 
 database = Database(DATABASE_URL + '?ssl=true')
@@ -33,19 +33,19 @@ async def add_user(user_id):
     await database.execute(f'INSERT INTO users (user_id, is_muted) '
                            f'VALUES (:user_id, :is_muted)',
                            values={'user_id': user_id,
-                                   'is_muted': True})
+                                   'is_muted': False})
 
 
 async def add_mute(mute_data):
     await database.execute(
-    f'INSERT INTO mutes (user_id, message_id, chat_id, '
-    f'moderator_message, admin_username, date_of_mute) '  # admin usrnm to id
-    f'VALUES (:user_id, :message_id, :chat_id, '
-    f':moderator_message, :admin_username, NOW())',
-       values=mute_data
+        f'INSERT INTO mutes (user_id, message_id, chat_id, '
+        f'moderator_message, admin_username, date_of_mute) '  # admin usrnm to id
+        f'VALUES (:user_id, :message_id, :chat_id, '
+        f':moderator_message, :admin_username, NOW())',
+        values=mute_data
     )
     user_id = mute_data['user_id']
-    change_mute = f'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
+    change_mute = 'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
     values = {'user_id': user_id}
     await database.execute(query=change_mute, values=values)
 
@@ -53,7 +53,7 @@ async def add_mute(mute_data):
 # Говнокод. Переделать.
 async def add_lives(user_id, lives: int = 1):
     lives_in_db = await database.fetch_val(
-        query=f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+        query='SELECT user_blocks FROM users WHERE user_id = :user_id',
         values={'user_id': user_id}
     )
 
@@ -188,12 +188,21 @@ async def add_id(username, user_id):
         print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
 
 
+async def update_id(user_id):
+    try:
+        query = 'UPDATE ids SET created_at=:created_at WHERE user_id = :user_id'
+        params = {'created_at': 'NOW()', 'user_id': user_id}
+        await database.execute(query=query, values=params)
+        print('обновлено')
+    except Exception as e:
+        print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
+
+
 async def check_know_id(user_id):
     try:
         query = 'SELECT username FROM ids WHERE user_id = :user_id'
         values = {'user_id': user_id}
         username = await database.fetch_val(query=query, values=values)
-        print(username)
         return username
 
     except Exception as e:
@@ -208,8 +217,7 @@ async def get_id(username):
         if user_id is not None:
             print(user_id)
             return user_id
-        else:
-            return None
+        return None
     except Exception as e:
         print('Ошибка: ', str(e))
 
