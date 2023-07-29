@@ -37,16 +37,17 @@ async def add_user(user_id):
 
 
 async def add_mute(mute_data):
-    await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
-                           f'moderator_message, admin_username, date_of_mute) '  # admin un switch to admin_id
-                           f'VALUES (:user_id, :message_id, :chat_id, '
-                           f':moderator_message, :admin_username, NOW())',
-                           values=mute_data)
+    await database.execute(
+    f'INSERT INTO mutes (user_id, message_id, chat_id, '
+    f'moderator_message, admin_username, date_of_mute) '  # admin usrnm to id
+    f'VALUES (:user_id, :message_id, :chat_id, '
+    f':moderator_message, :admin_username, NOW())',
+       values=mute_data
+    )
     user_id = mute_data['user_id']
     change_mute = f'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
     values = {'user_id': user_id}
     await database.execute(query=change_mute, values=values)
-
 
 
 # Говнокод. Переделать.
@@ -58,7 +59,7 @@ async def add_lives(user_id, lives: int = 1):
 
     if int(lives_in_db) < 0:
         print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
-        lives = -int(lives_in_db)
+        lives = 0
         await database.execute(
             f'UPDATE users '
             f'SET user_blocks=:lifes '
@@ -117,7 +118,7 @@ async def delete_all_lives(user_id):
 
     if int(lives_in_db) < 0:
         print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
-        lives = -int(lives_in_db)
+        lives = 0
         await database.execute(
             f'UPDATE users '
             f'SET user_blocks=:lifes '
@@ -133,7 +134,6 @@ async def delete_all_lives(user_id):
         f'WHERE user_id=:user_id',
         values={'lifes': lives, 'user_id': user_id}
     )
-
 
 
 async def get_user(user_id):  # переделать в get_user и get_mutes
@@ -188,6 +188,18 @@ async def add_id(username, user_id):
         print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
 
 
+async def check_know_id(user_id):
+    try:
+        query = 'SELECT username FROM ids WHERE user_id = :user_id'
+        values = {'user_id': user_id}
+        username = await database.fetch_val(query=query, values=values)
+        print(username)
+        return username
+
+    except Exception as e:
+        print(f"Произошла ошибка при получении идентификатора: {str(e)}")
+
+
 async def get_id(username):
     try:
         query = 'SELECT user_id FROM ids WHERE username = :username'
@@ -199,7 +211,7 @@ async def get_id(username):
         else:
             return None
     except Exception as e:
-        print(f"Произошла ошибка при получении идентификатора: {str(e)}")
+        print('Ошибка: ', str(e))
 
 
 async def delete_old_data():
@@ -210,7 +222,6 @@ async def delete_old_data():
         field_name = 'created_at'
 
         two_days_ago = datetime.now() - timedelta(days=5)
-
 
         query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
 
