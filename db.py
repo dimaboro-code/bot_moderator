@@ -190,8 +190,8 @@ async def add_id(username, user_id):
 
 async def update_id(user_id):
     try:
-        query = 'UPDATE ids SET created_at=:created_at WHERE user_id = :user_id'
-        params = {'created_at': 'NOW()', 'user_id': user_id}
+        query = 'UPDATE ids SET created_at=NOW() WHERE user_id = :user_id'
+        params = {'user_id': user_id}
         await database.execute(query=query, values=params)
         print('обновлено')
     except Exception as e:
@@ -214,8 +214,8 @@ async def get_id(username):
         query = 'SELECT user_id FROM ids WHERE username = :username'
         values = {'username': username}
         user_id = await database.fetch_val(query=query, values=values)
+        print(user_id)
         if user_id is not None:
-            print(user_id)
             return user_id
         return None
     except Exception as e:
