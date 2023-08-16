@@ -1,9 +1,8 @@
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery
 from config import bot
-import asyncio
-from db import add_lives, delete_lives, delete_all_lives, get_id
+from db import add_lives, delete_lives, delete_all_lives, get_id, get_last_mute, get_user
 from system_functions.is_username import is_username
-from privatechat_functions.show_user import show_user
+from system_functions.show_user_keyboard import show_user_keyboard
 
 
 react_funcs = {
@@ -21,12 +20,25 @@ async def show_user_react(call: CallbackQuery):
     print(user_id)
 
     await react_funcs[real_query](user_id)
-    await call.answer(show_alert=False, text='Успешно')
-    await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-    await asyncio.sleep(1)
-    msg = Message()
-    msg.text = '/show_user @' + username
-    msg.from_user = call.message.from_user
-    msg.chat = call.message.chat
+    user_status = await get_user(user_id)
+    user_last_mute = await get_last_mute(user_id)
+    chat = await bot.get_chat(user_last_mute["chat_id"])
 
-    await show_user(msg)
+    await call.answer(show_alert=False, text='Успешно')
+
+    updated_text = (
+        f'Пользователь: @{username}\n'
+        f'Статус: {("без ограничений", "в мьюте")[user_status["is_muted"]]}\n'  # 
+        f'Осталось разблоков: {user_status["user_blocks"]}\n\n'
+        f'Последний мьют\n'
+        f'Причина: {user_last_mute["moderator_message"]}\n'
+        f'Чат: {chat.username}\n'
+        f'Админ: {user_last_mute["admin_username"]}\n'
+        f'Дата мьюта: {user_last_mute["date_of_mute"]}'
+    )
+    print(updated_text)
+    await bot.edit_message_text(
+        chat_id=call.message.chat.id, message_id=call.message.message_id,
+        text=updated_text,
+        reply_markup=show_user_keyboard
+    )
