@@ -22,6 +22,7 @@ CHATS = [
     -1001191920744,  # slashcomments
     -1001769444523,  # slashimagineai
     -1001838011289,  # Bot Sandbox
+    -1001629596705,  # uireview
 ]
 
 MESSAGES_FOR_DELETE = [
