@@ -1,29 +1,20 @@
 from aiogram import types
 
 from config import bot
-from config import CHATS
 
 from system_functions.is_username import is_username
 from system_functions.show_user_keyboard import show_user_keyboard
+from system_functions.is_chat_admin import is_chat_admin
 
 from db import get_id
 from db import get_user, get_last_mute
 
 
 async def show_user(message: types.Message):
-    moderator_id = message.from_user.id
-    is_chat_admin = False
+    admin_id = message.from_user.id
 
-    for chat_id in CHATS:
-        moderator: types.ChatMember = await bot.get_chat_member(
-            chat_id=chat_id, user_id=moderator_id)
-        moderators = await bot.get_chat_administrators(chat_id)
-
-        if moderator in moderators:
-            is_chat_admin = True
-            break
-
-    if is_chat_admin is False:
+    is_admin = await is_chat_admin(admin_id)
+    if is_admin is False:
         await message.answer('Вы не являетесь модератором сообщества')
         return
 

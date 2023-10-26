@@ -4,8 +4,8 @@ from config import bot, CHATS, MUTE_SETTINGS
 
 from system_functions.delete_message import delete_message
 from system_functions.restrict import restrict
-from .mute_checks import checks
 from db import *
+from .mute_checks import checks
 
 
 async def mute(moderator_message: types.Message):
@@ -24,7 +24,7 @@ async def mute(moderator_message: types.Message):
         await delete_message(moderator_message)
         return
 
-    elif permission[0] is True:
+    if permission[0] is True:
         user_id = permission[1]
 
     else:
@@ -38,7 +38,21 @@ async def mute(moderator_message: types.Message):
             print(chat.username, ': успешно')
         except Exception as e:
             print(chat.username, ': ошибка', e)
+            await bot.send_message(
+                chat_id=-1001838011289,
+                text=f'Юзер: {user_id}\n'
+                     f'Чат ID: {chat.id}\n'
+                     f'Чат: {chat.username}\n'
+                     f'Не прошел мьют, ошибка: {e}'
+            )
             continue
+
+    check_mute = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
+    if check_mute.status != 'restricted' or check_mute.can_send_messages:
+        ans = await moderator_message.answer('Мьют не прошел, отчет об ошибке отправлен разработчику')
+        await delete_message(ans, 1)
+        await delete_message(moderator_message)
+        return
 
     if not await in_database(user_id):
         await add_user(user_id)
@@ -61,7 +75,7 @@ async def mute(moderator_message: types.Message):
     await add_mute(mute_data)
 
     success_message = await moderator_message.answer(
-        f'Пользователь попал в мьют.'
+        'Пользователь попал в мьют.'
     )
 
     try:
