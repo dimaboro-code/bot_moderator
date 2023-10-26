@@ -38,18 +38,20 @@ async def mute(moderator_message: types.Message):
             print(chat.username, ': успешно')
         except Exception as e:
             print(chat.username, ': ошибка', e)
-            bot.send_message(
-                chat_id=-1001838011289,
-                text=f'Юзер: {user_id},\n'
-                     f'Чат ID: {chat.id}, чат Name: {chat.username}'
+            await bot.send_message(
+                chat_id=-1001868029361,
+                text=f'Юзер: {user_id}\n'
+                     f'Чат ID: {chat.id}\n'
+                     f'Чат: {chat.username}\n'
                      f'Не прошел мьют, ошибка: {e}'
             )
             continue
 
     check_mute = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
     if check_mute.status != 'restricted' or check_mute.can_send_messages:
-        ans = await moderator_message.answer('Мьют не прошел')
+        ans = await moderator_message.answer('Мьют не прошел, отчет направлен разрабу')
         await delete_message(ans, 1)
+        await delete_message(moderator_message)
         return
 
     if not await in_database(user_id):
