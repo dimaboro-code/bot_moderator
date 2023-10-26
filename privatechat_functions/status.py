@@ -22,6 +22,7 @@ async def status(message: types.Message):
 
     if last_mute is None:
         await message.answer('Нет данных о мьюте')
+        return
     else:
         chat = await bot.get_chat(last_mute["chat_id"])
 

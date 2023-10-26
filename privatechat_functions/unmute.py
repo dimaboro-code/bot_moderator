@@ -22,6 +22,7 @@ async def unmute(message: types.Message):
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
+        print(member)
         if member.can_send_messages is True:
             await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
             return

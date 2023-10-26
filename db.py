@@ -1,8 +1,9 @@
-from databases import Database
 from datetime import datetime, timedelta
+from databases import Database
+from config import DATABASE_URL
 
 
-database = Database('postgresql://postgres:2026523@localhost:5432/postgres')
+database = Database(DATABASE_URL + '?ssl=true')
 
 
 # database functions
@@ -11,6 +12,14 @@ Table
 Users - user_id, is_muted, user_blocks
 Mutes - message_id, chat_id, admin_username (switch to id), moderator_message, date_of_mute
 """
+
+# async def create_table_ids():
+#     query = f'CREATE TABLE IF NOT EXISTS ids (' \
+#             f'id SERIAL PRIMARY KEY,' \
+#             f'user_id NUMERIC NOT NULL,' \
+#             f'username TEXT,' \
+#             f'created_at TIMESTAMP DEFAULT NOW())'
+#     await database.execute(query=query)
 
 
 async def in_database(user_id):
@@ -24,28 +33,101 @@ async def add_user(user_id):
     await database.execute(f'INSERT INTO users (user_id, is_muted) '
                            f'VALUES (:user_id, :is_muted)',
                            values={'user_id': user_id,
-                                   'is_muted': True})
+                                   'is_muted': False})
 
 
 async def add_mute(mute_data):
-    await database.execute(f'INSERT INTO mutes (user_id, message_id, chat_id, '
-                           f'moderator_message, admin_username, date_of_mute) '  # admin un switch to admin_id
-                           f'VALUES (:user_id, :message_id, :chat_id, '
-                           f':moderator_message, :admin_username, NOW())',
-                           values=mute_data)
+    await database.execute(
+        f'INSERT INTO mutes (user_id, message_id, chat_id, '
+        f'moderator_message, admin_username, date_of_mute) '  # admin usrnm to id
+        f'VALUES (:user_id, :message_id, :chat_id, '
+        f':moderator_message, :admin_username, NOW())',
+        values=mute_data
+    )
     user_id = mute_data['user_id']
-    change_mute = f'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
+    change_mute = 'UPDATE users SET is_muted = TRUE WHERE user_id = :user_id'
     values = {'user_id': user_id}
     await database.execute(query=change_mute, values=values)
 
 
 # Говнокод. Переделать.
 async def add_lives(user_id, lives: int = 1):
-    lives_in_db = await database.fetch_one(
+    lives_in_db = await database.fetch_val(
+        query='SELECT user_blocks FROM users WHERE user_id = :user_id',
+        values={'user_id': user_id}
+    )
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = 0
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = int(lives_in_db) + lives
+    await database.execute(
+        f'UPDATE users '
+        f'SET user_blocks=:lifes '
+        f'WHERE user_id=:user_id',
+        values={'lifes': lives, 'user_id': user_id}
+    )
+
+
+async def delete_lives(user_id, lives: int = 1):
+    lives_in_db = await database.fetch_val(
         f'SELECT user_blocks FROM users WHERE user_id = :user_id',
         values={'user_id': user_id}
     )
-    lives = int(lives_in_db[0]) + lives
+    if int(lives_in_db) == 0:
+        print('Пользователь: ', user_id, 'нет разблоков, нельзя уменьшить')
+        return
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = -int(lives_in_db)
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = int(lives_in_db) - lives
+    await database.execute(
+        f'UPDATE users '
+        f'SET user_blocks=:lifes '
+        f'WHERE user_id=:user_id',
+        values={'lifes': lives, 'user_id': user_id}
+    )
+
+
+async def delete_all_lives(user_id):
+    lives_in_db = await database.fetch_val(
+        f'SELECT user_blocks FROM users WHERE user_id = :user_id',
+        values={'user_id': user_id}
+    )
+
+    if int(lives_in_db) == 0:
+        print('Пользователь: ', user_id, 'нет разблоков, нельзя уменьшить')
+        return
+
+    if int(lives_in_db) < 0:
+        print('Чет хрень, разблоков меньше нуля, пользователь ', user_id)
+        lives = 0
+        await database.execute(
+            f'UPDATE users '
+            f'SET user_blocks=:lifes '
+            f'WHERE user_id=:user_id',
+            values={'lifes': lives, 'user_id': user_id}
+        )
+        return
+
+    lives = 0
     await database.execute(
         f'UPDATE users '
         f'SET user_blocks=:lifes '
@@ -97,47 +179,60 @@ async def delete_row(user_id):
 
 
 async def add_id(username, user_id):
-    # функция создает пару юзернейм - айди, чтобы можно быо мьютить по айди
-    query = f'INSERT INTO ids (username, user_id) VALUES (:username, :user_id)'
-    params = {'username': username, 'user_id': user_id}
-    await database.execute(query=query, values=params)
+    try:
+        query = 'INSERT INTO ids (username, user_id) VALUES (:username, :user_id)'
+        params = {'username': username, 'user_id': user_id}
+        await database.execute(query=query, values=params)
+        print('ID успешно добавлен в базу')
+    except Exception as e:
+        print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
+
+
+async def update_id(user_id):
+    try:
+        query = 'UPDATE ids SET created_at=NOW() WHERE user_id = :user_id'
+        params = {'user_id': user_id}
+        await database.execute(query=query, values=params)
+        print('обновлено')
+    except Exception as e:
+        print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
+
+
+async def check_know_id(user_id):
+    try:
+        query = 'SELECT username FROM ids WHERE user_id = :user_id'
+        values = {'user_id': user_id}
+        username = await database.fetch_val(query=query, values=values)
+        return username
+
+    except Exception as e:
+        print(f"Произошла ошибка при получении идентификатора: {str(e)}")
 
 
 async def get_id(username):
-    query = 'SELECT * FROM ids WHERE username = :username'
-    values = {'username': username}
-    print(username)
-    user_id = await database.fetch_one(query=query, values=values)
-    if user_id is not None:
-        print(user_id[1])
-
-        return user_id[1]
-    else:
+    try:
+        query = 'SELECT user_id FROM ids WHERE username = :username'
+        values = {'username': username}
+        user_id = await database.fetch_val(query=query, values=values)
+        print('Гет айди, юзер айди:', user_id)
+        if user_id is not None:
+            return user_id
         return None
+    except Exception as e:
+        print('Ошибка: ', str(e))
 
 
 async def delete_old_data():
-    print('delete old data')
+    try:
+        print('Deleting old data')
 
-    # Определите таблицу и поле для удаления данных
-    table_name = 'ids'
-    field_name = 'created_at'
+        table_name = 'ids'
+        field_name = 'created_at'
 
-    # Вычислите временную метку, представляющую время 1 дня назад
-    one_day_ago = datetime.now() - timedelta(days=1)
+        two_days_ago = datetime.now() - timedelta(days=5)
 
-    # Сформируйте SQL-запрос для удаления старых данных
-    query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
+        query = f"DELETE FROM {table_name} WHERE {field_name} < :one_day_ago"
 
-    # Выполните SQL-запрос для удаления старых данных
-    await database.execute(query, values={'one_day_ago': one_day_ago})
-
-
-async def create_table_ids():
-    query = f'CREATE TABLE IF NOT EXISTS ids (' \
-            f'id SERIAL PRIMARY KEY,' \
-            f'user_id NUMERIC NOT NULL,' \
-            f'username TEXT,' \
-            f'created_at TIMESTAMP DEFAULT NOW())'
-    await database.execute(query=query)
-    print('таблица создана')
+        await database.execute(query, values={'one_day_ago': two_days_ago})
+    except Exception as e:
+        print(f"Произошла ошибка при удалении старых данных: {str(e)}")
