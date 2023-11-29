@@ -5,7 +5,7 @@ from config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
 from system_functions.delete_message import delete_message
 from system_functions.restrict import restrict
 from db import *
-from .mute_checks import checks
+from group_functions.mute_new.mute_checks import checks
 
 
 async def mute(moderator_message: types.Message):
@@ -86,15 +86,24 @@ async def mute(moderator_message: types.Message):
 
     await add_mute(mute_data)
 
+    try:
+        await bot.send_message(chat_id=LOG_CHANNEL,
+                               text=f'Мьют {username},\nuser id: {user_id},\n'
+                                    f'Подробнее: <code><b>/show_user @{username}</b></code>\n',
+                               parse_mode='HTML'
+                               )
+    except Exception as exep:
+        await bot.send_message(
+            chat_id=-1001838011289,
+            text=f'Юзер: {user_id}\n'
+                 f'Юзернейм: {username}'
+                 f'Чат: {chat.username}\n'
+                 f'Не прошел отчет о мьюте, ошибка: {exep}'
+        )
+
     success_message = await moderator_message.answer(
         f'Пользователь {username} попал в мьют.'
     )
-
-    await bot.send_message(chat_id=-LOG_CHANNEL,
-                           text=f'Мьют {username},\nuser id: {user_id},\n'
-                                f'Подробнее: <code><b>/show_user {username}</b></code>\n',
-                           parse_mode='HTML'
-                           )
 
     try:
         await bot.delete_message(
