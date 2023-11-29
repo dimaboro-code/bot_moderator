@@ -1,6 +1,6 @@
 from aiogram import types
 
-from config import bot, CHATS, MUTE_SETTINGS
+from config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
 
 from system_functions.delete_message import delete_message
 from system_functions.restrict import restrict
@@ -18,6 +18,7 @@ async def mute(moderator_message: types.Message):
     """
 
     permission = await checks(moderator_message)
+
     if permission[0] is False:
         answer_message = await moderator_message.reply(permission[1])
         await delete_message(answer_message, 2)
@@ -31,6 +32,16 @@ async def mute(moderator_message: types.Message):
         print('Вообще в душе не ебу, что может произойти, чтобы выполнилась эта ветка')
         return
 
+    try:
+        bad_user: types.ChatMember = await bot.get_chat_member(moderator_message.chat.id, user_id)
+        username = bad_user.user.username
+    except Exception as exep:
+        username = 'mistake_in_code'
+        await bot.send_message(
+            chat_id=-1001838011289,
+            text=f'mute_main, 42\nНе удалось добыть юзернейм, причина: {exep}'
+        )
+
     for chat_id in CHATS:
         chat: types.Chat = await bot.get_chat(chat_id)
         try:
@@ -41,14 +52,15 @@ async def mute(moderator_message: types.Message):
             await bot.send_message(
                 chat_id=-1001838011289,
                 text=f'Юзер: {user_id}\n'
+                     f'Юзернейм: {username}'
                      f'Чат ID: {chat.id}\n'
                      f'Чат: {chat.username}\n'
                      f'Не прошел мьют, ошибка: {e}'
             )
             continue
 
-    check_mute = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
-    if check_mute.status != 'restricted' or check_mute.can_send_messages:
+    member_actual_state = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
+    if member_actual_state.status != 'restricted' or member_actual_state.can_send_messages:
         ans = await moderator_message.answer('Мьют не прошел, отчет об ошибке отправлен разработчику')
         await delete_message(ans, 1)
         await delete_message(moderator_message)
@@ -75,8 +87,14 @@ async def mute(moderator_message: types.Message):
     await add_mute(mute_data)
 
     success_message = await moderator_message.answer(
-        'Пользователь попал в мьют.'
+        f'Пользователь {username} попал в мьют.'
     )
+
+    await bot.send_message(chat_id=-LOG_CHANNEL,
+                           text=f'Мьют {username},\nuser id: {user_id},\n'
+                                f'Подробнее: <code><b>/show_user {username}</b></code>\n',
+                           parse_mode='HTML'
+                           )
 
     try:
         await bot.delete_message(

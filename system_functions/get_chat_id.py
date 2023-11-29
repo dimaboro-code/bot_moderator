@@ -6,7 +6,7 @@ async def get_chat_id(message: types.Message):
     chat_ids = []
     text = message.text.strip().split()
     text.pop(0)
-    answer = None
+    answer = ''
     for chat in text:
         # print(chat)
         chat_id = await bot.get_chat(chat)

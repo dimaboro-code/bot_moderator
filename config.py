@@ -25,6 +25,8 @@ CHATS = [
     -1001629596705,  # uireview
 ]
 
+LOG_CHANNEL = -1001482081082  # /designer/mutes
+
 MESSAGES_FOR_DELETE = [
     'new_chat_members',
     'left_chat_member',
