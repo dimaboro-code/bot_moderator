@@ -55,3 +55,8 @@ async def show_user(message: types.Message):
               f'Дата мьюта: {user_last_mute["date_of_mute"]}')
 
     await message.answer(text=answer, reply_markup=show_user_keyboard)
+
+
+async def show_user_deeplink(message: types.Message) -> None:
+    message.text = '@' + message.text.split(' ')[1]
+    await show_user(message)
