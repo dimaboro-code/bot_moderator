@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from config import bot
+from config import bot, LOG_CHANNEL
 
 
 async def send_report(message: Message) -> None:
@@ -10,11 +10,11 @@ async def send_report(message: Message) -> None:
     """
     user_id = message.from_user.id
     username = message.from_user.username
-    await bot.send_message(chat_id=-1001838011289,
+    await bot.send_message(chat_id=LOG_CHANNEL,
                            text='Тестовое сообщение!'
                                 f'Мьют {username},\nuser id: {user_id},\n'
                                 f'Подробнее: <a href="t.me/slashdbot?start={username}">'
                                 f'<b>{username}</b></a>\n'
-                                f'Ccылка: t.me/testing_projects_42_bot?start=@{username}',
+                                f'Ccылка: t.me/slashdbot?start=@{username}',
                            parse_mode='HTML'
                            )
