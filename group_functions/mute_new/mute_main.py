@@ -89,7 +89,8 @@ async def mute(moderator_message: types.Message):
     try:
         await bot.send_message(chat_id=LOG_CHANNEL,
                                text=f'Мьют {username},\nuser id: {user_id},\n'
-                                    f'Подробнее: <code><b>/show_user @{username}</b></code>\n',
+                                    f'Подробнее: <a href="t.me/testing_projects_42_bot?start={username}">'
+                                    f'<b>{username}</b></a>\n',
                                parse_mode='HTML'
                                )
     except Exception as exep:

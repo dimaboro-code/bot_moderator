@@ -22,6 +22,7 @@ from system_functions.get_chat_id import get_chat_id
 from system_functions.id_recognizer import know_id
 from system_functions.delete_old_ids import setup_schedule
 from system_functions.callback_show_users import show_user_react
+from system_functions.send_report import send_report
 
 
 # PRIVATECHAT FUCNTION IMPORTS
@@ -29,7 +30,7 @@ from privatechat_functions.send_welcome import send_welcome
 from privatechat_functions.unmute import unmute
 from privatechat_functions.status import status
 from privatechat_functions.bot_help import bot_help
-from privatechat_functions.show_user import show_user
+from privatechat_functions.show_user import show_user, show_user_deeplink
 
 
 # Configure logging
@@ -62,7 +63,9 @@ dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_adm
 dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
 
 # PRIVATE HANDLERS
+dp.register_message_handler(show_user_deeplink, filters.CommandStart, filters.Text(' '), chat_type='private')
 dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
+dp.register_message_handler(send_report, commands=['send_report'], chat_type='private')
 dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
