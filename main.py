@@ -63,7 +63,7 @@ dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_adm
 dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
 
 # PRIVATE HANDLERS
-dp.register_message_handler(show_user_deeplink, filters.CommandStart, filters.Text(' '), chat_type='private')
+dp.register_message_handler(show_user_deeplink, filters.CommandStart, filters.Text(contains=' '), chat_type='private')
 dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
 dp.register_message_handler(send_report, commands=['send_report'], chat_type='private')
 dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
