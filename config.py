@@ -23,6 +23,7 @@ CHATS = [
     # -1001769444523,  # slashimagineaiп
     # -1001838011289,  # Bot Sandbox
     -1001868029361,    # тест бота
+    # -1001482081082   # /mutes
 ]
 
 MESSAGES_FOR_DELETE = [

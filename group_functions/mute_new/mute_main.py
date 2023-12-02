@@ -31,18 +31,26 @@ async def mute(moderator_message: types.Message):
         print('Вообще в душе не ебу, что может произойти, чтобы выполнилась эта ветка')
         return
 
+    bad_user: types.ChatMember = await bot.get_chat_member(moderator_message.chat.id, user_id)
+    username = bad_user.user.username
+
     for chat_id in CHATS:
-        chat: types.Chat = await bot.get_chat(chat_id)
+        try:
+            chat: types.Chat = await bot.get_chat(chat_id)
+        except Exception as e:
+            await bot.send_message(
+                chat_id=-1001868029361,
+                text=f'Чат с ID {chat_id} сука не найден, ошибка {e}'
+            )
         try:
             await restrict(user_id, chat_id, MUTE_SETTINGS)
             print(chat.username, ': успешно')
         except Exception as e:
-            print(chat.username, ': ошибка', e)
+            print(chat_id, ': ошибка', e)
             await bot.send_message(
                 chat_id=-1001868029361,
                 text=f'Юзер: {user_id}\n'
-                     f'Чат ID: {chat.id}\n'
-                     f'Чат: {chat.username}\n'
+                     f'Чат ID: {chat_id}\n'
                      f'Не прошел мьют, ошибка: {e}'
             )
             continue
@@ -74,10 +82,16 @@ async def mute(moderator_message: types.Message):
 
     await add_mute(mute_data)
 
-
     success_message = await moderator_message.answer(
-        f'Пользователь попал в мьют.'
+        'Пользователь попал в мьют.'
     )
+
+    await bot.send_message(chat_id=-1002065542994,
+                           text=f'Мьют {username},\nuser id: {user_id},\n'
+                                f'Подробнее: <a href="t.me/testing_projects_42_bot?show_user=@{username}">'
+                                f'<b>/{username}</b></a>\n',
+                           parse_mode='HTML'
+                           )
 
     try:
         await bot.delete_message(

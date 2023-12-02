@@ -6,7 +6,7 @@ from aiogram.utils.executor import start_polling
 from aiogram import filters
 
 # settings import
-from config import dp, MESSAGES_FOR_DELETE
+from config import dp, MESSAGES_FOR_DELETE, bot
 
 # full database import
 from db import *
@@ -33,6 +33,9 @@ from privatechat_functions.status import status
 from privatechat_functions.bot_help import bot_help
 from privatechat_functions.show_user import show_user
 from system_functions.callback_show_users import show_user_react
+from system_functions.send_report import send_report
+from system_functions.echo import echo
+from utils.commands import set_commands
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -42,11 +45,14 @@ logging.basicConfig(level=logging.INFO)
 async def on_startup(dispatcher):
     await database.connect()
     await setup_schedule()
+    await set_commands(bot)
+    await bot.send_message(-1001868029361, 'бот запущен')
 
 
 # stopping app
 async def on_shutdown(dispatcher):
     await database.disconnect()
+    await bot.send_message(-1001868029361, 'бот остановлен')
 
 
 # HANDLERS
@@ -65,13 +71,16 @@ dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_adm
 dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
 
 # PRIVATE HANDLERS
+dp.register_message_handler(echo, filters.CommandStart, filters.Text(contains=' '), chat_type='private')
 dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
 dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
 dp.register_message_handler(show_user, commands_prefix='!/', commands=['show_user'], chat_type='private')
 dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
+dp.register_message_handler(send_report, commands=['send_report'])
 dp.register_message_handler(know_id)
+
 
 
 if __name__ == '__main__':

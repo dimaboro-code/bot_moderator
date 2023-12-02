@@ -11,6 +11,7 @@ from db import get_user, get_last_mute
 
 
 async def show_user(message: types.Message):
+    print('show_user is working')
     admin_id = message.from_user.id
 
     is_admin = await is_chat_admin(admin_id)

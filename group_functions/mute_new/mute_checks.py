@@ -47,7 +47,7 @@ async def checks(moderator_message: types.Message):
         print('Статус:', member.status, '\n',)
         if member.status == 'restricted' and not member.can_send_messages:
             return False, 'Пользователь уже в мьюте'
-        if member.status == 'creator' or 'administrator':
+        if member.status in ('creator', 'administrator'):
             return False, 'Пользователь является администратором и не может быть заблокирован ботом'
 
         return True, user_id
