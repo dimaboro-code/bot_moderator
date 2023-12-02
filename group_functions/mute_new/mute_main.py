@@ -52,9 +52,9 @@ async def mute(moderator_message: types.Message):
             await bot.send_message(
                 chat_id=-1001838011289,
                 text=f'Юзер: {user_id}\n'
-                     f'Юзернейм: {username}'
+                     f'Юзернейм: @{username}'
                      f'Чат ID: {chat.id}\n'
-                     f'Чат: {chat.username}\n'
+                     f'Чат: @{chat.username}\n'
                      f'Не прошел мьют, ошибка: {e}'
             )
             continue
@@ -88,10 +88,12 @@ async def mute(moderator_message: types.Message):
 
     try:
         await bot.send_message(chat_id=LOG_CHANNEL,
-                               text=f'Мьют {username},\nuser id: {user_id},\n'
+                               text=f'Мьют @{username},\nuser id: {user_id},\n'
                                     f'Подробнее: <a href="t.me/slashdbot?start={username}">'
                                     f'<b>{username}</b></a>\n',
-                               parse_mode='HTML'
+                               parse_mode='HTML\n\n'
+                                    f'Админ: @{moderator_message.from_user.username}'
+                                    f'Причина: {reason_message}'
                                )
     except Exception as exep:
         await bot.send_message(
