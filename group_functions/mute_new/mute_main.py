@@ -91,7 +91,7 @@ async def mute(moderator_message: types.Message):
                                text=f'Мьют @{username},\nuser id: {user_id},\n'
                                     f'Подробнее: <a href="t.me/slashdbot?start={username}">'
                                     f'<b>{username}</b></a>\n\n'
-                                    f'Админ: @{moderator_message.from_user.username}'
+                                    f'Админ: @{moderator_message.from_user.username}\n'
                                     f'Причина: {reason_message}',
                                parse_mode='HTML'
                                )
