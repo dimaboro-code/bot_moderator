@@ -90,10 +90,10 @@ async def mute(moderator_message: types.Message):
         await bot.send_message(chat_id=LOG_CHANNEL,
                                text=f'Мьют @{username},\nuser id: {user_id},\n'
                                     f'Подробнее: <a href="t.me/slashdbot?start={username}">'
-                                    f'<b>{username}</b></a>\n',
-                               parse_mode='HTML\n\n'
+                                    f'<b>{username}</b></a>\n\n'
                                     f'Админ: @{moderator_message.from_user.username}'
-                                    f'Причина: {reason_message}'
+                                    f'Причина: {reason_message}',
+                               parse_mode='HTML'
                                )
     except Exception as exep:
         await bot.send_message(
