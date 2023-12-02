@@ -10,6 +10,8 @@ react_funcs = {
     'remove_unblock': delete_lives,
     'remove_all_unblocks': delete_all_lives
 }
+
+
 async def show_user_react(call: CallbackQuery):
     func_query = call.data.split('_')
     real_query = '_'.join(func_query[2:])
@@ -32,8 +34,8 @@ async def show_user_react(call: CallbackQuery):
         f'Осталось разблоков: {user_status["user_blocks"]}\n\n'
         f'Последний мьют\n'
         f'Причина: {user_last_mute["moderator_message"]}\n'
-        f'Чат: {chat.username}\n'
-        f'Админ: {user_last_mute["admin_username"]}\n'
+        f'Чат: @{chat.username}\n'
+        f'Админ: @{user_last_mute["admin_username"]}\n'
         f'Дата мьюта: {user_last_mute["date_of_mute"]}'
     )
     print(updated_text)

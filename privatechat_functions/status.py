@@ -31,7 +31,7 @@ async def status(message: types.Message):
               f'Осталось разблоков: {user_data["user_blocks"]}\n\n' 
               f'Последний мьют\n'
               f'Причина: {last_mute["moderator_message"]}\n' 
-              f'Чат: {chat.username}\n' 
+              f'Чат: @{chat.username}\n' 
               f'Админ: @{last_mute["admin_username"]}\n' 
               # f'Сообщение: {reason_to_mute.text}\n'
               f'Дата мьюта: {last_mute["date_of_mute"]}')
