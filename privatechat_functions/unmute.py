@@ -35,7 +35,6 @@ async def unmute(message: types.Message):
         await db_unmute(user_id)
 
 
-        
         for chat in CHATS:
             try:
                 await restrict(user_id, chat, UNMUTE_SETTINGS)
