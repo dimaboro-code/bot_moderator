@@ -26,6 +26,8 @@ CHATS = [
     # -1001482081082   # /mutes
 ]
 
+LOG_CHANNEL = -1002065542994
+
 MESSAGES_FOR_DELETE = [
     'new_chat_members',
     'left_chat_member',
