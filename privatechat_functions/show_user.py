@@ -11,7 +11,6 @@ from db import get_user, get_last_mute
 
 
 async def show_user(message: types.Message):
-    print('show_user is working')
     admin_id = message.from_user.id
 
     is_admin = await is_chat_admin(admin_id)
@@ -51,8 +50,13 @@ async def show_user(message: types.Message):
               f'Осталось разблоков: {user_status["user_blocks"]}\n\n'
               f'Последний мьют\n'
               f'Причина: {user_last_mute["moderator_message"]}\n'
-              f'Чат: {chat.username}\n'
-              f'Админ: {user_last_mute["admin_username"]}\n'
+              f'Чат: @{chat.username}\n'
+              f'Админ: @{user_last_mute["admin_username"]}\n'
               f'Дата мьюта: {user_last_mute["date_of_mute"]}')
 
     await message.answer(text=answer, reply_markup=show_user_keyboard)
+
+
+async def show_user_deeplink(message: types.Message) -> None:
+    message.text = '@' + message.text.split(' ')[1]
+    await show_user(message)

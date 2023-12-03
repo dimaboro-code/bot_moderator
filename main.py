@@ -2,28 +2,28 @@
 import logging
 
 # run webhook
-from aiogram.utils.executor import start_polling
+from aiogram.utils.executor import start_webhook
 from aiogram import filters
+from aiogram.utils.executor import start_polling
 
 # settings import
-from config import dp, MESSAGES_FOR_DELETE, bot
+from config import bot, dp, MESSAGES_FOR_DELETE
 
 # full database import
 from db import *
-
-
-
 
 # GROUP FUNCTION IMPORTS
 from group_functions.mute_new.mute_main import mute
 from group_functions.join_cleaner import join_cleaner
 from group_functions.add_unblocks import add_unblocks
-from group_functions.id_recognizer import know_id
 
 # SYSTEM FUNCTION IMPORTS
 from system_functions.eraser import eraser
 from system_functions.get_chat_id import get_chat_id
+from system_functions.id_recognizer import know_id
 from system_functions.delete_old_ids import setup_schedule
+from system_functions.callback_show_users import show_user_react
+from system_functions.send_report import send_report
 
 
 # PRIVATECHAT FUCNTION IMPORTS
@@ -31,11 +31,8 @@ from privatechat_functions.send_welcome import send_welcome
 from privatechat_functions.unmute import unmute
 from privatechat_functions.status import status
 from privatechat_functions.bot_help import bot_help
-from privatechat_functions.show_user import show_user
-from system_functions.callback_show_users import show_user_react
-from system_functions.send_report import send_report
-from system_functions.echo import echo
-from utils.commands import set_commands
+from privatechat_functions.show_user import show_user, show_user_deeplink
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +42,6 @@ logging.basicConfig(level=logging.INFO)
 async def on_startup(dispatcher):
     await database.connect()
     await setup_schedule()
-    await set_commands(bot)
     await bot.send_message(-1001868029361, 'бот запущен')
 
 
@@ -57,12 +53,11 @@ async def on_shutdown(dispatcher):
 
 # HANDLERS
 
+dp.register_callback_query_handler(show_user_react, filters.Text(startswith='show_user'))
+
+
 # debug
 dp.register_message_handler(eraser, commands=['eraser'], commands_prefix='!/')
-
-
-# CALLBACK HANDLERS
-dp.register_callback_query_handler(show_user_react, filters.Text(startswith='show_user'))
 
 
 # GROUP CHAT FUNCTION REGISTERS
@@ -70,17 +65,17 @@ dp.register_message_handler(mute, commands=['mute'], is_chat_admin=True, command
 dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_admin=True, commands_prefix='!/')
 dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
 
+
 # PRIVATE HANDLERS
-dp.register_message_handler(echo, filters.CommandStart, filters.Text(contains=' '), chat_type='private')
+dp.register_message_handler(show_user_deeplink, filters.CommandStart, filters.Text(contains=' '), chat_type='private')
 dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
+dp.register_message_handler(send_report, commands=['send_report'], chat_type='private')
 dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
 dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
 dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
-dp.register_message_handler(show_user, commands_prefix='!/', commands=['show_user'], chat_type='private')
 dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
-dp.register_message_handler(send_report, commands=['send_report'])
-dp.register_message_handler(know_id)
-
+dp.register_message_handler(show_user, commands_prefix='!/', commands=['show_user'], chat_type='private')
+dp.register_message_handler(know_id)  # перехватываем все сообщения, вносим в базу
 
 
 if __name__ == '__main__':
