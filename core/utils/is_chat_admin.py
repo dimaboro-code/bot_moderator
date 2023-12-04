@@ -1,7 +1,7 @@
 from aiogram import types
 
-from config import bot
-from config import CHATS
+from core.config import bot
+from core.config import CHATS
 
 
 async def is_chat_admin(user_id):

@@ -3,8 +3,8 @@ file for eraser func
 """
 from aiogram import types
 
-from db import delete_row
-from system_functions.is_chat_admin import is_chat_admin
+from core.db import delete_row
+from core.utils.is_chat_admin import is_chat_admin
 
 
 async def eraser(message: types.Message):

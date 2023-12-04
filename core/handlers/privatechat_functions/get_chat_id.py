@@ -1,5 +1,5 @@
 from aiogram import types
-from config import bot
+from core.config import bot
 
 
 async def get_chat_id(message: types.Message):

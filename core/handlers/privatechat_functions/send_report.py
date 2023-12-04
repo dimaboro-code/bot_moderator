@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from config import bot, LOG_CHANNEL
+from core.config import bot, LOG_CHANNEL
 
 
 async def send_report(message: Message) -> None:
