@@ -1,4 +1,4 @@
-from config import bot
+from core.config import bot
 
 async def restrict(user_id, chat_id, permissions):
 

@@ -2,36 +2,35 @@
 import logging
 
 # run webhook
-from aiogram.utils.executor import start_webhook
 from aiogram import filters
 from aiogram.utils.executor import start_polling
 
 # settings import
-from config import bot, dp, MESSAGES_FOR_DELETE
+from core.config import bot, dp, MESSAGES_FOR_DELETE
 
 # full database import
-from db import *
+from core.db import *
 
 # GROUP FUNCTION IMPORTS
-from group_functions.mute_new.mute_main import mute
-from group_functions.join_cleaner import join_cleaner
-from group_functions.add_unblocks import add_unblocks
+from core.handlers.group_functions.mute_main import mute
+from core.handlers.group_functions.join_cleaner import join_cleaner
+from core.handlers.group_functions.add_unblocks import add_unblocks
 
 # SYSTEM FUNCTION IMPORTS
-from system_functions.eraser import eraser
-from system_functions.get_chat_id import get_chat_id
-from system_functions.id_recognizer import know_id
-from system_functions.delete_old_ids import setup_schedule
-from system_functions.callback_show_users import show_user_react
-from system_functions.send_report import send_report
+from core.handlers.privatechat_functions.eraser import eraser
+from core.handlers.privatechat_functions.get_chat_id import get_chat_id
+from core.handlers.group_functions.id_recognizer import know_id
+from core.utils.delete_old_ids import setup_schedule
+from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
+from core.handlers.privatechat_functions.send_report import send_report
 
 
 # PRIVATECHAT FUCNTION IMPORTS
-from privatechat_functions.send_welcome import send_welcome
-from privatechat_functions.unmute import unmute
-from privatechat_functions.status import status
-from privatechat_functions.bot_help import bot_help
-from privatechat_functions.show_user import show_user, show_user_deeplink
+from core.handlers.privatechat_functions.send_welcome import send_welcome
+from core.handlers.privatechat_functions.unmute import unmute
+from core.handlers.privatechat_functions.status import status
+from core.handlers.privatechat_functions.bot_help import bot_help
+from core.handlers.privatechat_functions.show_user import show_user, show_user_deeplink
 
 
 # Configure logging
