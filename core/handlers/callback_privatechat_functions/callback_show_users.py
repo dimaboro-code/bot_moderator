@@ -1,8 +1,8 @@
 from aiogram.types import CallbackQuery
 from config import bot
-from db import add_lives, delete_lives, delete_all_lives, get_id, get_last_mute, get_user
-from system_functions.is_username import is_username
-from system_functions.show_user_keyboard import show_user_keyboard
+from core.db import add_lives, delete_lives, delete_all_lives, get_id, get_last_mute, get_user
+from core.utils.is_username import is_username
+from core.keyboards.show_user_keyboard import show_user_keyboard
 
 
 react_funcs = {

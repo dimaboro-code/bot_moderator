@@ -2,10 +2,10 @@ from aiogram import types
 
 from config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
 
-from system_functions.delete_message import delete_message
-from system_functions.restrict import restrict
-from db import *
-from group_functions.mute_new.mute_checks import checks
+from core.utils.delete_message import delete_message
+from core.utils.restrict import restrict
+from core.db import *
+from core.handlers.group_functions.mute_checks import checks
 
 
 async def mute(moderator_message: types.Message):

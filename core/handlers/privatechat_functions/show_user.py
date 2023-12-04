@@ -2,12 +2,12 @@ from aiogram import types
 
 from config import bot
 
-from system_functions.is_username import is_username
-from system_functions.show_user_keyboard import show_user_keyboard
-from system_functions.is_chat_admin import is_chat_admin
+from core.utils.is_username import is_username
+from core.keyboards.show_user_keyboard import show_user_keyboard
+from core.utils.is_chat_admin import is_chat_admin
 
-from db import get_id
-from db import get_user, get_last_mute
+from core.db import get_id
+from core.db import get_user, get_last_mute
 
 
 async def show_user(message: types.Message):

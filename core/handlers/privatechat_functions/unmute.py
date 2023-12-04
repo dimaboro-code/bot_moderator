@@ -2,11 +2,11 @@ from aiogram import types
 
 from config import bot, CHATS, UNMUTE_SETTINGS
 
-from system_functions.restrict import restrict
+from core.utils.restrict import restrict
 
-from db import *
+from core.db import *
 
-from privatechat_functions.status import status
+from core.handlers.privatechat_functions.status import status
 
 
 async def unmute(message: types.Message):
