@@ -23,9 +23,12 @@ async def unmute(message: types.Message):
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
         print(member)
-        if member.can_send_messages is True:
+        if member.status == 'restricted' and member.can_send_messages:
             await message.answer('Вы уже разблокированы. Если это не так, обратитесь в поддержку.')
             return
+        if member.status in ('creator', 'administrator'):
+            await message.answer('Вы админ.')
+
     except AttributeError:
         pass
     if user_data['user_blocks'] > 0:
