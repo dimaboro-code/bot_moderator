@@ -92,8 +92,10 @@ async def mute(moderator_message: types.Message):
                                     f'Подробнее: <a href="t.me/slashdbot?start={username}">'
                                     f'<b>{username}</b></a>\n\n'
                                     f'Админ: @{moderator_message.from_user.username}\n'
+                                    f'Чат: @{moderator_message.chat.username}\n'
                                     f'Причина: {reason_message}',
-                               parse_mode='HTML'
+                               parse_mode='HTML',
+                               disable_web_page_preview=True
                                )
     except Exception as exep:
         await bot.send_message(
