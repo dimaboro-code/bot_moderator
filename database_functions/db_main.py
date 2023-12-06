@@ -1,10 +1,10 @@
 import asyncio
 
 import sqlalchemy
-from sqlalchemy import Column, Integer, Numeric, Boolean, Text, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, Integer, Numeric, Boolean, Text, TIMESTAMP, ForeignKey, Table
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql.__init__ import dialect
+from sqlalchemy.dialects.postgresql.asyncpg import dialect
 from databases import Database
 
 
@@ -52,7 +52,7 @@ class Mute(Base):
     __tablename__ = 'mutes'
 
     id = Column(Integer, primary_key=True)
-    message_id = Column(Numeric, nullable=False)
+    message_id = Column(Numeric, nullable=False)  # useless
     chat_id = Column(Numeric, nullable=False)
     moderator_message = Column(Text)
     date_of_mute = Column(TIMESTAMP)
@@ -75,9 +75,11 @@ async def main():
         query = str(schema.compile(dialect=dialect))
         await database.execute(query=query)
 
-    table = metadata.tables['users']
-    # table.
-
+    table: Table = metadata.tables['users']
+    data = table.select()
+    answer = await database.fetch_one(data)
+    for i in answer:
+        print(i, answer[i])
 
     await database.disconnect()
 asyncio.run(main())

@@ -13,17 +13,8 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
 CHATS = [
-    # -1001302438185,  # figmachat
-    # -1001808148145,  # figmaforum
-    # -1001398488197,  # designchat2
-    # -1001535946932,  # systemschat
-    # -1001124768091,  # framerchat
-    # -1001753295642,  # whatthefontt
-    # -1001191920744,  # slashcomments
-    # -1001769444523,  # slashimagineaiп
-    # -1001838011289,  # Bot Sandbox
+
     -1001868029361,    # тест бота
-    # -1001482081082   # /mutes
 ]
 
 MESSAGES_FOR_DELETE = [
@@ -38,26 +29,15 @@ MESSAGES_FOR_DELETE = [
     'new_chat_description',
 ]
 
-MUTE_SETTINGS = types.ChatPermissions(
-    can_send_messages=False,
-    can_send_media_messages=False,
-    can_send_other_messages=False,
-    can_add_web_page_previews=False,
+# Чтобы не прописывать руками все разрешения, я достаю их из объекта, в генераторе
+# словаря прописываю соответствия и затем распечатываю словарь в нужную мне форму
+MUTE_SETTINGS: types.ChatPermissions = types.ChatPermissions(
+    **{i: False for i in types.ChatPermissions().values.keys()}
 )
 
+
 UNMUTE_SETTINGS = types.ChatPermissions(
-    can_send_messages=True,
-
-    # photo, video, stickers
-    can_send_media_messages=True,
-
-    # files
-    can_send_other_messages=True,
-    
-    can_send_polls=True,
-
-    # links
-    can_add_web_page_previews=True
+    **{i: True for i in types.ChatPermissions().values.keys()}
 )
 
 # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')

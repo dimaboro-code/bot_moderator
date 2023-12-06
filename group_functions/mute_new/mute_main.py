@@ -45,7 +45,7 @@ async def mute(moderator_message: types.Message):
         try:
             await restrict(user_id, chat_id, MUTE_SETTINGS)
             print(chat.username, ': успешно')
-        except Exception as e:
+        except Exception as e:  # create exception like RestrictError
             print(chat_id, ': ошибка', e)
             await bot.send_message(
                 chat_id=-1001868029361,
