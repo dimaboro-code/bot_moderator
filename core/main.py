@@ -9,7 +9,7 @@ from aiogram.utils.executor import start_polling
 from core.config import bot, dp, MESSAGES_FOR_DELETE
 
 # full database import
-from core.db import *
+from database_functions.db_functions import *
 
 # GROUP FUNCTION IMPORTS
 from core.handlers.group_functions.mute_main import mute
@@ -39,14 +39,13 @@ logging.basicConfig(level=logging.INFO)
 
 # webhook control
 async def on_startup(dispatcher):
-    await database.connect()
+
     await setup_schedule()
     await bot.send_message(-1001868029361, 'бот запущен')
 
 
 # stopping app
 async def on_shutdown(dispatcher):
-    await database.disconnect()
     await bot.send_message(-1001868029361, 'бот остановлен')
 
 

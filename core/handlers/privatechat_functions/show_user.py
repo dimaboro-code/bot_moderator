@@ -6,8 +6,8 @@ from core.utils.is_username import is_username
 from core.keyboards.show_user_keyboard import show_user_keyboard
 from core.utils.is_chat_admin import is_chat_admin
 
-from core.db import get_id
-from core.db import get_user, get_last_mute
+from database_functions.db_functions import get_id
+from database_functions.db_functions import get_user, get_last_mute
 
 
 async def show_user(message: types.Message):

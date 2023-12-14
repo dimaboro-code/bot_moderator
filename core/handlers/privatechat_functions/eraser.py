@@ -3,7 +3,7 @@ file for eraser func
 """
 from aiogram import types
 
-from core.db import delete_row
+from database_functions.db_functions import delete_row
 from core.utils.is_chat_admin import is_chat_admin
 
 

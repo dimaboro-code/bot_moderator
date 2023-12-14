@@ -2,7 +2,7 @@ from aiogram import types
 
 from core.config import bot
 
-from core.db import *
+from database_functions.db_functions import *
 
 
 async def status(message: types.Message):

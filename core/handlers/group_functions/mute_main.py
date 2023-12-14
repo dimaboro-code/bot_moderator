@@ -4,7 +4,7 @@ from core.config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
 
 from core.utils.delete_message import delete_message
 from core.utils.restrict import restrict
-from core.db import *
+from database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
 
 

@@ -4,7 +4,7 @@ from core.config import bot, CHATS, UNMUTE_SETTINGS
 
 from core.utils.restrict import restrict
 
-from core.db import *
+from database_functions.db_functions import *
 
 from core.handlers.privatechat_functions.status import status
 
