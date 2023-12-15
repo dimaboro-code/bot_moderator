@@ -1,7 +1,7 @@
 from aiogram import types
 from core.utils.is_username import is_username
 from core.config import bot
-from database_functions.db_functions import get_id
+from core.database_functions.db_functions import get_id
 
 
 async def checks(moderator_message: types.Message):

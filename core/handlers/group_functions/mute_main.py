@@ -4,7 +4,7 @@ from core.config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
 
 from core.utils.delete_message import delete_message
 from core.utils.restrict import restrict
-from database_functions.db_functions import *
+from core.database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
 
 
@@ -89,7 +89,7 @@ async def mute(moderator_message: types.Message):
     try:
         await bot.send_message(chat_id=LOG_CHANNEL,
                                text=f'Мьют @{username},\nuser id: {user_id},\n'
-                                    f'Подробнее: <a href="t.me/slashdbot?start={username}">'
+                                    f'Подробнее: <a href="t.me/@testing_projects_42_bot?start={username}">'
                                     f'<b>{username}</b></a>\n\n'
                                     f'Админ: @{moderator_message.from_user.username}\n'
                                     f'Причина: {reason_message}',

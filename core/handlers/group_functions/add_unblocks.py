@@ -1,6 +1,6 @@
 from aiogram import types
 
-from database_functions.db_functions import *
+from core.database_functions.db_functions import *
 
 # this is admin function for adding lives for any user based on reply
 async def add_unblocks(message: types.Message):

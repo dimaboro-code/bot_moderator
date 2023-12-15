@@ -1,5 +1,5 @@
 import aiocron
-from database_functions.db_functions import delete_old_data
+from core.database_functions.db_functions import delete_old_data
 
 
 async def setup_schedule():

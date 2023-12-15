@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from db_models import User, Mute, Id, Base
+from core.database_functions.db_models import User, Mute, Id, Base
 from sqlalchemy import select, delete, update, insert
 from sqlalchemy import Result, func
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -14,7 +14,6 @@ engine: AsyncEngine = create_async_engine(
     'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres', echo=False
 )
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
-logging.basicConfig(level=logging.WARNING)
 
 
 async def in_database(user_id=2026523):
@@ -225,7 +224,7 @@ async def delete_row(user_id=222):
             print(f"Пользователь с ID {user_id} не найден.")
 
 
-async def add_or_update_id(username='dds', user_id=2026523):
+async def add_or_update_id(username, user_id):
     async with async_session() as session:
         session: AsyncSession
         try:
@@ -297,10 +296,9 @@ async def delete_old_data():
 
 
 
-async def main():
+async def async_main():
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
-asyncio.run(main())
