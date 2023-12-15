@@ -236,7 +236,7 @@ async def add_or_update_id(username, user_id):
             await session.commit()
 
         except Exception as e:
-            print(f"Произошла ошибка при добавлении идентификатора: {str(e)}")
+            print(f"Произошла ошибка при добавлении айди: {str(e)}")
 
             # Если произошла ошибка вставки, попробовать обновить существующую запись
             try:
