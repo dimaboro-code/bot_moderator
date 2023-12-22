@@ -30,16 +30,17 @@ from core.handlers.privatechat_functions.unmute import unmute
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
 from core.filters.admin_filter import AdminFilter
+from core.middlewares.admins_mw import AdminMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
+admins = []
 
 # webhook control
 async def on_startup():
     await async_main()
     await setup_schedule()
-    Config.ADMINS = await get_admins_ids()
+    print('startup', admins)
     await bot.send_message(-1001868029361, 'бот запущен')
 
 
@@ -49,11 +50,14 @@ async def on_shutdown():
 
 
 # HANDLERS
-async def main():
+async def start():
+    admins = await get_admins_ids()
+    print('start', admins)
     # CALLBACK HANDLERS
+    dp.update.middleware.register(AdminMiddleware(admins=admins))
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
-    dp.callback_query.register(show_user_react, F.text.startswith('show_user'))
+    dp.callback_query.register(show_user_react, F.data.startswith('show_user'))
 
     # debug
     dp.message.register(eraser, Command(commands='eraser'))
@@ -78,4 +82,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main)
+    asyncio.run(start())

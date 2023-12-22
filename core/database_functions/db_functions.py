@@ -230,27 +230,19 @@ async def add_or_update_id(username, user_id):
     async with async_session() as session:
         session: AsyncSession
         try:
-            # Попытка вставки новой записи
-            await session.execute(
-                insert(Id).values(username=username, user_id=user_id)
+            # Попытка вставки новой записи с обработкой конфликта
+            stmt = insert(Id).values(username=username, user_id=user_id)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=['user_id'],
+                set_=dict(created_at=func.NOW())
             )
+
+            await session.execute(stmt)
             print('ID успешно добавлен в базу')
             await session.commit()
 
         except Exception as e:
             print(f"Произошла ошибка при добавлении айди: {str(e)}")
-
-            # Если произошла ошибка вставки, попробовать обновить существующую запись
-            try:
-                await session.execute(
-                    update(Id).where(Id.user_id == user_id).values(created_at=func.NOW())
-                )
-                print('Обновление прошло успешно')
-                await session.commit()
-
-            except Exception as update_error:
-                print(f"Произошла ошибка при обновлении идентификатора: {str(update_error)}")
-
 
 async def check_known_id(user_id=2026523):
     async with async_session() as session:
@@ -274,7 +266,7 @@ async def get_id(username='dds'):
             )
             user_id = result.all()
             print('Гет айди, юзер айди:', int(user_id[0][0]))
-            return user_id
+            return user_id[0][0]
 
         except Exception as e:
             print('Ошибка: ', str(e))

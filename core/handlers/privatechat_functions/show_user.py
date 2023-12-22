@@ -10,7 +10,7 @@ from core.database_functions.db_functions import get_id
 from core.database_functions.db_functions import get_user, get_last_mute
 
 
-async def show_user(message: types.Message):
+async def show_user(message: types.Message, dl: str = None):
     admin_id = message.from_user.id
 
     is_admin = await is_chat_admin(admin_id)
@@ -18,7 +18,7 @@ async def show_user(message: types.Message):
         await message.answer('Вы не являетесь модератором сообщества')
         return
 
-    username = await is_username(message.text)
+    username = await is_username(message.text if not dl else dl)
     print('юзернейм из сообщения:', username)
     if username is None:
         await message.answer('Не указан username')
@@ -58,5 +58,5 @@ async def show_user(message: types.Message):
 
 
 async def show_user_deeplink(message: types.Message) -> None:
-
-    await show_user(message)
+    dl = '@' + message.text.split(' ')[1]
+    await show_user(message, dl)

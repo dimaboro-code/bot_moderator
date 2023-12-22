@@ -39,7 +39,7 @@ class Config:
         **{i: False for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    ADMINS = []
+    # ADMINS = []
 
     UNMUTE_SETTINGS = types.ChatPermissions(
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
@@ -58,4 +58,10 @@ class Config:
     # WEBAPP_HOST = '0.0.0.0'
     # WEBAPP_PORT = os.getenv('PORT', default=8000)
 
-    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres' + '?sslmode=require'
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
+
+    @classmethod
+    def set_admins(cls, admins):
+        cls.ADMINS = admins
+
+
