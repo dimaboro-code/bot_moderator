@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery
 from core.config import bot
-from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_id, get_last_mute, get_user
+from core.database_functions.db_functions import (add_lives, delete_lives, delete_all_lives, get_id,
+                                                  get_last_mute, get_user)
 from core.utils.is_username import is_username
 from core.keyboards.show_user_keyboard import show_user_keyboard
 

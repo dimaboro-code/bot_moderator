@@ -15,5 +15,9 @@ remove_all_unblocks = InlineKeyboardButton(
 )
 
 
-show_user_keyboard = InlineKeyboardMarkup(row_width=1)
-show_user_keyboard.add(add_unblock, remove_unblock, remove_all_unblocks)
+show_user_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [add_unblock],
+    [remove_unblock],
+    [remove_all_unblocks]
+],
+)

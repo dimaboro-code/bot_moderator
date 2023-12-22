@@ -58,5 +58,5 @@ async def show_user(message: types.Message):
 
 
 async def show_user_deeplink(message: types.Message) -> None:
-    message.text = '@' + message.text.split(' ')[1]
+
     await show_user(message)

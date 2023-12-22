@@ -1,17 +1,19 @@
-import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from core.database_functions.db_models import User, Mute, Id, Base
-from sqlalchemy import select, delete, update, insert
 from sqlalchemy import Result, func
+from sqlalchemy import select, delete, update
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.dialects.postgresql import insert
+
+from core.database_functions.db_models import User, Mute, Id, Base
+from core.config import Config
 
 engine: AsyncEngine = create_async_engine(
-    'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres', echo=False
+    Config.DATABASE_URL, echo=False
 )
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -295,10 +297,7 @@ async def delete_old_data():
             print(f"Произошла ошибка при удалении старых данных: {str(e)}")
 
 
-
 async def async_main():
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-

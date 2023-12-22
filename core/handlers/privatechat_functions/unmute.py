@@ -1,6 +1,6 @@
 from aiogram import types
 
-from core.config import bot, CHATS, UNMUTE_SETTINGS
+from core.config import bot, Config
 
 from core.utils.restrict import restrict
 
@@ -11,9 +11,10 @@ from core.handlers.privatechat_functions.status import status
 
 async def unmute(message: types.Message):
     user_id = message.from_user.id
-
+    chats = Config.CHATS
     if not await in_database(user_id):
-        await message.answer('Тебя нет в моей базе. Если у тебя сохраняется блокировка, обратись к модераторам, например, @deanrie.')
+        await message.answer('Тебя нет в моей базе. Если у тебя сохраняется блокировка, '
+                             'обратись к модераторам, например, @deanrie.')
         return
 
     last_mute = await get_last_mute(user_id)
@@ -34,12 +35,12 @@ async def unmute(message: types.Message):
     if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
 
-
-        for chat in CHATS:
+        for chat in chats:
             try:
-                await restrict(user_id, chat, UNMUTE_SETTINGS)
-            except:
+                await restrict(user_id, chat, Config.UNMUTE_SETTINGS)
+            except Exception:
                 continue
         await status(message)
     else:
-        await message.answer('К сожалению, у вас закончились разблоки. Теперь вы можете остаться в чатах в режиме читателя.')
+        await message.answer('К сожалению, у вас закончились разблоки. Теперь вы можете остаться '
+                             'в чатах в режиме читателя.')

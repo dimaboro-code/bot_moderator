@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from core.config import bot, LOG_CHANNEL
+from core.config import bot, Config
 
 
 async def send_report(message: Message) -> None:
@@ -10,7 +10,7 @@ async def send_report(message: Message) -> None:
     """
     user_id = message.from_user.id
     username = message.from_user.username
-    await bot.send_message(chat_id=LOG_CHANNEL,
+    await bot.send_message(chat_id=Config.LOG_CHANNEL,
                            text='Тестовое сообщение!\n'
                                 f'Мьют {username},\nuser id: {user_id},\n'
                                 f'Подробнее: <a href="t.me/slashdbot?start={username}">'

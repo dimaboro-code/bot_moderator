@@ -6,10 +6,11 @@ from core.database_functions.db_functions import *
 
 
 async def status(message: types.Message):
-    ''' start func
+    """
+     start func
     :param message:
     :return:
-    '''
+    """
     user_id = message.from_user.id
 
     is_in_database = await in_database(user_id=user_id)

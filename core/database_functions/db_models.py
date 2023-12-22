@@ -24,9 +24,9 @@
 """
 from __future__ import annotations
 
-from typing import List
 from datetime import datetime
 
+from sqlalchemy import BigInteger, Integer, Boolean, Text, DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -34,7 +34,6 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from sqlalchemy import BigInteger, Integer, Boolean, Text, DateTime
 
 
 class Base(AsyncAttrs, DeclarativeBase):

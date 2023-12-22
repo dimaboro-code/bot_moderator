@@ -1,6 +1,6 @@
-from aiogram import types
+from aiogram import types, Bot
 
-from core.config import bot, CHATS, MUTE_SETTINGS, LOG_CHANNEL
+from core.config import bot as my_bot, Config
 
 from core.utils.delete_message import delete_message
 from core.utils.restrict import restrict
@@ -8,11 +8,12 @@ from core.database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
 
 
-async def mute(moderator_message: types.Message):
+async def mute(moderator_message: types.Message, bot: Bot = my_bot):
     """
     Функция для выполнения команды /mute и мьюта пользователя.
 
     Args:
+        bot:
         moderator_message: Объект types.Message с сообщением модератора.
 
     """
@@ -42,10 +43,11 @@ async def mute(moderator_message: types.Message):
             text=f'mute_main, 42\nНе удалось добыть юзернейм, причина: {exep}'
         )
 
-    for chat_id in CHATS:
+    chats = Config.CHATS
+    for chat_id in chats:
         chat: types.Chat = await bot.get_chat(chat_id)
         try:
-            await restrict(user_id, chat_id, MUTE_SETTINGS)
+            await restrict(user_id, chat_id, Config.MUTE_SETTINGS)
             print(chat.username, ': успешно')
         except Exception as e:
             print(chat.username, ': ошибка', e)
@@ -87,7 +89,7 @@ async def mute(moderator_message: types.Message):
     await add_mute(mute_data)
 
     try:
-        await bot.send_message(chat_id=LOG_CHANNEL,
+        await bot.send_message(chat_id=Config.LOG_CHANNEL,
                                text=f'Мьют @{username},\nuser id: {user_id},\n'
                                     f'Подробнее: <a href="t.me/@testing_projects_42_bot?start={username}">'
                                     f'<b>{username}</b></a>\n\n'
