@@ -4,6 +4,7 @@ import os
 # import framework
 from aiogram import Bot, Dispatcher
 from aiogram import types
+from aiogram.enums import ContentType as ct
 
 # init bot and dispatcher
 TOKEN = os.getenv('BOT_TOKEN')
@@ -20,15 +21,30 @@ class Config:
     LOG_CHANNEL = -1002065542994
 
     MESSAGES_FOR_DELETE = [
-        'new_chat_members',
-        'left_chat_member',
-        'delete_chat_photo',
+        ct.NEW_CHAT_MEMBERS,
+        ct.LEFT_CHAT_MEMBER,
+        ct.NEW_CHAT_PHOTO,
+        ct.DELETE_CHAT_PHOTO,
         'delete_chat_sticker_set',
+        ct.NEW_CHAT_TITLE,
         'delete_chat_title',
-        'pinned_message',
+        ct.GROUP_CHAT_CREATED,
+        ct.SUPERGROUP_CHAT_CREATED,
+        ct.CHANNEL_CHAT_CREATED,
+        ct.MESSAGE_AUTO_DELETE_TIMER_CHANGED,
+        ct.PINNED_MESSAGE,
         'unpinned_message',
-        'new_chat_title',
         'new_chat_description',
+        ct.VIDEO_CHAT_SCHEDULED,
+        ct.VIDEO_CHAT_STARTED,
+        ct.VIDEO_CHAT_ENDED,
+        ct.VIDEO_CHAT_PARTICIPANTS_INVITED,
+        ct.FORUM_TOPIC_CREATED,
+        ct.FORUM_TOPIC_EDITED,
+        ct.FORUM_TOPIC_CLOSED,
+        ct.FORUM_TOPIC_REOPENED,
+        ct.GENERAL_FORUM_TOPIC_HIDDEN,
+        ct.GENERAL_FORUM_TOPIC_UNHIDDEN
     ]
 
     # Чтобы не прописывать руками все разрешения, я достаю их из объекта, в генераторе

@@ -62,7 +62,7 @@ async def setup_handlers(router: Router):
     # GROUP CHAT FUNCTION REGISTERS
     router.message.register(mute, Command(commands='mute'), AdminFilter())
     router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
-    router.message.register(join_cleaner, F.type.in_(Config.MESSAGES_FOR_DELETE))
+    router.message.register(join_cleaner, F.content_type.in_(Config.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS
     router.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
