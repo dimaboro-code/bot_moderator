@@ -13,8 +13,8 @@ from core.config import Config
 from core.database_functions.db_models import User, Mute, Id, Base
 
 engine: AsyncEngine = create_async_engine(
-    # Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
-    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'require'}
+    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
+    # Config.DATABASE_URL, echo=False, connect_args={"ssl": 'require'}
 )
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
 

@@ -27,26 +27,26 @@ dp = Dispatcher()
 
 
 class Config:
-    CHATS = [
-        -1001302438185,  # figmachat
-        -1001808148145,  # figmaforum
-        -1001398488197,  # designchat2
-        -1001535946932,  # systemschat
-        -1001124768091,  # framerchat
-        -1001753295642,  # whatthefontt
-        -1001191920744,  # slashcomments
-        -1001769444523,  # slashimagineai
-        -1001838011289,  # Bot Sandbox
-        -1001629596705,  # uireview
-    ]
-
-    LOG_CHANNEL = -1001482081082  # /designer/mutes
-    #
     # CHATS = [
-    #     -1001868029361,  # тест бота
+    #     -1001302438185,  # figmachat
+    #     -1001808148145,  # figmaforum
+    #     -1001398488197,  # designchat2
+    #     -1001535946932,  # systemschat
+    #     -1001124768091,  # framerchat
+    #     -1001753295642,  # whatthefontt
+    #     -1001191920744,  # slashcomments
+    #     -1001769444523,  # slashimagineai
+    #     -1001838011289,  # Bot Sandbox
+    #     -1001629596705,  # uireview
     # ]
     #
-    # LOG_CHANNEL = -1002065542994
+    # LOG_CHANNEL = -1001482081082  # /designer/mutes
+
+    CHATS = [
+        -1001868029361,  # тест бота
+    ]
+
+    LOG_CHANNEL = -1002065542994
 
     MESSAGES_FOR_DELETE = [
         ct.NEW_CHAT_MEMBERS,
@@ -88,17 +88,17 @@ class Config:
     HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
     # webhook settings
-    WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    # WEBHOOK_HOST = 'https://3c1c-5-76-255-147.ngrok-free.app'
+    # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+    WEBHOOK_HOST = 'https://3c1c-5-76-255-147.ngrok-free.app'
     WEBHOOK_PATH = '/webhook'
 
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
     # webserver settings
-    WEBAPP_HOST = '0.0.0.0'
-    # WEBAPP_HOST = '127.0.0.1'
-    WEBAPP_PORT = os.getenv('PORT', default=8000)
-    # WEBAPP_PORT = 8080
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
-    WEBHOOK_SECRET = 'jadhkjs745623hdfh'
+    # WEBAPP_HOST = '0.0.0.0'
+    WEBAPP_HOST = '127.0.0.1'
+    # WEBAPP_PORT = os.getenv('PORT', default=8000)
+    WEBAPP_PORT = 8080
+    # DATABASE_URL = os.getenv('DATABASE_URL')
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
+    WEBHOOK_SECRET = 'jadhkjs745623hdfh'  # TODO убрать в env
