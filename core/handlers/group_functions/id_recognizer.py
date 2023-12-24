@@ -1,5 +1,6 @@
 from aiogram import types
-from core.database_functions.db_functions import get_id, check_known_id, add_or_update_id, in_database, add_user
+
+from core.database_functions.db_functions import check_known_id, add_or_update_id, in_database, add_user
 
 
 async def know_id(message: types.Message):

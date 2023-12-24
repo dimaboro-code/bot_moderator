@@ -3,17 +3,18 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import Result, func
 from sqlalchemy import select, delete, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.dialects.postgresql import insert
 
-from core.database_functions.db_models import User, Mute, Id, Base
 from core.config import Config
+from core.database_functions.db_models import User, Mute, Id, Base
 
 engine: AsyncEngine = create_async_engine(
-    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
+    # Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
+    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'require'}
 )
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
 

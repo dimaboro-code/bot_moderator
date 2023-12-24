@@ -1,7 +1,8 @@
 from aiogram import types
-from core.utils.is_username import is_username
+
 from core.config import bot
 from core.database_functions.db_functions import get_id
+from core.utils.is_username import is_username
 
 
 async def checks(moderator_message: types.Message):
@@ -16,7 +17,6 @@ async def checks(moderator_message: types.Message):
 
         user_id = await get_id(username)
         if user_id is None:
-
             return False, 'К сожалению, пользователя нет в базе.'
 
         print(f'user_id: {user_id}')
@@ -46,7 +46,6 @@ async def checks(moderator_message: types.Message):
         member = await bot.get_chat_member(moderator_message.chat.id, user_id)
         print('Статус:', member.status, '\n',)
         if member.status == 'restricted' and not member.can_send_messages:
-
             return False, 'Пользователь уже в мьюте'
 
         return True, user_id

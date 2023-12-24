@@ -1,7 +1,10 @@
-from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
 from typing import Dict, Any, Callable, Awaitable
 
+from aiogram import BaseMiddleware
+from aiogram.types import TelegramObject
+
+
+# TODO переписать мв в конфиг, настроить
 
 class AdminMiddleware(BaseMiddleware):
     def __init__(self, admins):

@@ -1,13 +1,11 @@
 from aiogram import types
 
 from core.config import bot
-
-from core.utils.is_username import is_username
-from core.keyboards.show_user_keyboard import show_user_keyboard
-from core.utils.is_chat_admin import is_chat_admin
-
 from core.database_functions.db_functions import get_id
 from core.database_functions.db_functions import get_user, get_last_mute
+from core.keyboards.show_user_keyboard import show_user_keyboard
+from core.utils.is_chat_admin import is_chat_admin
+from core.utils.is_username import is_username
 
 
 async def show_user(message: types.Message, dl: str = None):
@@ -58,5 +56,5 @@ async def show_user(message: types.Message, dl: str = None):
 
 
 async def show_user_deeplink(message: types.Message) -> None:
-    dl = '@' + message.text.split(' ')[1]
+    dl = '@' + message.text.split(' ')[1]  # TODO переписать обработчик без костылей
     await show_user(message, dl)
