@@ -3,24 +3,25 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import Result, func
 from sqlalchemy import select, delete, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.dialects.postgresql import insert
 
-from core.database_functions.db_models import User, Mute, Id, Base
 from core.config import Config
+from core.database_functions.db_models import User, Mute, Id, Base
 
 engine: AsyncEngine = create_async_engine(
-    Config.DATABASE_URL, echo=False
+    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
+    # Config.DATABASE_URL, echo=False, connect_args={"ssl": 'require'}
 )
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def in_database(user_id=2026523):
     async with async_session() as session:
-        stmt = select(User).where(User.user_id == user_id)
+        stmt = select(User).where(user_id == User.user_id)
         result: Result = await session.execute(stmt)
         try:
             user: User = result.scalar()
@@ -44,7 +45,7 @@ async def delete_row(user_id=2026523):
     try:
         async with async_session() as session:
             session: AsyncSession
-            stmt = delete(User).where(User.user_id == user_id)
+            stmt = delete(User).where(user_id == User.user_id)
             await session.execute(stmt)
     except ExceptionGroup as e:
         print(f'Запись не удалена, ошибка: {e}')
@@ -84,7 +85,7 @@ async def add_lives(user_id=2026523, lives: int = 1):
     async with async_session() as session:
         # Получаем текущее количество жизней из базы данных
         result = await session.execute(
-            select(User.user_blocks).where(User.user_id == user_id)
+            select(User.user_blocks).where(user_id == User.user_id)
         )
         user_blocks = result.scalar()
 
@@ -92,7 +93,7 @@ async def add_lives(user_id=2026523, lives: int = 1):
             print(f'Чет хрень, разблоков меньше нуля, пользователь {user_id}')
             lives = 0
             await session.execute(
-                update(User).where(User.user_id == user_id).values(user_blocks=lives)
+                update(User).where(user_id == User.user_id).values(user_blocks=lives)
             )
             await session.commit()
             return
@@ -101,7 +102,7 @@ async def add_lives(user_id=2026523, lives: int = 1):
         new_lives = user_blocks + lives
         print(new_lives)
         await session.execute(
-            update(User).where(User.user_id == user_id).values(user_blocks=new_lives)
+            update(User).where(user_id == User.user_id).values(user_blocks=new_lives)
         )
         await session.commit()
 
@@ -110,7 +111,7 @@ async def delete_lives(user_id=2026523, deaths: int = 1):
     async with async_session() as session:
         # Получаем текущее количество жизней из базы данных
         result = await session.execute(
-            select(User.user_blocks).where(User.user_id == user_id)
+            select(User.user_blocks).where(user_id == User.user_id)
         )
         user_blocks = result.scalar()
 
@@ -122,7 +123,7 @@ async def delete_lives(user_id=2026523, deaths: int = 1):
             print(f'Чет хрень, разблоков меньше нуля, пользователь {user_id}')
             lives = 0
             await session.execute(
-                update(User).where(User.user_id == user_id).values(user_blocks=lives)
+                update(User).where(user_id == User.user_id).values(user_blocks=lives)
             )
             await session.commit()
             return
@@ -131,7 +132,7 @@ async def delete_lives(user_id=2026523, deaths: int = 1):
         new_lives = max(user_blocks - deaths, 0)
         print(new_lives)
         await session.execute(
-            update(User).where(User.user_id == user_id).values(user_blocks=new_lives)
+            update(User).where(user_id == User.user_id).values(user_blocks=new_lives)
         )
         await session.commit()
 
@@ -140,7 +141,7 @@ async def delete_all_lives(user_id=2026523):
     async with async_session() as session:
         # Получаем текущее количество жизней из базы данных
         result = await session.execute(
-            select(User.user_blocks).where(User.user_id == user_id)
+            select(User.user_blocks).where(user_id == User.user_id)
         )
         user_blocks = result.scalar()
         print(user_blocks)
@@ -152,7 +153,7 @@ async def get_user(user_id=2026523):
         session: AsyncSession
         # Получаем данные пользователя из базы данных
         result: Result = await session.execute(
-            select(User).where(User.user_id == user_id)
+            select(User).where(user_id == User.user_id)
         )
         user: User = result.scalar()
         user_data = {
@@ -167,9 +168,9 @@ async def get_user(user_id=2026523):
 async def get_last_mute(user_id=2026523):
     async with async_session() as session:
         session: AsyncSession
-        subquery = select(func.max(Mute.id)).where(Mute.user_id == user_id).scalar_subquery()
+        subquery = select(func.max(Mute.id)).where(user_id == Mute.user_id).scalar_subquery()
 
-        query = select(Mute).filter(Mute.user_id == user_id, Mute.id == subquery)
+        query = select(Mute).filter(user_id == Mute.user_id, Mute.id == subquery)
 
         result: Result = await session.execute(query)
         mute: Mute = result.scalar()
@@ -193,11 +194,11 @@ async def db_unmute(user_id=2026523):
     async with async_session() as session:
         session: AsyncSession
         await session.execute(
-            update(User).where(User.user_id == user_id).values(is_muted=False)
+            update(User).where(user_id == User.user_id).values(is_muted=False)
         )
 
         # Получаем количество блокировок пользователя и уменьшаем на 1
-        stmt = update(User).where(User.user_id == user_id).values(user_blocks=User.user_blocks - 1).returning(
+        stmt = update(User).where(user_id == User.user_id).values(user_blocks=User.user_blocks - 1).returning(
             User.user_blocks)
         result = await session.execute(stmt)
         updated_user_blocks = result.scalar()
@@ -209,18 +210,18 @@ async def db_unmute(user_id=2026523):
         await session.commit()
 
 
-async def delete_row(user_id=222):
+async def delete_user(user_id=222):
     async with async_session() as session:
         session: AsyncSession
 
         # Находим пользователя по user_id и удаляем его
         result: Result = await session.execute(
-            select(User).where(User.user_id == user_id)
+            select(User).where(user_id == User.user_id)
         )
         user: User = result.scalar()
         if user:
             await session.execute(
-                delete(User).where(User.user_id == user_id)
+                delete(User).where(user_id == User.user_id)
             )
             await session.commit()
             print(f"Пользователь с ID {user_id} удален.")
@@ -246,11 +247,12 @@ async def add_or_update_id(username, user_id):
         except Exception as e:
             print(f"Произошла ошибка при добавлении айди: {str(e)}")
 
+
 async def check_known_id(user_id=2026523):
     async with async_session() as session:
         try:
             result: Result = await session.execute(
-                select(Id.username).where(Id.user_id == user_id)
+                select(Id.username).where(user_id == Id.user_id)
             )
             username = result.all()
             print(username)
@@ -264,7 +266,7 @@ async def get_id(username='dds'):
     async with async_session() as session:
         try:
             result: Result = await session.execute(
-                select(Id.user_id).where(Id.username == username)
+                select(Id.user_id).where(Id.username == username)  # noqa
             )
             user_id = result.all()
             print('Гет айди, юзер айди:', int(user_id[0][0]))
@@ -292,6 +294,5 @@ async def delete_old_data():
 
 
 async def async_main():
-
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

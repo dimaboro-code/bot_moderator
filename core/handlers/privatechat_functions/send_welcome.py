@@ -1,7 +1,7 @@
 from aiogram import types
 
-from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.bot_help import bot_help
+from core.handlers.privatechat_functions.status import status
 
 
 async def send_welcome(message: types.Message):

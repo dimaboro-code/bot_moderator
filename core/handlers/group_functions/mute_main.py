@@ -1,11 +1,10 @@
 from aiogram import types, Bot
 
-from core.config import bot as my_bot, Config
-
-from core.utils.delete_message import delete_message
-from core.utils.restrict import restrict
+from core.config import bot as my_bot
 from core.database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
+from core.utils.delete_message import delete_message
+from core.utils.restrict import restrict
 
 
 async def mute(moderator_message: types.Message, bot: Bot = my_bot):

@@ -1,12 +1,9 @@
 from aiogram import types
 
-from core.config import bot, Config
-
-from core.utils.restrict import restrict
-
+from core.config import bot
 from core.database_functions.db_functions import *
-
 from core.handlers.privatechat_functions.status import status
+from core.utils.restrict import restrict
 
 
 async def unmute(message: types.Message):
@@ -19,7 +16,10 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
- 
+    if last_mute is None:
+        await message.answer('Вы ранее не блокировались. Вас нельзя разблокировать.')
+        return
+
     # для получения инфы о пользователе нужно быть админом группы
     try:
         member = await bot.get_chat_member(chat_id=last_mute['chat_id'], user_id=user_id)
@@ -30,7 +30,7 @@ async def unmute(message: types.Message):
         if member.status in ('administrator', 'creator'):
             await message.answer('Вы админ. Вас нельзя заблокировать.')
             return
-    except AttributeError:
+    except AttributeError:  # TODO переписать дичь в нормальный обработчик
         pass
     if user_data['user_blocks'] > 0:
         await db_unmute(user_id)
@@ -41,6 +41,6 @@ async def unmute(message: types.Message):
             except Exception:
                 continue
         await status(message)
-    else:
-        await message.answer('К сожалению, у вас закончились разблоки. Теперь вы можете остаться '
-                             'в чатах в режиме читателя.')
+        return
+    await message.answer('К сожалению, у вас закончились разблоки. Теперь вы можете '
+                         'остаться в чатах в режиме читателя.')

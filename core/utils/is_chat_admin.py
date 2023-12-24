@@ -1,9 +1,9 @@
-from aiogram import types, Bot
-from aiogram.exceptions import TelegramAPIError
 from typing import Set, List
 
-from core.config import bot as my_bot
+from aiogram import types, Bot
+
 from core.config import Config
+from core.config import bot as my_bot
 
 
 async def is_chat_admin(user_id: int):
@@ -28,4 +28,3 @@ async def get_admins_ids(bot: Bot = my_bot, chats: List[int] = Config.CHATS) -> 
         # Обработка ошибок при вызове функции bot.get_chat_administrators()
         print(f"Ошибка при получении списка администраторов: {e}")
     return list(admins_set)
-

@@ -1,7 +1,6 @@
 from aiogram import types
 
 from core.config import bot
-
 from core.database_functions.db_functions import *
 
 

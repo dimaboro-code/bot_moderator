@@ -1,15 +1,17 @@
 # all actions logger, currently doesn't exist
-import asyncio
 import logging
 
 # run webhook
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.filters import Command, CommandStart
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
 
 # settings import
 from core.config import bot, dp, Config
 # full database import
 from core.database_functions.db_functions import async_main
+from core.filters.admin_filter import AdminFilter
 from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
 # GROUP FUNCTION IMPORTS
 from core.handlers.group_functions.add_unblocks import add_unblocks
@@ -28,32 +30,22 @@ from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.unmute import unmute
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
-from core.utils.delete_message import delete_message
-from core.filters.admin_filter import AdminFilter
-from core.middlewares.admins_mw import AdminMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 
 # webhook control
-async def on_startup():
+async def on_startup(bot: Bot):
     await async_main()
     await setup_schedule()
-    msg = await bot.send_message(-1001868029361, 'бот запущен')
-    await delete_message(msg, 2)
-
-
-# stopping app
-async def on_shutdown():
-    msg = await bot.send_message(-1001868029361, 'бот остановлен')
-    await delete_message(msg, 2)
+    admins = await get_admins_ids()
+    dp['admins'] = admins
+    await bot.set_webhook(url=Config.WEBHOOK_URL, drop_pending_updates=True, secret_token=Config.WEBHOOK_SECRET)
 
 
 # HANDLERS
-async def setup_handlers(router: Router):
-    router.startup.register(on_startup)
-    router.shutdown.register(on_shutdown)
+def setup_handlers(router: Router):
     router.callback_query.register(show_user_react, F.data.startswith('show_user'))
 
     # debug
@@ -77,13 +69,22 @@ async def setup_handlers(router: Router):
     return router
 
 
-async def start():
-    admins = await get_admins_ids()
-    router = await setup_handlers(router=Router())
+def start():
+    router = setup_handlers(router=Router())
     dp.include_router(router)
-    dp.update.middleware.register(AdminMiddleware(admins=admins))
-    await dp.start_polling(bot)
+    dp.startup.register(on_startup)
+    # dp.update.middleware.register(AdminMiddleware(admins=admins))
+
+    app = web.Application()
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+        secret_token=Config.WEBHOOK_SECRET,
+    )
+    webhook_requests_handler.register(app, path=Config.WEBHOOK_PATH)
+    setup_application(app, dp, bot=bot)
+    web.run_app(app, host=Config.WEBAPP_HOST, port=Config.WEBAPP_PORT)
 
 
 if __name__ == '__main__':
-    asyncio.run(start())
+    start()
