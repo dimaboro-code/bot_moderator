@@ -28,6 +28,7 @@ from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.unmute import unmute
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
+from core.utils.delete_message import delete_message
 from core.filters.admin_filter import AdminFilter
 from core.middlewares.admins_mw import AdminMiddleware
 
@@ -39,12 +40,14 @@ logging.basicConfig(level=logging.INFO)
 async def on_startup():
     await async_main()
     await setup_schedule()
-    await bot.send_message(-1001868029361, 'бот запущен')
+    msg = await bot.send_message(-1001868029361, 'бот запущен')
+    await delete_message(msg, 2)
 
 
 # stopping app
 async def on_shutdown():
-    await bot.send_message(-1001868029361, 'бот остановлен')
+    msg = await bot.send_message(-1001868029361, 'бот остановлен')
+    await delete_message(msg, 2)
 
 
 # HANDLERS

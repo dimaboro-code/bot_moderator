@@ -173,6 +173,8 @@ async def get_last_mute(user_id=2026523):
 
         result: Result = await session.execute(query)
         mute: Mute = result.scalar()
+        if mute is None:
+            return mute
 
         last_mute = {
             'id': mute.id,
