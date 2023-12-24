@@ -3,8 +3,6 @@ import os
 
 # import framework
 from aiogram import Bot, Dispatcher
-
-
 from aiogram import types
 
 # init bot and dispatcher
@@ -14,8 +12,8 @@ dp = Dispatcher()
 
 
 class Config:
-    CHATS = [
 
+    CHATS = [
         -1001868029361,    # тест бота
     ]
 
@@ -39,7 +37,7 @@ class Config:
         **{i: False for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    # ADMINS = []
+    ADMINS = []
 
     UNMUTE_SETTINGS = types.ChatPermissions(
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
@@ -47,21 +45,13 @@ class Config:
 
     # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
-
     # webhook settings
     # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
     # WEBHOOK_PATH = f'/webhook/{TOKEN}'
     # WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-
 
     # webserver settings
     # WEBAPP_HOST = '0.0.0.0'
     # WEBAPP_PORT = os.getenv('PORT', default=8000)
 
     DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
-
-    @classmethod
-    def set_admins(cls, admins):
-        cls.ADMINS = admins
-
-

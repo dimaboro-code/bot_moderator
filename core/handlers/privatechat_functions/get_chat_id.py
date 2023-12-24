@@ -3,6 +3,9 @@ from core.config import bot
 
 
 async def get_chat_id(message: types.Message):
+    if len(message.text.split()) == 1:
+        await message.answer('Не указан username группы или канала')
+        return
     chat_ids = []
     text = message.text.strip().split()
     text.pop(0)

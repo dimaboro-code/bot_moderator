@@ -1,10 +1,9 @@
 # all actions logger, currently doesn't exist
 import asyncio
 import logging
-from typing import List
 
 # run webhook
-from aiogram import F
+from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 
 # settings import
@@ -34,13 +33,12 @@ from core.middlewares.admins_mw import AdminMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-admins = []
+
 
 # webhook control
 async def on_startup():
     await async_main()
     await setup_schedule()
-    print('startup', admins)
     await bot.send_message(-1001868029361, 'бот запущен')
 
 
@@ -50,34 +48,37 @@ async def on_shutdown():
 
 
 # HANDLERS
-async def start():
-    admins = await get_admins_ids()
-    print('start', admins)
-    # CALLBACK HANDLERS
-    dp.update.middleware.register(AdminMiddleware(admins=admins))
-    dp.startup.register(on_startup)
-    dp.shutdown.register(on_shutdown)
-    dp.callback_query.register(show_user_react, F.data.startswith('show_user'))
+async def setup_handlers(router: Router):
+    router.startup.register(on_startup)
+    router.shutdown.register(on_shutdown)
+    router.callback_query.register(show_user_react, F.data.startswith('show_user'))
 
     # debug
-    dp.message.register(eraser, Command(commands='eraser'))
+    router.message.register(eraser, Command(commands='eraser'))
 
     # GROUP CHAT FUNCTION REGISTERS
-    dp.message.register(mute, Command(commands='mute'), AdminFilter())
-    dp.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
-    dp.message.register(join_cleaner, F.type.in_(Config.MESSAGES_FOR_DELETE))
+    router.message.register(mute, Command(commands='mute'), AdminFilter())
+    router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
+    router.message.register(join_cleaner, F.type.in_(Config.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS
-    dp.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
-    dp.message.register(send_welcome, CommandStart(), F.type == 'private')
-    dp.message.register(send_report, Command(commands=['send_report']), F.type == 'private')
-    dp.message.register(status,  Command(commands=['status']), F.type == 'private')
-    dp.message.register(bot_help, Command(commands=['help']), F.type == 'private')
-    dp.message.register(unmute, Command(commands=['unmute']), F.type == 'private')
-    dp.message.register(get_chat_id, Command(commands=['get_chat_id']), F.type == 'private')
-    dp.message.register(show_user, Command(commands=['show_user']), F.type == 'private')
-    dp.message.register(know_id)  # перехватываем все сообщения, вносим в базу
+    router.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
+    router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
+    router.message.register(send_report, Command(commands='send_report'), F.chat.type == 'private')
+    router.message.register(status, Command(commands='status'), F.chat.type == 'private')
+    router.message.register(bot_help, Command(commands='help'), F.chat.type == 'private')
+    router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
+    router.message.register(get_chat_id, Command(commands='get_chat_id'), F.chat.type == 'private')
+    router.message.register(show_user, Command(commands='show_user'), F.chat.type == 'private')
+    router.message.register(know_id)  # перехватываем все сообщения, вносим в базу
+    return router
 
+
+async def start():
+    admins = await get_admins_ids()
+    router = await setup_handlers(router=Router())
+    dp.include_router(router)
+    dp.update.middleware.register(AdminMiddleware(admins=admins))
     await dp.start_polling(bot)
 
 
