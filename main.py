@@ -2,86 +2,89 @@
 import logging
 
 # run webhook
-from aiogram.utils.executor import start_webhook
-from aiogram import filters
+from aiogram import F, Router, Bot
+from aiogram.filters import Command, CommandStart
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
 
 # settings import
-from config import bot, dp, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, MESSAGES_FOR_DELETE
-
+from core.config import bot, dp, Config
 # full database import
-from db import *
-
+from core.database_functions.db_functions import async_main
+from core.filters.admin_filter import AdminFilter
+from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
 # GROUP FUNCTION IMPORTS
-from group_functions.mute_new.mute_main import mute
-from group_functions.join_cleaner import join_cleaner
-from group_functions.add_unblocks import add_unblocks
-
+from core.handlers.group_functions.add_unblocks import add_unblocks
+from core.handlers.group_functions.id_recognizer import know_id
+from core.handlers.group_functions.join_cleaner import join_cleaner
+from core.handlers.group_functions.mute_main import mute
+from core.handlers.privatechat_functions.bot_help import bot_help
 # SYSTEM FUNCTION IMPORTS
-from system_functions.eraser import eraser
-from system_functions.get_chat_id import get_chat_id
-from system_functions.id_recognizer import know_id
-from system_functions.delete_old_ids import setup_schedule
-from system_functions.callback_show_users import show_user_react
-from system_functions.send_report import send_report
-
-
-# PRIVATECHAT FUCNTION IMPORTS
-from privatechat_functions.send_welcome import send_welcome
-from privatechat_functions.unmute import unmute
-from privatechat_functions.status import status
-from privatechat_functions.bot_help import bot_help
-from privatechat_functions.show_user import show_user, show_user_deeplink
-
+from core.handlers.privatechat_functions.eraser import eraser
+from core.handlers.privatechat_functions.get_chat_id import get_chat_id
+from core.handlers.privatechat_functions.send_report import send_report
+# PRIVATECHAT FUNCTION IMPORTS
+from core.handlers.privatechat_functions.send_welcome import send_welcome
+from core.handlers.privatechat_functions.show_user import show_user, show_user_deeplink
+from core.handlers.privatechat_functions.status import status
+from core.handlers.privatechat_functions.unmute import unmute
+from core.utils.delete_old_ids import setup_schedule
+from core.utils.is_chat_admin import get_admins_ids
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 
 # webhook control
-async def on_startup(dispatcher):
-    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
-    await database.connect()
-    # await create_table_ids()  # можно удалить в следующем обновлении. Нужно, чтобы разово создать таблицу
+async def on_startup(bot: Bot):
+    await async_main()
     await setup_schedule()
+    admins = await get_admins_ids()
+    dp['admins'] = admins
+    await bot.set_webhook(url=Config.WEBHOOK_URL, drop_pending_updates=True, secret_token=Config.WEBHOOK_SECRET)
 
-
-# stopping app
-async def on_shutdown(dispatcher):
-    await database.disconnect()
-    await bot.delete_webhook()
 
 # HANDLERS
+def setup_handlers(router: Router):
+    router.callback_query.register(show_user_react, F.data.startswith('show_user'))
 
-dp.register_callback_query_handler(show_user_react, filters.Text(startswith='show_user'))
+    # debug
+    router.message.register(eraser, Command(commands='eraser'))
 
-# debug
-dp.register_message_handler(eraser, commands=['eraser'], commands_prefix='!/')
+    # GROUP CHAT FUNCTION REGISTERS
+    router.message.register(mute, Command(commands='mute'), AdminFilter())
+    router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
+    router.message.register(join_cleaner, F.content_type.in_(Config.MESSAGES_FOR_DELETE))
 
-# GROUP CHAT FUNCTION REGISTERS
-dp.register_message_handler(mute, commands=['mute'], is_chat_admin=True, commands_prefix='!/')
-dp.register_message_handler(add_unblocks, commands=['add_unblocks'], is_chat_admin=True, commands_prefix='!/')
-dp.register_message_handler(join_cleaner, content_types=MESSAGES_FOR_DELETE)
+    # PRIVATE HANDLERS
+    router.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
+    router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
+    router.message.register(send_report, Command(commands='send_report'), F.chat.type == 'private')
+    router.message.register(status, Command(commands='status'), F.chat.type == 'private')
+    router.message.register(bot_help, Command(commands='help'), F.chat.type == 'private')
+    router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
+    router.message.register(get_chat_id, Command(commands='get_chat_id'), F.chat.type == 'private')
+    router.message.register(show_user, Command(commands='show_user'), F.chat.type == 'private')
+    router.message.register(know_id)  # перехватываем все сообщения, вносим в базу
+    return router
 
-# PRIVATE HANDLERS
-dp.register_message_handler(show_user_deeplink, filters.CommandStart, filters.Text(contains=' '), chat_type='private')
-dp.register_message_handler(send_welcome, commands_prefix='!/', commands=['start'], chat_type='private')
-dp.register_message_handler(send_report, commands=['send_report'], chat_type='private')
-dp.register_message_handler(status, commands_prefix='!/', commands=['status'], chat_type='private')
-dp.register_message_handler(bot_help, commands_prefix='!/', commands=['help'], chat_type='private')
-dp.register_message_handler(unmute, commands_prefix='!/', commands=['unmute'], chat_type='private')
-dp.register_message_handler(get_chat_id, commands_prefix='!/', commands=['get_chat_id'], chat_type='private')
-dp.register_message_handler(show_user, commands_prefix='!/', commands=['show_user'], chat_type='private')
-dp.register_message_handler(know_id)  # перехватываем все сообщения, вносим в базу
+
+def start():
+    router = setup_handlers(router=Router())
+    dp.include_router(router)
+    dp.startup.register(on_startup)
+    # dp.update.middleware.register(AdminMiddleware(admins=admins))
+
+    app = web.Application()
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+        secret_token=Config.WEBHOOK_SECRET,
+    )
+    webhook_requests_handler.register(app, path=Config.WEBHOOK_PATH)
+    setup_application(app, dp, bot=bot)
+    web.run_app(app, host=Config.WEBAPP_HOST, port=Config.WEBAPP_PORT)
 
 
 if __name__ == '__main__':
-
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    start()
