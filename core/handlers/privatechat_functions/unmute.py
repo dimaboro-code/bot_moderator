@@ -19,6 +19,9 @@ async def unmute(message: types.Message):
 
     last_mute = await get_last_mute(user_id)
     user_data = await get_user(user_id)
+    if last_mute is None:
+        await message.answer('Вы ранее не блокировались. Вас нельзя разблокировать.')
+        return
  
     # для получения инфы о пользователе нужно быть админом группы
     try:
