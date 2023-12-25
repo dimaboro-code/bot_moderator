@@ -1,0 +1,19 @@
+name: Update Commits
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Change commit history
+      run: |
+        git reset --hard a5883123274ed542e229fdb0f7ac23ac17a58be0
+        git push --force origin main
