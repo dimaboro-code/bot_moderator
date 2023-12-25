@@ -269,8 +269,8 @@ async def get_id(username='dds'):
                 select(Id.user_id).where(Id.username == username)  # noqa
             )
             user_id = result.all()
-            print('Гет айди, юзер айди:', int(user_id[0][0]))
-            return user_id[0][0]
+            print('Гет айди, юзер айди:', user_id, 'резалт', result.scalar())
+            return user_id  # TODO было user_id[0][0]
 
         except Exception as e:
             print('Ошибка: ', str(e))
