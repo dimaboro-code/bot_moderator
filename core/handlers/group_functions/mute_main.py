@@ -38,7 +38,7 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
     except Exception as exep:
         username = 'mistake_in_code'
         await bot.send_message(
-            chat_id=-1001838011289,
+            chat_id=Config.LOG_CHANNEL,
             text=f'mute_main, 42\nНе удалось добыть юзернейм, причина: {exep}'
         )
 
@@ -51,7 +51,7 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         except Exception as e:
             print(chat.username, ': ошибка', e)
             await bot.send_message(
-                chat_id=-1001868029361,
+                chat_id=-1001838011289,
                 text=f'Юзер: {user_id}\n'
                      f'Юзернейм: @{username}'
                      f'Чат ID: {chat.id}\n'
@@ -90,7 +90,7 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
     try:
         await bot.send_message(chat_id=Config.LOG_CHANNEL,
                                text=f'Мьют @{username},\nuser id: {user_id},\n'
-                                    f'Подробнее: <a href="t.me/@testing_projects_42_bot?start={username}">'
+                                    f'Подробнее: <a href="t.me/@slashdbot?start={username}">'
                                     f'<b>{username}</b></a>\n\n'
                                     f'Админ: @{moderator_message.from_user.username}\n'
                                     f'Причина: {reason_message}',
@@ -98,7 +98,7 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
                                )
     except Exception as exep:
         await bot.send_message(
-            chat_id=-1001868029361,
+            chat_id=-1001838011289,
             text=f'Юзер: {user_id}\n'
                  f'Юзернейм: {username}'
                  f'Чат: {chat.username}\n'
