@@ -7,7 +7,9 @@ async def know_id(message: types.Message):
     username = message.from_user.username
     user_id = message.from_user.id
 
-    if not await in_database(user_id):
+    in_db = await in_database(user_id)
+    if not in_db:
+        print('Пользователя нет в базе', in_db)
         await add_user(user_id)
 
     if username is None:
@@ -15,10 +17,9 @@ async def know_id(message: types.Message):
         print(message)
         return
 
+    await add_or_update_id(username=username, user_id=user_id)
 
     check_username = await check_known_id(user_id)
-    print(check_username)
+    print('чек юзернейм', check_username)
     if check_username is None:
-        await add_or_update_id(username=username, user_id=user_id)
-        # print('Не удалось добавить в базу юзернейм.')
-
+        print('Не удалось добавить юзернейм')
