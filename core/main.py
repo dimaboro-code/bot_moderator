@@ -75,7 +75,6 @@ def start():
     router = setup_handlers(router=Router())
     dp.include_router(router)
     dp.startup.register(on_startup)
-    # dp.update.middleware.register(AdminMiddleware(admins=admins))
 
     app = web.Application()
     webhook_requests_handler = SimpleRequestHandler(
