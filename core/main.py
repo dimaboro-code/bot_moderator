@@ -11,7 +11,6 @@ from aiohttp import web
 from core.config import bot, dp, Config
 # full database import
 from core.database_functions.db_functions import async_main
-from core.database_functions.test_db import test_simple_db
 from core.filters.admin_filter import AdminFilter
 from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
 # GROUP FUNCTION IMPORTS
@@ -19,16 +18,17 @@ from core.handlers.group_functions.add_unblocks import add_unblocks
 from core.handlers.group_functions.id_recognizer import know_id
 from core.handlers.group_functions.join_cleaner import join_cleaner
 from core.handlers.group_functions.mute_main import mute
+# PRIVATECHAT FUNCTION IMPORTS
 from core.handlers.privatechat_functions.bot_help import bot_help
-# SYSTEM FUNCTION IMPORTS
 from core.handlers.privatechat_functions.eraser import eraser
 from core.handlers.privatechat_functions.get_chat_id import get_chat_id
 from core.handlers.privatechat_functions.send_report import send_report_handler
-# PRIVATECHAT FUNCTION IMPORTS
 from core.handlers.privatechat_functions.send_welcome import send_welcome
 from core.handlers.privatechat_functions.show_user import show_user, show_user_deeplink
 from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.unmute import unmute
+from core.handlers.privatechat_functions.test_db_handler import test_db_handler
+# SETUP FUNCTIONS
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
 
@@ -43,7 +43,6 @@ async def on_startup(bot: Bot):
     admins = await get_admins_ids()
     dp['admins'] = admins
     await bot.set_webhook(url=Config.WEBHOOK_URL, drop_pending_updates=True, secret_token=Config.WEBHOOK_SECRET)
-    # await test_simple_db()
 
 
 # HANDLERS
@@ -59,6 +58,7 @@ def setup_handlers(router: Router):
     router.message.register(join_cleaner, F.content_type.in_(Config.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS
+    router.message.register(test_db_handler, F.chat.type == 'private', AdminFilter(), Command('test_db'))
     router.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
     router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
     router.message.register(send_report_handler, Command(commands='send_report'), F.chat.type == 'private')

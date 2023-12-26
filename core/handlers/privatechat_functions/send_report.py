@@ -1,6 +1,5 @@
 from aiogram.types import Message
 
-from core.config import bot
 from core.utils.send_report import send_report_to_channel
 
 
