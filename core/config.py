@@ -46,7 +46,14 @@ class Config:
         -1001868029361,  # тест бота
     ]
 
-    LOG_CHANNEL = -1002065542994
+    LOG_CHANNEL: int = -1002065542994
+    LOG_CHANNEL_USERNAME: str = 'testing_projects_42_bot'
+    LOG_CHAT: int = -1001868029361  # for mistakes
+
+    # Настройки для прода
+    # LOG_CHANNEL: int = -1001482081082  # /designer/mutes
+    # LOG_CHANNEL_USERNAME: str = 'slashdbot'
+    # LOG_CHAT: int = -1001838011289  # for mistakes
 
     MESSAGES_FOR_DELETE = [
         ct.NEW_CHAT_MEMBERS,
@@ -85,11 +92,11 @@ class Config:
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+    # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
 
     # webhook settings
     # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    WEBHOOK_HOST = 'https://3c1c-5-76-255-147.ngrok-free.app'
+    WEBHOOK_HOST = 'https://6558-5-76-255-147.ngrok-free.app'
     WEBHOOK_PATH = '/webhook'
 
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
@@ -99,6 +106,6 @@ class Config:
     WEBAPP_HOST = '127.0.0.1'
     # WEBAPP_PORT = os.getenv('PORT', default=8000)
     WEBAPP_PORT = 8080
-    # DATABASE_URL = os.getenv('DATABASE_URL')
-    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
-    WEBHOOK_SECRET = 'jadhkjs745623hdfh'  # TODO убрать в env
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
+    WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')

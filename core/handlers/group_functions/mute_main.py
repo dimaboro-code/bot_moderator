@@ -5,6 +5,7 @@ from core.database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
 from core.utils.delete_message import delete_message
 from core.utils.restrict import restrict
+from core.utils.send_report import send_report_to_channel, send_report_to_group
 
 
 async def mute(moderator_message: types.Message, bot: Bot = my_bot):
@@ -32,15 +33,13 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         print('Вообще в душе не ебу, что может произойти, чтобы выполнилась эта ветка')
         return
 
-    try:
+    try:  # TODO переписать чтобы только для мьюта по юзернейму
         bad_user: types.ChatMember = await bot.get_chat_member(moderator_message.chat.id, user_id)
         username = bad_user.user.username
-    except Exception as exep:
+    except Exception as problem:
         username = 'mistake_in_code'
-        await bot.send_message(
-            chat_id=-1001838011289,
-            text=f'mute_main, 42\nНе удалось добыть юзернейм, причина: {exep}'
-        )
+        await send_report_to_group(user_id, username, moderator_message.chat.id,
+                                   moderator_message.chat.username, problem, bot)
 
     chats = Config.CHATS
     for chat_id in chats:
@@ -48,16 +47,13 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         try:
             await restrict(user_id, chat_id, Config.MUTE_SETTINGS)
             print(chat.username, ': успешно')
+
         except Exception as e:
             print(chat.username, ': ошибка', e)
-            await bot.send_message(
-                chat_id=-1001868029361,
-                text=f'Юзер: {user_id}\n'
-                     f'Юзернейм: @{username}'
-                     f'Чат ID: {chat.id}\n'
-                     f'Чат: @{chat.username}\n'
-                     f'Не прошел мьют, ошибка: {e}'
-            )
+
+            problem = f'Не прошел мьют, ошибка: {e}'
+            await send_report_to_group(user_id, username, chat.id, chat.username, problem)
+
             continue
 
     member_actual_state = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
@@ -80,30 +76,20 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
     mute_data = {
         'chat_id': moderator_message.chat.id,
         'user_id': user_id,
-        'message_id': 00000,  # данное значение неактуально
+        'message_id': 00000,  # данное значение неактуально TODO выпилить нахуй
         'moderator_message': reason_message,
         'admin_username': moderator_message.from_user.username
     }
 
     await add_mute(mute_data)
+    admin = moderator_message.from_user.username
+    chat_username: str = moderator_message.chat.username
 
     try:
-        await bot.send_message(chat_id=Config.LOG_CHANNEL,
-                               text=f'Мьют @{username},\nuser id: {user_id},\n'
-                                    f'Подробнее: <a href="t.me/@testing_projects_42_bot?start={username}">'
-                                    f'<b>{username}</b></a>\n\n'
-                                    f'Админ: @{moderator_message.from_user.username}\n'
-                                    f'Причина: {reason_message}',
-                               parse_mode='HTML'
-                               )
-    except Exception as exep:
-        await bot.send_message(
-            chat_id=-1001868029361,
-            text=f'Юзер: {user_id}\n'
-                 f'Юзернейм: {username}'
-                 f'Чат: {chat.username}\n'
-                 f'Не прошел отчет о мьюте, ошибка: {exep}'
-        )
+        await send_report_to_channel(user_id, username, admin, chat_username, reason_message)
+    except Exception as problem:
+        await send_report_to_group(user_id, username, moderator_message.chat.id,
+                                   chat_username, problem)
 
     success_message = await moderator_message.answer(
         f'Пользователь {username} попал в мьют.'
