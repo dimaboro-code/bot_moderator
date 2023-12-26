@@ -15,8 +15,10 @@ async def know_id(message: types.Message):
         print(message)
         return
 
-    await add_or_update_id(username=username, user_id=user_id)
+
     check_username = await check_known_id(user_id)
     print(check_username)
     if check_username is None:
-        print('Не удалось добавить в базу юзернейм.')
+        await add_or_update_id(username=username, user_id=user_id)
+        # print('Не удалось добавить в базу юзернейм.')
+

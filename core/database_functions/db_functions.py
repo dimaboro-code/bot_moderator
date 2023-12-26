@@ -235,10 +235,11 @@ async def add_or_update_id(username, user_id):
         try:
             # Попытка вставки новой записи с обработкой конфликта
             stmt = insert(Id).values(username=username, user_id=user_id)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=['user_id'],
-                set_=dict(created_at=func.NOW())
-            )
+
+            # stmt = stmt.on_conflict_do_update(
+            #     index_elements=['user_id'],
+            #     set_=dict(created_at=func.NOW())
+            # )
 
             await session.execute(stmt)
             print('ID успешно добавлен в базу')
@@ -282,7 +283,8 @@ async def delete_old_data():
         try:
             print('Deleting old data')
 
-            two_days_ago = datetime.now() - timedelta(days=5)
+
+            two_days_ago = datetime.now() - timedelta(days=2)
 
             await session.execute(
                 delete(Id).where(Id.created_at < two_days_ago)
