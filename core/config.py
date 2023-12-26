@@ -1,6 +1,6 @@
 """
 Как запустить локальный сервер
-В терминале:  brew services start nginx
+В терминале:  brew services start nginx - можно не использовать, если нгрок запустить на порте вебапп
 Еще в терминале: ngrok http 8080 - 8080 совпадает с портом локального сервера
 После этого на страничке https://dashboard.ngrok.com/cloud-edge/endpoints откроется ссылка для вебхука
 Нужна https
@@ -27,6 +27,7 @@ dp = Dispatcher()
 
 
 class Config:
+    # Настройки для прода
     CHATS = [
         -1001302438185,  # figmachat
         -1001808148145,  # figmaforum
@@ -39,14 +40,27 @@ class Config:
         -1001838011289,  # Bot Sandbox
         -1001629596705,  # uireview
     ]
+    LOG_CHANNEL: int = -1001482081082  # /designer/mutes
+    LOG_CHANNEL_USERNAME: str = 'slashdbot'
+    LOG_CHAT: int = -1001838011289  # for mistakes
 
-    LOG_CHANNEL = -1001482081082  # /designer/mutes
-    #
+    HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+    WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+    WEBAPP_HOST = '0.0.0.0'
+    WEBAPP_PORT = os.getenv('PORT', default=8000)
+
+    # настройки для тестов
     # CHATS = [
     #     -1001868029361,  # тест бота
     # ]
-    #
-    # LOG_CHANNEL = -1002065542994
+
+    # LOG_CHANNEL: int = -1002065542994
+    # LOG_CHANNEL_USERNAME: str = 'testing_projects_42_bot'
+    # LOG_CHAT: int = -1001868029361  # for mistakes
+
+    # WEBHOOK_HOST = 'https://6558-5-76-255-147.ngrok-free.app'
+    # WEBAPP_HOST = '127.0.0.1'
+    # WEBAPP_PORT = 8080
 
     MESSAGES_FOR_DELETE = [
         ct.NEW_CHAT_MEMBERS,
@@ -75,32 +89,19 @@ class Config:
         ct.GENERAL_FORUM_TOPIC_UNHIDDEN
     ]
 
-    # Чтобы не прописывать руками все разрешения, я достаю их из объекта, в генераторе
-    # словаря прописываю соответствия и затем распечатываю словарь в нужную мне форму
     MUTE_SETTINGS: types.ChatPermissions = types.ChatPermissions(
         **{i: False for i in types.ChatPermissions.model_fields.keys()}
     )
-
     UNMUTE_SETTINGS = types.ChatPermissions(
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
-
     # webhook settings
-    WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    # WEBHOOK_HOST = 'https://3c1c-5-76-255-147.ngrok-free.app'
     WEBHOOK_PATH = '/webhook'
-
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
     # webserver settings
-    WEBAPP_HOST = '0.0.0.0'
-    # WEBAPP_HOST = '127.0.0.1'
-    WEBAPP_PORT = os.getenv('PORT', default=8000)
-    # WEBAPP_PORT = 8080
-    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')
-    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'
-    WEBHOOK_SECRET = 'jadhkjs745623hdfh'
+    WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
 
-'33258'
+    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
+    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
