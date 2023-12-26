@@ -28,40 +28,41 @@ dp = Dispatcher()
 
 class Config:
     # Настройки для прода
-    CHATS = [
-        -1001302438185,  # figmachat
-        -1001808148145,  # figmaforum
-        -1001398488197,  # designchat2
-        -1001535946932,  # systemschat
-        -1001124768091,  # framerchat
-        -1001753295642,  # whatthefontt
-        -1001191920744,  # slashcomments
-        -1001769444523,  # slashimagineai
-        -1001838011289,  # Bot Sandbox
-        -1001629596705,  # uireview
-    ]
-    LOG_CHANNEL: int = -1001482081082  # /designer/mutes
-    LOG_CHANNEL_USERNAME: str = 'slashdbot'
-    LOG_CHAT: int = -1001838011289  # for mistakes
-
-    HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
-    WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    WEBAPP_HOST = '0.0.0.0'
-    WEBAPP_PORT = os.getenv('PORT', default=8000)
+    # CHATS = [
+    #     -1001302438185,  # figmachat
+    #     -1001808148145,  # figmaforum
+    #     -1001398488197,  # designchat2
+    #     -1001535946932,  # systemschat
+    #     -1001124768091,  # framerchat
+    #     -1001753295642,  # whatthefontt
+    #     -1001191920744,  # slashcomments
+    #     -1001769444523,  # slashimagineai
+    #     -1001838011289,  # Bot Sandbox
+    #     -1001629596705,  # uireview
+    # ]
+    # LOG_CHANNEL: int = -1001482081082  # /designer/mutes
+    # LOG_CHANNEL_USERNAME: str = 'slashdbot'
+    # LOG_CHAT: int = -1001838011289  # for mistakes
+    #
+    # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+    # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+    # WEBAPP_HOST = '0.0.0.0'
+    # WEBAPP_PORT = os.getenv('PORT', default=8000)
 
     # настройки для тестов
-    # CHATS = [
-    #     -1001868029361,  # тест бота
-    # ]
+    CHATS = [
+        -1001868029361,  # тест бота
+    ]
 
-    # LOG_CHANNEL: int = -1002065542994
-    # LOG_CHANNEL_USERNAME: str = 'testing_projects_42_bot'
-    # LOG_CHAT: int = -1001868029361  # for mistakes
+    LOG_CHANNEL: int = -1002065542994
+    LOG_CHANNEL_USERNAME: str = 'testing_projects_42_bot'
+    LOG_CHAT: int = -1001868029361  # for mistakes
 
-    # WEBHOOK_HOST = 'https://6558-5-76-255-147.ngrok-free.app'
-    # WEBAPP_HOST = '127.0.0.1'
-    # WEBAPP_PORT = 8080
+    WEBHOOK_HOST = 'https://6558-5-76-255-147.ngrok-free.app'
+    WEBAPP_HOST = '127.0.0.1'
+    WEBAPP_PORT = 8080
 
+    # Общие настройки
     MESSAGES_FOR_DELETE = [
         ct.NEW_CHAT_MEMBERS,
         ct.LEFT_CHAT_MEMBER,
