@@ -12,6 +12,7 @@ WEBAPP_PORT = 8080  # должен совпадать с proxypass в настр
 Статья об этом всем: https://mkdev.me/ru/posts/ngrok-kogda-nuzhno-prokinut-vash-servis-v-internet
 Если хочется еще больше поугарать - настрой SSL
 """
+
 # python standard library
 import os
 
