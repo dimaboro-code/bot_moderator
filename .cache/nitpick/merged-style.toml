@@ -1,0 +1,53 @@
+[nitpick]
+minimum_version = "0.29.0"
+
+[nitpick.styles]
+include = [ "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/file-structure.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/flake8.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/darglint.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/mypy.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/poetry.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/styleguide.toml",]
+
+["setup.cfg".flake8]
+strictness = "long"
+format = "wemake"
+show-source = true
+max-line-length = 80
+max-complexity = 6
+docstring-style = "numpy"
+ignore = "D100,D104,D401,W504,RST303,RST304,DAR103,DAR203"
+
+["setup.cfg".mypy]
+allow_redefinition = false
+check_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = false
+local_partial_types = true
+no_implicit_optional = true
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+["setup.cfg".isort]
+profile = "wemake"
+
+[nitpick.files.absent]
+"requirements.txt" = "Install poetry, run 'poetry init' to create pyproject.toml, and move dependencies to it"
+Pipfile = "Use pyproject.toml instead"
+"Pipfile.lock" = "Use pyproject.toml instead"
+".isort.cfg" = "Move values to setup.cfg, section [isort]"
+".flake8" = "Move values to setup.cfg, section [flake8]"
+"mypy.ini" = "Move values to setup.cfg, section [mypy]"
+".travis.yml" = "Travis is shutting down, please switch to some other CI service"
+".pyup.yml" = "Configure your CI with safety instead: https://github.com/pyupio/safety#using-safety-with-a-ci-service"
+
+[nitpick.files.present]
+".editorconfig" = "A project should have an editor configuration"
+"CHANGELOG.md" = "A project should have `CHANGELOG.md`"
+"README.md" = "A project should have `README.md`"
+".gitignore" = "A project should have `.gitignore` file"
+"pyproject.toml" = "Install poetry and run 'poetry init' to create it"
+
+[nitpick.files."setup.cfg"]
+comma_separated_values = [ "flake8.ignore",]

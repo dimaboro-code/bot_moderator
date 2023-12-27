@@ -1,5 +1,6 @@
 """
 Как запустить локальный сервер
+
 В терминале:  brew services start nginx - можно не использовать, если нгрок запустить на порте вебапп
 Еще в терминале: ngrok http 8080 - 8080 совпадает с портом локального сервера
 После этого на страничке https://dashboard.ngrok.com/cloud-edge/endpoints откроется ссылка для вебхука
@@ -10,17 +11,19 @@ WEBAPP_HOST = '127.0.0.1'  # совпадает с адресом локальн
 WEBAPP_PORT = 8080  # должен совпадать с proxypass в настройках локального сервера
 
 Статья об этом всем: https://mkdev.me/ru/posts/ngrok-kogda-nuzhno-prokinut-vash-servis-v-internet
-Если хочется еще больше поугарать - настрой SSL
+Если хочется еще больше поугарать - настрой SSL.
 """
 
 # python standard library
 import os
 
-# import framework
+# importing framework
 from aiogram import Bot, Dispatcher
 from aiogram import types
-from aiogram.enums import ContentType as ct, ParseMode
+from aiogram.enums import ContentType as CT, ParseMode
+from dotenv import load_dotenv
 
+load_dotenv()
 # init bot and dispatcher
 TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
@@ -65,30 +68,30 @@ class Config:
 
     # Общие настройки
     MESSAGES_FOR_DELETE = [
-        ct.NEW_CHAT_MEMBERS,
-        ct.LEFT_CHAT_MEMBER,
-        ct.NEW_CHAT_PHOTO,
-        ct.DELETE_CHAT_PHOTO,
+        CT.NEW_CHAT_MEMBERS,
+        CT.LEFT_CHAT_MEMBER,
+        CT.NEW_CHAT_PHOTO,
+        CT.DELETE_CHAT_PHOTO,
         'delete_chat_sticker_set',
-        ct.NEW_CHAT_TITLE,
+        CT.NEW_CHAT_TITLE,
         'delete_chat_title',
-        ct.GROUP_CHAT_CREATED,
-        ct.SUPERGROUP_CHAT_CREATED,
-        ct.CHANNEL_CHAT_CREATED,
-        ct.MESSAGE_AUTO_DELETE_TIMER_CHANGED,
-        ct.PINNED_MESSAGE,
+        CT.GROUP_CHAT_CREATED,
+        CT.SUPERGROUP_CHAT_CREATED,
+        CT.CHANNEL_CHAT_CREATED,
+        CT.MESSAGE_AUTO_DELETE_TIMER_CHANGED,
+        CT.PINNED_MESSAGE,
         'unpinned_message',
         'new_chat_description',
-        ct.VIDEO_CHAT_SCHEDULED,
-        ct.VIDEO_CHAT_STARTED,
-        ct.VIDEO_CHAT_ENDED,
-        ct.VIDEO_CHAT_PARTICIPANTS_INVITED,
-        ct.FORUM_TOPIC_CREATED,
-        ct.FORUM_TOPIC_EDITED,
-        ct.FORUM_TOPIC_CLOSED,
-        ct.FORUM_TOPIC_REOPENED,
-        ct.GENERAL_FORUM_TOPIC_HIDDEN,
-        ct.GENERAL_FORUM_TOPIC_UNHIDDEN
+        CT.VIDEO_CHAT_SCHEDULED,
+        CT.VIDEO_CHAT_STARTED,
+        CT.VIDEO_CHAT_ENDED,
+        CT.VIDEO_CHAT_PARTICIPANTS_INVITED,
+        CT.FORUM_TOPIC_CREATED,
+        CT.FORUM_TOPIC_EDITED,
+        CT.FORUM_TOPIC_CLOSED,
+        CT.FORUM_TOPIC_REOPENED,
+        CT.GENERAL_FORUM_TOPIC_HIDDEN,
+        CT.GENERAL_FORUM_TOPIC_UNHIDDEN
     ]
 
     MUTE_SETTINGS: types.ChatPermissions = types.ChatPermissions(
