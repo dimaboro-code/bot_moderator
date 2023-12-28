@@ -1,35 +1,31 @@
+from typing import List
+
 from aiogram import types
 
 from core.config import bot
 from core.database_functions.db_functions import get_id
 from core.database_functions.db_functions import get_user, get_last_mute
 from core.keyboards.show_user_keyboard import show_user_keyboard
-from core.utils.is_chat_admin import is_chat_admin
 from core.utils.is_username import is_username
 
 
-async def show_user(message: types.Message, dl: str = None):
+async def show_user(message: types.Message, admins: List[int], dl: str = None):
     admin_id = message.from_user.id
-
-    is_admin = await is_chat_admin(admin_id)
-    if is_admin is False:
+    if admin_id not in admins:
         await message.answer('Вы не являетесь модератором сообщества')
         return
 
-    username = await is_username(message.text if not dl else dl)
-    print('юзернейм из сообщения:', username)
+    username = is_username(message.text if not dl else dl)
     if username is None:
         await message.answer('Не указан username')
         return
 
     user_id = await get_id(username)
-    print('юзер айди из базы:', user_id)
     if user_id is None:
         await message.answer('Пользователя нет в базе данных айди')
         return
 
     user_status = await get_user(user_id)
-    print('Инфа о пользователе из базы мьютов:', user_status)
     if user_status is None:
         await message.answer('Пользователя нет в базе данных мьютов')
         return
@@ -55,6 +51,6 @@ async def show_user(message: types.Message, dl: str = None):
     await message.answer(text=answer, reply_markup=show_user_keyboard)
 
 
-async def show_user_deeplink(message: types.Message) -> None:
-    dl = '@' + message.text.split(' ')[1]  # TODO переписать обработчик без костылей
-    await show_user(message, dl)
+async def show_user_deeplink(message: types.Message, admins) -> None:
+    dl = '@' + str(message.text).split(' ')[1]  # TODO переписать обработчик без костылей
+    await show_user(message, dl=dl, admins=admins)

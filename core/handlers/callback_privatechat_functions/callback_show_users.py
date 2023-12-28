@@ -17,7 +17,7 @@ async def show_user_react(call: CallbackQuery, session):
     func_query = call.data.split('_')
     real_query = '_'.join(func_query[2:])
     print(real_query)
-    username = await is_username(call.message.text)
+    username = is_username(call.message.text)
     print(username)
     user_id = await get_id(username, session)
     print(user_id)

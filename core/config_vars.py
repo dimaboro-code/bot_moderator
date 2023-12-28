@@ -14,10 +14,8 @@ WEBAPP_PORT = 8080  # должен совпадать с proxypass в настр
 Если хочется еще больше поугарать - настрой SSL.
 """
 
-# python standard library
 import os
 
-# importing framework
 from aiogram import types
 from aiogram.enums import ContentType
 from dotenv import load_dotenv  # только для тестов
@@ -30,7 +28,7 @@ if not env:
 
 class ConfigVars:
     # # Настройки для прода
-    # CHATS = [
+    # CHATS = (
     #     -1001302438185,  # figmachat
     #     -1001808148145,  # figmaforum
     #     -1001398488197,  # designchat2
@@ -41,33 +39,33 @@ class ConfigVars:
     #     -1001769444523,  # slashimagineai
     #     -1001838011289,  # Bot Sandbox
     #     -1001629596705,  # uireview
-    # ]
+    # )
     # LOG_CHANNEL: int = -1001482081082  # /designer/mutes
-    # LOG_CHANNEL_USERNAME: str = 'slashdbot'
+    # BOT_USERNAME: str = 'slashdbot'
     # LOG_CHAT: int = -1001838011289  # for mistakes
     #
     # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
     # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
     # WEBAPP_HOST = '0.0.0.0'
-    # WEBAPP_PORT = os.getenv('PORT', default=8000)
+    # WEBAPP_PORT = int(os.getenv('PORT', default=8000))
 
-    # # настройки для тестов
-    CHATS = [
+    # настройки для тестов
+    CHATS = (
         -1001868029361,  # тест бота
-    ]
+    )
 
     LOG_CHANNEL: int = -1002065542994
-    LOG_CHANNEL_USERNAME: str = 'testing_projects_42_bot'
+    BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
 
-    WEBHOOK_HOST = 'https://671c-5-76-255-147.ngrok-free.app'
+    WEBHOOK_HOST = 'https://f6ca-5-76-255-147.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
 
-    MESSAGES_FOR_DELETE = [
+    MESSAGES_FOR_DELETE = (
         ContentType.NEW_CHAT_MEMBERS,
         ContentType.LEFT_CHAT_MEMBER,
         ContentType.NEW_CHAT_PHOTO,
@@ -92,7 +90,7 @@ class ConfigVars:
         ContentType.FORUM_TOPIC_REOPENED,
         ContentType.GENERAL_FORUM_TOPIC_HIDDEN,
         ContentType.GENERAL_FORUM_TOPIC_UNHIDDEN
-    ]
+    )
 
     MUTE_SETTINGS: types.ChatPermissions = types.ChatPermissions(
         **{i: False for i in types.ChatPermissions.model_fields.keys()}
@@ -108,5 +106,5 @@ class ConfigVars:
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
 
-    DATABASE_URL = os.getenv('DATABASE_URL')  # Основная бд
+    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
     # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная

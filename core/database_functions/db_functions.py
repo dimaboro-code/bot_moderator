@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database_functions.db_models import User, Mute, Id, Base
 from core.config import async_session, engine
 
-session = async_session
+session = async_session()
 
 
 async def add_user(user_id: int, session: AsyncSession = session):
@@ -48,7 +48,8 @@ async def add_mute(mute_data):
                     chat_id=mute_data['chat_id'],
                     moderator_message=mute_data['moderator_message'],
                     admin_username=mute_data['admin_username'],
-                    message_id=1
+                    message_id=1,
+                    date_of_mute=func.now()
                 )
                 session.add(mute)
                 print('БД, адд мьют, добавление мьюта')
@@ -146,7 +147,7 @@ async def get_user(user_id: int):
         )
         user: User = result.scalar()
         user_data = {
-            'user_id': user.user_id,
+            'user_id': int(user.user_id),
             'user_blocks': user.user_blocks,
             'is_muted': user.is_muted
         }
@@ -162,15 +163,14 @@ async def get_last_mute(user_id: int):
         query = select(Mute).filter(user_id == Mute.user_id, Mute.id == subquery)
 
         result: Result = await session.execute(query)
-        mute: Mute | None = result.scalar()
+        mute: Mute = result.scalar()
         if mute is None:
             return mute
-
         last_mute = {
             'id': mute.id,
-            'user_id': mute.user_id,
+            'user_id': int(mute.user_id),
             'message_id': mute.message_id,
-            'chat_id': mute.chat_id,
+            'chat_id': int(mute.chat_id),
             'moderator_message': mute.moderator_message,
             'admin_username': mute.admin_username,
             'date_of_mute': mute.date_of_mute
@@ -248,7 +248,7 @@ async def get_id(username: str, session: AsyncSession = session):
         print('Ошибка: ', str(e))
 
 
-async def delete_old_data(days: int = 5, user_id: int = None):
+async def delete_old_data(days: int = 15, user_id: int = None):
     async with async_session() as session:
         session: AsyncSession
         try:

@@ -16,7 +16,7 @@ from core.handlers.callback_privatechat_functions.callback_show_users import sho
 # GROUP FUNCTION IMPORTS
 from core.handlers.group_functions.add_unblocks import add_unblocks
 from core.handlers.group_functions.join_cleaner import join_cleaner
-from core.handlers.group_functions.mute_main import mute
+from core.handlers.group_functions.mute_main import mute_handler
 # PRIVATECHAT FUNCTION IMPORTS
 from core.handlers.privatechat_functions.bot_help import bot_help
 from core.handlers.privatechat_functions.eraser import eraser
@@ -58,15 +58,18 @@ def setup_handlers(router: Router):
     router.message.register(eraser, Command(commands='eraser'))
 
     # GROUP CHAT FUNCTION REGISTERS
-    router.message.register(mute, Command(commands='mute'), AdminFilter())
+    router.message.register(mute_handler, Command(commands='mute'), AdminFilter())
     router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
     router.message.register(join_cleaner, F.content_type.in_(ConfigVars.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS
-    router.message.register(test_db_handler, F.chat.type == 'private', AdminFilter(), Command('test_db'))
-    router.message.register(show_user_deeplink, F.chat.type == 'private', CommandStart(deep_link=True))
+    router.message.register(test_db_handler, F.chat.type == 'private', AdminFilter(),
+                            Command('test_db'))
+    router.message.register(show_user_deeplink, F.chat.type == 'private',
+                            CommandStart(deep_link=True))
     router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
-    router.message.register(send_report_handler, Command(commands='send_report'), F.chat.type == 'private')
+    router.message.register(send_report_handler, AdminFilter(),
+                            Command(commands='send_report'), F.chat.type == 'private')
     router.message.register(status, Command(commands='status'), F.chat.type == 'private')
     router.message.register(bot_help, Command(commands='help'), F.chat.type == 'private')
     router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
