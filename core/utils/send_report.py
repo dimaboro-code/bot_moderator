@@ -1,15 +1,16 @@
 from aiogram import Bot
-from core.config import Config, bot as bt
+from core.config_vars import ConfigVars
+from ..config import bot as bt
 
 
 async def send_report_to_channel(
-        user_id: int,
-        username: str,
-        admin: str,
-        chat_username: str,
-        reason_message: str,
-        log_chanel: int = Config.LOG_CHANNEL,
-        bot: Bot = bt
+    user_id: int,
+    username: str,
+    admin: str,
+    chat_username: str,
+    reason_message: str,
+    log_chanel: int = ConfigVars.LOG_CHANNEL,
+    bot: Bot = bt
 ):
     """
     Отчет в канал с отчетами
@@ -28,7 +29,7 @@ async def send_report_to_channel(
     await bot.send_message(chat_id=log_chanel,
                            text=f'Мьют @{username},\n'
                                 f'user id: {user_id},\n'
-                                f'Подробнее: <a href="t.me/@{str(Config.LOG_CHANNEL_USERNAME)}?start={username}">'
+                                f'Подробнее: <a href="t.me/@{str(ConfigVars.LOG_CHANNEL_USERNAME)}?start={username}">'
                                 f'<b>{username}</b></a>\n\n'
                                 f'Чат: @{chat_username}\n'
                                 f'Админ: @{admin}\n'
@@ -38,13 +39,13 @@ async def send_report_to_channel(
 
 
 async def send_report_to_group(
-        user_id: int,
-        user_username: str | None,
-        chat_id: int,
-        chat_username: str | None,
-        problem: str | Exception,
-        bot: Bot = bt,
-        log_chat: str = Config.LOG_CHAT
+    user_id: int,
+    user_username: str | None,
+    chat_id: int,
+    chat_username: str | None,
+    problem: str | Exception,
+    bot: Bot = bt,
+    log_chat: str = ConfigVars.LOG_CHAT
 ):
     """
     отчет об ошибках

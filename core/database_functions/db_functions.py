@@ -4,49 +4,26 @@ from datetime import datetime, timedelta
 from sqlalchemy import Result, func, and_
 from sqlalchemy import select, delete, update
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import Config
 from core.database_functions.db_models import User, Mute, Id, Base
+from core.config import async_session, engine
 
-engine: AsyncEngine = create_async_engine(
-    Config.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
-)
-async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)
+session = async_session
 
 
-async def in_database(user_id: int):
-    async with async_session() as session:
-        stmt = select(User).where(user_id == User.user_id)
-        try:
-            result: Result = await session.execute(stmt)
-            user: User = result.scalar()
-            print('БД, ин датабейс', bool(user))
-        except Exception as e:
-            logging.error('Нельзя принтануть юзера, %s', e)
-    return bool(user)
-
-
-async def add_user(user_id: int):
-    """
-
-    Args:
-        user_id:
-
-    Returns:
-
-    """
+async def add_user(user_id: int, session: AsyncSession = session):
     try:
-        async with async_session() as session:
-            stmt = insert(User).values(user_id=user_id)
-            await session.execute(stmt)
-            await session.commit()
-            print('БД, адд юзер. Без ретерна')
+        async with session.begin():
+            stmt_user = insert(User).values(user_id=user_id)
+            stmt_user = stmt_user.on_conflict_do_nothing(index_elements=['user_id'])
+            await session.execute(stmt_user)
+        await session.commit()
+        print('БД, адд юзер')
+        return True
     except Exception as e:
         print(f'user id {user_id} не добавлен, ошибка:{e}')
+        return False
 
 
 async def delete_row(user_id: int):
@@ -62,11 +39,10 @@ async def delete_row(user_id: int):
 
 
 async def add_mute(mute_data):
-    try:
-
-        async with async_session() as session:
-            session: AsyncSession
+    async with async_session() as session:
+        try:
             async with session.begin():
+                # Добавление записи в таблицу Mute
                 mute = Mute(
                     user_id=mute_data['user_id'],
                     chat_id=mute_data['chat_id'],
@@ -75,21 +51,21 @@ async def add_mute(mute_data):
                     message_id=1
                 )
                 session.add(mute)
-            print('БД, адд мьют, добавление мьюта')
+                print('БД, адд мьют, добавление мьюта')
 
-        # Обновление статуса is_muted в отдельной сессии
-        async with async_session() as update_session:
-            query = update(User).where(User.user_id == mute.user_id).values(is_muted=True)
-            await update_session.execute(query)
-            await update_session.commit()
-            print('БД, адд мьют, смена флага')
+                # Обновление статуса is_muted в таблице User
+                query = update(User).where(User.user_id == mute_data['user_id']).values(is_muted=True)
+                await session.execute(query)
+                print('БД, адд мьют, смена флага')
 
-    except SQLAlchemyError as sql_err:
-        logging.error('Ошибка SQLAlchemy при добавлении mute: %s', sql_err)
-    except KeyError as key_err:
-        logging.error('Отсутствует ключ в данных для mute: %s', key_err)
-    except Exception as e:
-        logging.error('Ошибка при добавлении mute: %s', e)
+            await session.commit()  # Фиксация всех изменений в рамках транзакции
+            print('Транзакция успешно завершена')
+            return True
+
+        except Exception as e:
+            await session.rollback()  # Откат изменений при возникновении ошибки
+            logging.error('Ошибка при выполнении транзакции: %s', e)
+            return False
 
 
 async def add_lives(user_id: int, lives: int = 1):
@@ -239,52 +215,37 @@ async def delete_user(user_id: int):
             print(f"Пользователь с ID {user_id} не найден.")
 
 
-async def add_or_update_id(username: str, user_id: int):
+async def add_id(username: str, user_id: int, session: AsyncSession = session):
     print('БД, адд айди')
-    async with async_session() as session:
-        session: AsyncSession
-        try:
-            # Попытка вставки новой записи с обработкой конфликта
-            stmt = insert(Id).values(username=username, user_id=user_id)
-            stmt = stmt.on_conflict_do_update(
+    try:
+        async with session.begin():
+            stmt_id = insert(Id).values(user_id=user_id, username=username)
+            stmt_id = stmt_id.on_conflict_do_update(
                 index_elements=['user_id'],
                 set_=dict(created_at=func.NOW())
             )
+            await session.execute(stmt_id)
 
-            await session.execute(stmt)
-            await session.commit()
-            print('ID успешно добавлен в базу или обновлен')
+        await session.commit()
+        print('ID успешно добавлен в базу или обновлен')
+        return True
 
-        except Exception as e:
-            print(f"Произошла ошибка при добавлении айди: {str(e)}")
-
-
-async def check_known_id(user_id: int):
-    async with async_session() as session:
-        try:
-            result: Result = await session.execute(
-                select(Id.username).where(user_id == Id.user_id)
-            )
-            username = result.all()
-            print("БД, чек айди", username)
-            return username[0][0]
-
-        except Exception as e:
-            print(f"Произошла ошибка при получении идентификатора: {str(e)}")
+    except Exception as e:
+        print(f"Произошла ошибка при добавлении айди: {str(e)}")
+        return False
 
 
-async def get_id(username: str):
-    async with async_session() as session:
-        try:
-            result: Result = await session.execute(
-                select(Id.user_id).where(username == Id.username)
-            )
-            user_id = result.all()
-            print('БД, Гет айди, юзер айди:', user_id)
-            return user_id[0][0]
+async def get_id(username: str, session: AsyncSession = session):
+    try:
+        result: Result = await session.execute(
+            select(Id.user_id).where(username == Id.username)
+        )
+        user_id = result.scalar()
+        print('БД, Гет айди, юзер айди:', user_id)
+        return user_id
 
-        except Exception as e:
-            print('Ошибка: ', str(e))
+    except Exception as e:
+        print('Ошибка: ', str(e))
 
 
 async def delete_old_data(days: int = 5, user_id: int = None):

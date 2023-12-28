@@ -8,14 +8,13 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 
 # settings import
-from core.config import bot, dp, Config
+from core.config_vars import ConfigVars
 # full database import
 from core.database_functions.db_functions import async_main
 from core.filters.admin_filter import AdminFilter
 from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
 # GROUP FUNCTION IMPORTS
 from core.handlers.group_functions.add_unblocks import add_unblocks
-from core.handlers.group_functions.id_recognizer import know_id
 from core.handlers.group_functions.join_cleaner import join_cleaner
 from core.handlers.group_functions.mute_main import mute
 # PRIVATECHAT FUNCTION IMPORTS
@@ -28,9 +27,12 @@ from core.handlers.privatechat_functions.show_user import show_user, show_user_d
 from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.test_db_handler import test_db_handler
 from core.handlers.privatechat_functions.unmute import unmute
+from core.middlewares.add_user_mw import AddUserMiddleware
+from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
+from core.config import bot, dp, async_session
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -42,20 +44,23 @@ async def on_startup(bot: Bot):
     await setup_schedule()
     admins = await get_admins_ids()
     dp['admins'] = admins
-    await bot.set_webhook(url=Config.WEBHOOK_URL, drop_pending_updates=True, secret_token=Config.WEBHOOK_SECRET)
+    await bot.set_webhook(url=ConfigVars.WEBHOOK_URL,
+                          drop_pending_updates=True,
+                          secret_token=ConfigVars.WEBHOOK_SECRET)
 
 
 # HANDLERS
 def setup_handlers(router: Router):
     router.callback_query.register(show_user_react, F.data.startswith('show_user'))
 
+    router.message.middleware.register(AddUserMiddleware())  # перехватываем все сообщения, вносим в базу
     # debug
     router.message.register(eraser, Command(commands='eraser'))
 
     # GROUP CHAT FUNCTION REGISTERS
     router.message.register(mute, Command(commands='mute'), AdminFilter())
     router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
-    router.message.register(join_cleaner, F.content_type.in_(Config.MESSAGES_FOR_DELETE))
+    router.message.register(join_cleaner, F.content_type.in_(ConfigVars.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS
     router.message.register(test_db_handler, F.chat.type == 'private', AdminFilter(), Command('test_db'))
@@ -67,12 +72,12 @@ def setup_handlers(router: Router):
     router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
     router.message.register(get_chat_id, Command(commands='get_chat_id'), F.chat.type == 'private')
     router.message.register(show_user, Command(commands='show_user'), F.chat.type == 'private')
-    router.message.register(know_id)  # перехватываем все сообщения, вносим в базу
     return router
 
 
 def start():
     router = setup_handlers(router=Router())
+    dp.update.middleware.register(ConfigMiddleware(async_session))
     dp.include_router(router)
     dp.startup.register(on_startup)
 
@@ -80,11 +85,11 @@ def start():
     webhook_requests_handler = SimpleRequestHandler(
         dispatcher=dp,
         bot=bot,
-        secret_token=Config.WEBHOOK_SECRET,
+        secret_token=ConfigVars.WEBHOOK_SECRET,
     )
-    webhook_requests_handler.register(app, path=Config.WEBHOOK_PATH)
+    webhook_requests_handler.register(app, path=ConfigVars.WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
-    web.run_app(app, host=Config.WEBAPP_HOST, port=Config.WEBAPP_PORT)
+    web.run_app(app, host=ConfigVars.WEBAPP_HOST, port=ConfigVars.WEBAPP_PORT)
 
 
 if __name__ == '__main__':

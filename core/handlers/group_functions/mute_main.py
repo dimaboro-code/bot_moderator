@@ -1,6 +1,7 @@
 from aiogram import types, Bot
 
 from core.config import bot as my_bot
+from core.config_vars import ConfigVars
 from core.database_functions.db_functions import *
 from core.handlers.group_functions.mute_checks import checks
 from core.utils.delete_message import delete_message
@@ -41,11 +42,11 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         await send_report_to_group(user_id, username, moderator_message.chat.id,
                                    moderator_message.chat.username, problem, bot)
 
-    chats = Config.CHATS
+    chats = ConfigVars.CHATS
     for chat_id in chats:
         chat: types.Chat = await bot.get_chat(chat_id)
         try:
-            await restrict(user_id, chat_id, Config.MUTE_SETTINGS)
+            await restrict(user_id, chat_id, ConfigVars.MUTE_SETTINGS)
             print(chat.username, ': успешно')
 
         except Exception as e:
@@ -62,9 +63,6 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         await delete_message(ans, 1)
         await delete_message(moderator_message)
         return
-
-    if not await in_database(user_id):
-        await add_user(user_id)
 
     if moderator_message.reply_to_message:
         reason_message = ' '.join(moderator_message.text.strip().split()[1:])
