@@ -1,25 +1,16 @@
 from aiogram import types, Bot
 
-from core.config import bot as my_bot
-from core.database_functions.db_functions import *
-from core.handlers.group_functions.mute_checks import checks
+from core.config_vars import ConfigVars
+from core.models.data_models import UserData
 from core.utils.delete_message import delete_message
 from core.utils.restrict import restrict
 from core.utils.send_report import send_report_to_channel, send_report_to_group
+from core.database_functions.db_functions import get_id, add_mute
+from core.utils.is_username import is_username
 
 
-async def mute(moderator_message: types.Message, bot: Bot = my_bot):
-    """
-    Функция для выполнения команды /mute и мьюта пользователя.
-
-    Args:
-        bot:
-        moderator_message: Объект types.Message с сообщением модератора.
-
-    """
-
-    permission = await checks(moderator_message)
-
+async def mute_handler(moderator_message: types.Message, bot: Bot):
+    permission = await checks(moderator_message, bot)
     if permission[0] is False:
         answer_message = await moderator_message.reply(permission[1])
         await delete_message(answer_message, 2)
@@ -30,69 +21,19 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
         user_id = permission[1]
 
     else:
-        print('Вообще в душе не ебу, что может произойти, чтобы выполнилась эта ветка')
+        print('Ошибка проверки мьюта')
         return
 
-    try:  # TODO переписать чтобы только для мьюта по юзернейму
-        bad_user: types.ChatMember = await bot.get_chat_member(moderator_message.chat.id, user_id)
-        username = bad_user.user.username
-    except Exception as problem:
-        username = 'mistake_in_code'
-        await send_report_to_group(user_id, username, moderator_message.chat.id,
-                                   moderator_message.chat.username, problem, bot)
+    data = UserData()
+    data.parse_message(moderator_message, user_id)
+    print(data.as_dict())
 
-    chats = Config.CHATS
-    for chat_id in chats:
-        chat: types.Chat = await bot.get_chat(chat_id)
-        try:
-            await restrict(user_id, chat_id, Config.MUTE_SETTINGS)
-            print(chat.username, ': успешно')
-
-        except Exception as e:
-            print(chat.username, ': ошибка', e)
-
-            problem = f'Не прошел мьют, ошибка: {e}'
-            await send_report_to_group(user_id, username, chat.id, chat.username, problem)
-
-            continue
-
-    member_actual_state = await bot.get_chat_member(chat_id=moderator_message.chat.id, user_id=user_id)
-    if member_actual_state.status != 'restricted' or member_actual_state.can_send_messages:
-        ans = await moderator_message.answer('Мьют не прошел, отчет об ошибке отправлен разработчику')
-        await delete_message(ans, 1)
-        await delete_message(moderator_message)
-        return
-
-    if not await in_database(user_id):
-        await add_user(user_id)
-
-    if moderator_message.reply_to_message:
-        reason_message = ' '.join(moderator_message.text.strip().split()[1:])
-    else:
-        reason_message = ' '.join(moderator_message.text.strip().split()[2:])
-
-    print('Причина мьюта:', reason_message)
-
-    mute_data = {
-        'chat_id': moderator_message.chat.id,
-        'user_id': user_id,
-        'message_id': 00000,  # данное значение неактуально TODO выпилить нахуй
-        'moderator_message': reason_message,
-        'admin_username': moderator_message.from_user.username
-    }
-
-    await add_mute(mute_data)
-    admin = moderator_message.from_user.username
-    chat_username: str = moderator_message.chat.username
-
-    try:
-        await send_report_to_channel(user_id, username, admin, chat_username, reason_message)
-    except Exception as problem:
-        await send_report_to_group(user_id, username, moderator_message.chat.id,
-                                   chat_username, problem)
-
+    success = await mute(data=data, bot=bot)
+    if not success:
+        msg = await moderator_message.answer('мьют не прошел, отчет направлен разработчику')
+        await delete_message(msg, 1)
     success_message = await moderator_message.answer(
-        f'Пользователь {username} попал в мьют.'
+        f'Пользователь {data.username} попал в мьют.'
     )
 
     try:
@@ -106,3 +47,86 @@ async def mute(moderator_message: types.Message, bot: Bot = my_bot):
 
     await delete_message(moderator_message)
     await delete_message(success_message, 1)
+
+
+async def mute(data: UserData, bot: Bot, config_vars: ConfigVars = ConfigVars):
+    chats = config_vars.CHATS
+    for chat_id in chats:
+        try:
+            await bot.restrict_chat_member(
+                chat_id=chat_id,
+                user_id=data.user_id,
+                permissions=config_vars.MUTE_SETTINGS,
+                # mute time, if < 30 = forever
+                until_date=10
+            )
+        except Exception as e:
+            print(chat_id, ': ошибка:', e)
+
+            problem = f'Не прошел мьют, ошибка: {e}'
+            await send_report_to_group(problem=problem, **data.as_dict())
+            continue
+
+    # проверка мьюта в текущем чате
+    member_actual_state = await bot.get_chat_member(chat_id=data.chat_id, user_id=data.user_id)
+    if member_actual_state.status != 'restricted' or member_actual_state.can_send_messages:
+        ans = await bot.send_message(chat_id=data.chat_id,
+                                     text='Мьют не прошел, отчет об ошибке отправлен разработчику')
+        await delete_message(ans, 1)
+        return False
+
+    print('Причина мьюта:', data.reason_message)
+
+    await add_mute(data.for_mute)
+
+    try:
+        await send_report_to_channel(**data.as_dict())
+    except Exception as problem:
+        await send_report_to_group(problem=problem, **data.as_dict())
+    return True
+
+
+async def checks(moderator_message: types.Message, bot: Bot):
+    # Есть два вида работы функции мьют
+    # По юзернейму и по реплею
+    # Если есть и то, и то, выбираем реплей.
+
+    username = is_username(moderator_message.text)
+
+    if username is not None:
+        print(f'username{username}')
+
+        user_id = await get_id(username)
+        if user_id is None:
+            return False, 'К сожалению, пользователя нет в базе.'
+
+        print(f'user_id: {user_id}')
+
+        if len(moderator_message.text.strip().split()) < 3:
+            return False, 'Команда не содержит сообщение о причине мьюта'
+
+        member = await bot.get_chat_member(moderator_message.chat.id, user_id)
+        print('Статус:', member.status, '\n')
+        if member.status == 'restricted' and not member.can_send_messages:
+            return False, 'Пользователь уже в мьюте'
+
+        return True, user_id
+
+    else:
+        print('No username')
+
+        if not moderator_message.reply_to_message:
+            print('Command has no user to mute')
+            return False, 'Команда должна быть ответом на сообщение или включать в себя юзернейм'
+
+        user_id = moderator_message.reply_to_message.from_user.id
+
+        if len(moderator_message.text.strip().split()) < 2:
+            return False, 'Команда не содержит сообщение о причине мьюта'
+
+        member = await bot.get_chat_member(moderator_message.chat.id, user_id)
+        print('Статус:', member.status)
+        if member.status == 'restricted' and not member.can_send_messages:
+            return False, 'Пользователь уже в мьюте'
+
+        return True, user_id

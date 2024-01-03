@@ -13,13 +13,13 @@ react_funcs = {
 }
 
 
-async def show_user_react(call: CallbackQuery):
+async def show_user_react(call: CallbackQuery, session):
     func_query = call.data.split('_')
     real_query = '_'.join(func_query[2:])
     print(real_query)
-    username = await is_username(call.message.text)
+    username = is_username(call.message.text)
     print(username)
-    user_id = await get_id(username)
+    user_id = await get_id(username, session)
     print(user_id)
 
     await react_funcs[real_query](user_id)
@@ -31,7 +31,7 @@ async def show_user_react(call: CallbackQuery):
 
     updated_text = (
         f'Пользователь: @{username}\n'
-        f'Статус: {("без ограничений", "в мьюте")[user_status["is_muted"]]}\n'  # 
+        f'Статус: {("без ограничений", "в мьюте")[user_status["is_muted"]]}\n'  #
         f'Осталось разблоков: {user_status["user_blocks"]}\n\n'
         f'Последний мьют\n'
         f'Причина: {user_last_mute["moderator_message"]}\n'

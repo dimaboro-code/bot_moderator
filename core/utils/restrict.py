@@ -12,4 +12,3 @@ async def restrict(user_id, chat_id, permissions):
         # mute time, if < 30 = forever
         until_date=10
     )
-    

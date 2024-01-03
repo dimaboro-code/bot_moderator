@@ -11,7 +11,6 @@ remove_unblock = InlineKeyboardButton(
 remove_all_unblocks = InlineKeyboardButton(
     text='Удалить все разблоки',
     callback_data='show_user_remove_all_unblocks',
-
 )
 
 
