@@ -18,12 +18,12 @@ import os
 
 from aiogram import types
 from aiogram.enums import ContentType
-from dotenv import load_dotenv  # только для тестов
+# from dotenv import load_dotenv  # только для тестов
 
 # Только для тестов
-env = load_dotenv()
-if not env:
-    print('.env файл не найден')
+# env = load_dotenv()
+# if not env:
+#     print('.env файл не найден')
 
 
 class ConfigVars:
