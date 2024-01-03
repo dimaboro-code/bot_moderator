@@ -3,7 +3,6 @@ from aiogram import types, Bot
 from core.config_vars import ConfigVars
 from core.models.data_models import UserData
 from core.utils.delete_message import delete_message
-from core.utils.restrict import restrict
 from core.utils.send_report import send_report_to_channel, send_report_to_group
 from core.database_functions.db_functions import get_id, add_mute
 from core.utils.is_username import is_username
@@ -75,9 +74,11 @@ async def mute(data: UserData, bot: Bot, config_vars: ConfigVars = ConfigVars):
         await delete_message(ans, 1)
         return False
 
-    print('Причина мьюта:', data.reason_message)
-
-    await add_mute(data.for_mute)
+    muted = await add_mute(data.for_mute)
+    if not muted:
+        problem = 'Мьют не добавлен в базу.'
+        await send_report_to_group(problem=problem, **data.as_dict())
+        return False
 
     try:
         await send_report_to_channel(**data.as_dict())

@@ -17,4 +17,6 @@ class ConfigMiddleware(BaseMiddleware):
         async with self.session() as session:
             data['session'] = session
             await handler(event, data)
+            print('flag')
+            await session.close()
         return

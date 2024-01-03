@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+import typing
 
 from sqlalchemy import Result, func, and_
 from sqlalchemy import select, delete, update
@@ -155,7 +156,7 @@ async def get_user(user_id: int):
         return user_data
 
 
-async def get_last_mute(user_id: int):
+async def get_last_mute(user_id: int) -> typing.Dict[typing.AnyStr, typing.Any]:
     async with async_session() as session:
         session: AsyncSession
         subquery = select(func.max(Mute.id)).where(user_id == Mute.user_id).scalar_subquery()
@@ -243,6 +244,19 @@ async def get_id(username: str, session: AsyncSession = session):
         user_id = result.scalar()
         print('БД, Гет айди, юзер айди:', user_id)
         return user_id
+
+    except Exception as e:
+        print('Ошибка: ', str(e))
+
+
+async def get_username(user_id: int, session: AsyncSession = session):
+    try:
+        result: Result = await session.execute(
+            select(Id.username).where(user_id == Id.user_id)
+        )
+        username = result.scalar()
+        print('БД, Гет юзернейм:', username)
+        return username
 
     except Exception as e:
         print('Ошибка: ', str(e))
