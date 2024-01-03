@@ -1,6 +1,7 @@
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
+from core.database_functions.db_functions import session as ses
 
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше
@@ -17,6 +18,5 @@ class ConfigMiddleware(BaseMiddleware):
         async with self.session() as session:
             data['session'] = session
             await handler(event, data)
-            print('flag')
-            await session.close()
+        await ses.close()
         return
