@@ -43,10 +43,10 @@ async def send_report_to_channel(
 
 async def send_report_to_group(
     user_id: int,
-    user_username: str | None,
     chat_id: int | str,
-    chat_username: str | None,
     problem: str | Exception,
+    user_username: str | None = None,
+    chat_username: str | None = None,
     bot: Bot = bt,
     log_chat: str = ConfigVars.LOG_CHAT,
     **kwargs

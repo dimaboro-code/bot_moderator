@@ -4,7 +4,7 @@ from core.handlers.privatechat_functions.bot_help import bot_help
 from core.handlers.privatechat_functions.status import status
 
 
-async def send_welcome(message: types.Message):
+async def send_welcome(message: types.Message, session):
     hello_message = (
         f'Привет!\n\n'
         f'Раз ты тут, то, наверное, тебя лишили голоса (замьютили) в чатах проекта @slashdesigner. '
@@ -20,5 +20,5 @@ async def send_welcome(message: types.Message):
     )
     await message.answer(hello_message, parse_mode='HTML', disable_web_page_preview=True)
     await bot_help(message)
-    status_message = await status(message.from_user.id)
+    status_message = await status(message.from_user.id, session)
     await message.answer(status_message)

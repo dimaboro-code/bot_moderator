@@ -84,7 +84,7 @@ class UserData(BaseData):
             self.reason_message = ' '.join(message.text.split()[1:])
             self.is_reply = True
 
-        elif message:
+        elif not message.reply_to_message:
             self.user_id = user_id
             self.username = is_username(message.text)
             self.admin_id = message.from_user.id

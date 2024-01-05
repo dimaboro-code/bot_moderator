@@ -1,6 +1,8 @@
 # all actions logger, currently doesn't exist
 import logging
+import types
 
+import aiogram.types
 # run webhook
 from aiogram import F, Router, Bot
 from aiogram.filters import Command, CommandStart
@@ -36,6 +38,11 @@ from core.config import bot, dp, async_session
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+
+async def echo(message: aiogram.types.Message):
+    answer = '\n'.join(str(message).split())
+    await message.answer(answer)
 
 
 # webhook control
@@ -75,6 +82,7 @@ def setup_handlers(router: Router):
     router.message.register(unmute_handler, Command(commands='unmute'), F.chat.type == 'private')
     router.message.register(get_chat_id_handler, Command(commands='get_chat_id'), F.chat.type == 'private')
     router.message.register(show_user_handler, Command(commands='show_user'), F.chat.type == 'private', AdminFilter())
+    # router.message.register(echo)
     return router
 
 

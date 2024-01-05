@@ -10,8 +10,8 @@ from core.utils.is_username import is_username
 from core.utils.restrict import restrict
 
 
-async def mute_handler(moderator_message: types.Message, bot: Bot):
-    permission = await checks(moderator_message, bot)
+async def mute_handler(moderator_message: types.Message, bot: Bot, session):
+    permission = await checks(moderator_message, bot, session)
     if permission[0] is False:
         answer_message = await moderator_message.reply(permission[1])
         await delete_message(answer_message, 2)
@@ -28,7 +28,7 @@ async def mute_handler(moderator_message: types.Message, bot: Bot):
     data = UserData()
     data.parse_message(moderator_message, user_id)
 
-    success = await mute(data=data, bot=bot)
+    success = await mute(data=data, bot=bot, session=session)
     if not success:
         msg = await moderator_message.answer('Мьют не прошел, отчет об ошибке отправлен разработчику')
         await delete_message(msg, 1)
@@ -48,13 +48,14 @@ async def mute_handler(moderator_message: types.Message, bot: Bot):
     await delete_message(success_message, 1)
 
 
-async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
+async def mute(data: UserData, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
                permissions: types.ChatPermissions = ConfigVars.MUTE_SETTINGS):
     """
     Мьют с занесением данных в бд и отчетом.
     Args:
         data: данные о мьюте в формате UserData
         bot: бот
+        session:
         chats: Список чатов, в которых мьютим
         permissions: Как именно мьютим, разрешения
 
@@ -69,7 +70,7 @@ async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
         return False
 
     # Если мьют прошел - добавляем в базу. В будущем по этому значению можно мьютить старых замьюченых в новых чатах
-    muted = await add_mute(data.for_mute)
+    muted = await add_mute(data.for_mute, session=session)
     if not muted:
         problem = 'Мьют не добавлен в базу данных.'
         await send_report_to_group(problem=problem, **data.as_dict())
@@ -87,7 +88,7 @@ async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
     return True  # TODO переделать в модель для данных
 
 
-async def checks(moderator_message: types.Message, bot: Bot):
+async def checks(moderator_message: types.Message, bot: Bot, session):
     # Есть два вида работы функции мьют
     # По юзернейму и по реплею
     # Если есть и то, и то, выбираем реплей.
@@ -97,11 +98,9 @@ async def checks(moderator_message: types.Message, bot: Bot):
     if username is not None:
         print(f'username{username}')
 
-        user_id = await get_id(username)
+        user_id = await get_id(username, session)
         if user_id is None:
             return False, 'К сожалению, пользователя нет в базе.'
-
-        print(f'user_id: {user_id}')
 
         if len(moderator_message.text.strip().split()) < 3:
             return False, 'Команда не содержит сообщение о причине мьюта'
@@ -112,18 +111,16 @@ async def checks(moderator_message: types.Message, bot: Bot):
 
         return True, user_id
 
-    else:
+    if not moderator_message.reply_to_message:
+        return False, 'Команда должна быть ответом на сообщение или включать в себя юзернейм'
 
-        if not moderator_message.reply_to_message:
-            return False, 'Команда должна быть ответом на сообщение или включать в себя юзернейм'
+    user_id = moderator_message.reply_to_message.from_user.id
 
-        user_id = moderator_message.reply_to_message.from_user.id
+    if len(moderator_message.text.strip().split()) < 2:
+        return False, 'Команда не содержит сообщение о причине мьюта'
 
-        if len(moderator_message.text.strip().split()) < 2:
-            return False, 'Команда не содержит сообщение о причине мьюта'
+    member = await bot.get_chat_member(moderator_message.chat.id, user_id)
+    if member.status == 'restricted' and not member.can_send_messages:
+        return False, 'Пользователь уже в мьюте'
 
-        member = await bot.get_chat_member(moderator_message.chat.id, user_id)
-        if member.status == 'restricted' and not member.can_send_messages:
-            return False, 'Пользователь уже в мьюте'
-
-        return True, user_id
+    return True, user_id

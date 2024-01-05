@@ -9,9 +9,9 @@ from core.utils.restrict import restrict
 from core.utils.send_report import send_report_to_group
 
 
-async def unmute_handler(message: types.Message, bot: Bot):
+async def unmute_handler(message: types.Message, bot: Bot, session):
     user_id = message.from_user.id
-    success, answer = await unmute(user_id=user_id, bot=bot)
+    success, answer = await unmute(user_id=user_id, bot=bot, session=session)
     if success:
         await message.answer('Успешно')
         await message.answer(answer)
@@ -19,10 +19,10 @@ async def unmute_handler(message: types.Message, bot: Bot):
         await message.answer(answer)
 
 
-async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
+async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
                  permissions: types.ChatPermissions = ConfigVars.UNMUTE_SETTINGS):
-    user_data = await get_user(user_id)
-    user_last_mute = await get_last_mute(user_id)
+    user_data = await get_user(user_id, session)
+    user_last_mute = await get_last_mute(user_id, session)
     if user_last_mute is None:
         answer = ('Вас нет в моей базе. Если у вас сохраняется блокировка,'
                   ' обратитесь к модераторам, например, @deanrie.')
@@ -43,7 +43,7 @@ async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
             answer = 'Вы админ. Вас нельзя заблокировать.'
             return False, answer
         if isinstance(member, types.ChatMemberRestricted) and member.can_send_messages is True:
-            await add_lives(user_id=user_id)
+            await add_lives(user_id=user_id, session=session)
     except TelegramBadRequest as e:
         problem = f'Анмьют, нет доступа к чату последнего мьюта, ошибка: {e}'
         await send_report_to_group(user_id, 'None', user_id, 'None', problem)
@@ -56,10 +56,10 @@ async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
         answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
         return False, answer
 
-    unmuted = await db_unmute(user_id)
+    unmuted = await db_unmute(user_id, session)
     if unmuted is False:
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
 
-    answer = await status(user_id)
+    answer = await status(user_id, session)
     return True, answer
