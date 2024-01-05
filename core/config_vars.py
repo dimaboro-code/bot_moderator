@@ -18,12 +18,8 @@ import os
 
 from aiogram import types
 from aiogram.enums import ContentType
-# from dotenv import load_dotenv  # только для тестов
 
 # Только для тестов
-# env = load_dotenv()
-# if not env:
-#     print('.env файл не найден')
 
 
 class ConfigVars:
@@ -50,6 +46,11 @@ class ConfigVars:
     WEBAPP_PORT = int(os.getenv('PORT', default=8000))
 
     # # настройки для тестов
+    # from dotenv import load_dotenv
+    # env = load_dotenv()
+    # if not env:
+    #     print('.env файл не найден')
+    #
     # CHATS = (
     #     -1001868029361,  # тест бота
     # )
@@ -58,7 +59,7 @@ class ConfigVars:
     # BOT_USERNAME: str = 'testing_projects_42_bot'
     # LOG_CHAT: int = -1001868029361  # for mistakes
     #
-    # WEBHOOK_HOST = 'https://f6ca-5-76-255-147.ngrok-free.app'
+    # WEBHOOK_HOST = 'https://cb25-5-76-255-147.ngrok-free.app'
     # WEBAPP_HOST = '127.0.0.1'
     # WEBAPP_PORT = 8080
 
