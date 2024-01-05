@@ -23,7 +23,7 @@ from core.handlers.privatechat_functions.eraser import eraser
 from core.handlers.privatechat_functions.get_chat_id import get_chat_id
 from core.handlers.privatechat_functions.send_report import send_report_handler
 from core.handlers.privatechat_functions.send_welcome import send_welcome
-from core.handlers.privatechat_functions.show_user import show_user, show_user_deeplink
+from core.handlers.privatechat_functions.show_user import show_user_handler
 from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.test_db_handler import test_db_handler
 from core.handlers.privatechat_functions.unmute import unmute
@@ -65,7 +65,7 @@ def setup_handlers(router: Router):
     # PRIVATE HANDLERS
     router.message.register(test_db_handler, F.chat.type == 'private', AdminFilter(),
                             Command('test_db'))
-    router.message.register(show_user_deeplink, F.chat.type == 'private',
+    router.message.register(show_user_handler, F.chat.type == 'private', AdminFilter(),
                             CommandStart(deep_link=True))
     router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
     router.message.register(send_report_handler, AdminFilter(),
@@ -74,7 +74,7 @@ def setup_handlers(router: Router):
     router.message.register(bot_help, Command(commands='help'), F.chat.type == 'private')
     router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
     router.message.register(get_chat_id, Command(commands='get_chat_id'), F.chat.type == 'private')
-    router.message.register(show_user, Command(commands='show_user'), F.chat.type == 'private')
+    router.message.register(show_user_handler, Command(commands='show_user'), F.chat.type == 'private', AdminFilter())
     return router
 
 
