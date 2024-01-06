@@ -20,11 +20,13 @@ async def is_chat_admin(user_id: int):
 
 async def get_admins_ids(bot: Bot = my_bot, chats: List[int] = ConfigVars.CHATS) -> List[int]:
     admins_set: Set[int] = set()
-    for chat_id in chats:
+    for _ in range(5):
         try:
-            moderators: List[types.ChatMemberAdministrator] = await bot.get_chat_administrators(chat_id=chat_id)
-            for moderator in moderators:
-                admins_set.add(moderator.user.id)
+            for chat_id in chats:
+                moderators: List[types.ChatMemberAdministrator] = await bot.get_chat_administrators(chat_id=chat_id)
+                for moderator in moderators:
+                    admins_set.add(moderator.user.id)
+            break
         except Exception as e:
             # Обработка ошибок при вызове функции bot.get_chat_administrators()
             print(f"Ошибка при получении списка администраторов: {e}")

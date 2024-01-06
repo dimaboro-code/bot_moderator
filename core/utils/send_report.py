@@ -44,13 +44,27 @@ async def send_report_to_channel(
 async def send_report_to_group(
     user_id: int,
     user_username: str | None,
-    chat_id: int | str,
+    chat_id: int,
     chat_username: str | None,
     problem: str | Exception,
     bot: Bot = bt,
     log_chat: str = ConfigVars.LOG_CHAT,
     **kwargs
 ):
+    """
+    отчет об ошибках
+    Args:
+        user_id:
+        user_username:
+        chat_id:
+        chat_username:
+        problem:
+        bot:
+        log_chat:
+
+    Returns:
+
+    """
     if kwargs:
         pass
     if type(problem) is Exception:
@@ -60,6 +74,6 @@ async def send_report_to_group(
                                 f'Юзер юзернейм: {user_username}\n'
                                 f'Чат: {chat_id}\n'
                                 f'Чат юзернейм: @{chat_username}\n'
-                                f'{problem}',
+                                f'Не прошел отчет о мьюте, ошибка: \n{problem}',
                            parse_mode='HTML'
                            )

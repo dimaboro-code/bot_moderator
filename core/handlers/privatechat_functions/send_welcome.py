@@ -20,5 +20,4 @@ async def send_welcome(message: types.Message):
     )
     await message.answer(hello_message, parse_mode='HTML', disable_web_page_preview=True)
     await bot_help(message)
-    status_message = await status(message.from_user.id)
-    await message.answer(status_message)
+    await status(message)
