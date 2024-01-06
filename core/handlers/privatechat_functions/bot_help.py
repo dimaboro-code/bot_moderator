@@ -8,7 +8,6 @@ async def bot_help(message: types.Message):
     """
     text = 'Доступные команды\n\n'
     text += '/start - запустить бота\n'
-    text += '/status - текущее состояние\n'
     text += '/unmute - разблокироваться\n'
     text += '/help - список доступных команд\n'
     await message.answer(text, reply_markup=types.ReplyKeyboardRemove())

@@ -186,16 +186,15 @@ async def db_unmute(user_id: int):
         stmt = update(User).where(user_id == User.user_id
                                   ).values(is_muted=False, user_blocks=User.user_blocks - 1
                                            ).returning(User.user_blocks)
-        try:
-            result = await session.execute(stmt)
-            updated_user_blocks = result.scalar()
-            if updated_user_blocks is None:
-                print(f"Пользователь с ID {user_id} не найден.")
-            await session.commit()
-            return True
-        except Exception as e:
-            print('БД, не прошел разблок, ошибка', e)
-            return False
+        result = await session.execute(stmt)
+        updated_user_blocks = result.scalar()
+        print('БД, анмьют')
+
+        if updated_user_blocks is not None:
+            print(f"Новое значение user_blocks: {updated_user_blocks}")
+        else:
+            print(f"Пользователь с ID {user_id} не найден.")
+        await session.commit()
 
 
 async def delete_user(user_id: int):

@@ -20,13 +20,13 @@ from core.handlers.group_functions.mute_main import mute_handler
 # PRIVATECHAT FUNCTION IMPORTS
 from core.handlers.privatechat_functions.bot_help import bot_help
 from core.handlers.privatechat_functions.eraser import eraser
-from core.handlers.privatechat_functions.get_chat_id import get_chat_id_handler
+from core.handlers.privatechat_functions.get_chat_id import get_chat_id
 from core.handlers.privatechat_functions.send_report import send_report_handler
 from core.handlers.privatechat_functions.send_welcome import send_welcome
 from core.handlers.privatechat_functions.show_user import show_user_handler
-from core.handlers.privatechat_functions.status import status_handler
+from core.handlers.privatechat_functions.status import status
 from core.handlers.privatechat_functions.test_db_handler import test_db_handler
-from core.handlers.privatechat_functions.unmute import unmute_handler
+from core.handlers.privatechat_functions.unmute import unmute
 from core.middlewares.add_user_mw import AddUserMiddleware
 from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
@@ -55,7 +55,7 @@ def setup_handlers(router: Router):
 
     router.message.middleware.register(AddUserMiddleware())  # перехватываем все сообщения, вносим в базу
     # debug
-    router.message.register(eraser, Command(commands='eraser'), AdminFilter())
+    router.message.register(eraser, Command(commands='eraser'))
 
     # GROUP CHAT FUNCTION REGISTERS
     router.message.register(mute_handler, Command(commands='mute'), AdminFilter())
@@ -70,10 +70,10 @@ def setup_handlers(router: Router):
     router.message.register(send_welcome, CommandStart(), F.chat.type == 'private')
     router.message.register(send_report_handler, AdminFilter(),
                             Command(commands='send_report'), F.chat.type == 'private')
-    router.message.register(status_handler, Command(commands='status'), F.chat.type == 'private')
+    router.message.register(status, Command(commands='status'), F.chat.type == 'private')
     router.message.register(bot_help, Command(commands='help'), F.chat.type == 'private')
-    router.message.register(unmute_handler, Command(commands='unmute'), F.chat.type == 'private')
-    router.message.register(get_chat_id_handler, Command(commands='get_chat_id'), F.chat.type == 'private')
+    router.message.register(unmute, Command(commands='unmute'), F.chat.type == 'private')
+    router.message.register(get_chat_id, Command(commands='get_chat_id'), F.chat.type == 'private')
     router.message.register(show_user_handler, Command(commands='show_user'), F.chat.type == 'private', AdminFilter())
     return router
 
