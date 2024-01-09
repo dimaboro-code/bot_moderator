@@ -1,6 +1,7 @@
 import aiocron
 
 from core.database_functions.db_functions import delete_old_data
+from core.config import async_session
 
 
 async def setup_schedule():
@@ -9,7 +10,7 @@ async def setup_schedule():
         cron_expression = '0 * * * *'
 
         # Создание расписания и запуск
-        cron = aiocron.crontab(cron_expression, func=delete_old_data)
+        cron = aiocron.crontab(cron_expression, func=delete_old_data, args=[async_session])
         cron.start()
 
         print("Расписание успешно установлено")

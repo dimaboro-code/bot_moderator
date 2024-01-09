@@ -1,8 +1,8 @@
 from aiogram.types import CallbackQuery
 
 from core.config import bot
-from core.database_functions.db_functions import (add_lives, delete_lives, delete_all_lives, get_id,
-                                                  get_last_mute, get_user)
+from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_id
+from core.handlers.privatechat_functions.status import status
 from core.keyboards.show_user_keyboard import show_user_keyboard
 from core.utils.is_username import is_username
 
@@ -14,34 +14,20 @@ react_funcs = {
 
 
 async def show_user_react(call: CallbackQuery, session):
-    chat = ''
     func_query = call.data.split('_')
     real_query = '_'.join(func_query[2:])
     username = is_username(call.message.text)
-    user_id = await get_id(username, session)
+    user_id = None
+    word_list = call.message.text.split()  # вынести в отдельную функцию, а лучше переписать коллбэк
+    for index, word in enumerate(word_list):
+        if word == 'id:':
+            user_id = int(word_list[index + 1][:-1])
+            break
+    if user_id is None:
+        user_id = await get_id(username, session)
 
-    await react_funcs[real_query](user_id)
-    user_status = await get_user(user_id)
-
-    user_last_mute = await get_last_mute(user_id)
-    if user_last_mute is not None:
-        chat = await bot.get_chat(user_last_mute["chat_id"])
-        updated_text = (
-            f'Пользователь: @{username}\n'
-            f'Статус: {("без ограничений", "в мьюте")[user_status["is_muted"]]}\n'  #
-            f'Осталось разблоков: {user_status["user_blocks"]}\n\n'
-            f'Последний мьют\n'
-            f'Причина: {user_last_mute["moderator_message"]}\n'
-            f'Чат: @{chat.username}\n'
-            f'Админ: @{user_last_mute["admin_username"]}\n'
-            f'Дата мьюта: {user_last_mute["date_of_mute"]}'
-        )
-
-    else:
-        updated_text = (f'Пользователь: @{username}\n'
-                        'Статус: без ограничений\n'
-                        f'Осталось разблоков: {user_status["user_blocks"]}\n'
-                        'Пользователь ранее не блокировался')
+    await react_funcs[real_query](user_id, session=session)
+    updated_text = await status(user_id, session)
     await bot.edit_message_text(
         chat_id=call.message.chat.id, message_id=call.message.message_id,
         text=updated_text,
