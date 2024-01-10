@@ -72,18 +72,3 @@ class Id(Base):
 
     user: Mapped[User] = relationship("User", back_populates="ids", cascade='delete')
 
-    # async with async_session() as session:
-    #     async with session.begin():
-    #         session.add_all([
-    #             User(user_id=2026523)
-    #         ])
-    #         session.commit()
-    #         session.add_all([
-    #             Mute(user_id=2026523, message_id=2, chat_id=4, moderator_message='fff')
-    #         ])
-    #     stmt = select(User).options(selectinload(User.mutes))
-    #     result = await session.execute(stmt)
-    #     for i in result.scalars():
-    #         print('Юзер айди:', i.user_id)
-    #         for mute in i.mutes:
-    #             print('Сообщения:', mute.moderator_message)
