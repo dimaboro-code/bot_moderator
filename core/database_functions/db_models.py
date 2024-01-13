@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Integer, Boolean, Text, DateTime, Numeric
+from sqlalchemy import Integer, Boolean, Text, DateTime, Numeric
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -54,7 +54,6 @@ class Mute(Base):
     __tablename__ = 'mutes'
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete="CASCADE"))
-    message_id: Mapped[int] = mapped_column(Numeric, nullable=True)  # TODO выпилить нахуй
     chat_id: Mapped[int] = mapped_column(Numeric, nullable=False)
     moderator_message: Mapped[str] = mapped_column(Text)
     admin_username: Mapped[str] = mapped_column(Text, nullable=False)
@@ -71,4 +70,3 @@ class Id(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped[User] = relationship("User", back_populates="ids", cascade='delete')
-

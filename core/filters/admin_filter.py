@@ -2,7 +2,6 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
 
-
 class AdminFilter(BaseFilter):
     """
     Фильтр на админа.

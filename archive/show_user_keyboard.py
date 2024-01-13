@@ -1,16 +1,18 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from core.models.data_models import AdminFunctions
+
 
 add_unblock = InlineKeyboardButton(
     text='Добавить разблок',
-    callback_data='show_user_add_unblock'
+    callback_data=AdminFunctions(function='add_unblock').pack()
 )
 remove_unblock = InlineKeyboardButton(
     text='Удалить 1 разблок',
-    callback_data='show_user_remove_unblock'
+    callback_data=AdminFunctions(function='remove_unblock').pack()
 )
 remove_all_unblocks = InlineKeyboardButton(
     text='Удалить все разблоки',
-    callback_data='show_user_remove_all_unblocks',
+    callback_data=AdminFunctions(function='remove_all_unblocks').pack()
 )
 
 

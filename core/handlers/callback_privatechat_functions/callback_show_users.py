@@ -1,10 +1,10 @@
 from aiogram.types import CallbackQuery
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.config import bot
-from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_id
+from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives
 from core.handlers.privatechat_functions.status import status
-from core.keyboards.show_user_keyboard import show_user_keyboard
-from core.utils.is_username import is_username
+from core.models.data_models import AdminFunctions
 
 react_funcs = {
     'add_unblock': add_lives,
@@ -12,25 +12,35 @@ react_funcs = {
     'remove_all_unblocks': delete_all_lives
 }
 
+alias_funcs = {
+    'Добавить 1 разблок': 'add_unblock',
+    'Удалить 1 разблок': 'remove_unblock',
+    'Удалить все разблоки': 'remove_all_unblocks'
+}
 
-async def show_user_react(call: CallbackQuery, session):
-    func_query = call.data.split('_')
-    real_query = '_'.join(func_query[2:])
-    username = is_username(call.message.text)
-    user_id = None
-    word_list = call.message.text.split()  # вынести в отдельную функцию, а лучше переписать коллбэк
-    for index, word in enumerate(word_list):
-        if word == 'id:':
-            user_id = int(word_list[index + 1][:-1])
-            break
-    if user_id is None:
-        user_id = await get_id(username, session)
 
-    await react_funcs[real_query](user_id, session=session)
+async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, session):
+    user_id = callback_data.user_id
+    await react_funcs[callback_data.function](user_id, session=session)
     updated_text = await status(user_id, session)
+    builder: InlineKeyboardBuilder = await name_alias_keyboard(user_id, alias_funcs)
     await bot.edit_message_text(
         chat_id=call.message.chat.id, message_id=call.message.message_id,
         text=updated_text,
-        reply_markup=show_user_keyboard
+        reply_markup=builder.as_markup()
     )
     await call.answer(show_alert=False, text='Успешно')
+
+
+async def name_alias_keyboard(user_id: int, funcs: dict) -> InlineKeyboardBuilder:
+    builder = InlineKeyboardBuilder()
+    for button, func in funcs.items():
+        builder.button(
+            text=button,
+            callback_data=AdminFunctions(function=func, user_id=user_id)
+        )
+    builder.adjust(1, repeat=True)
+    return builder
+
+
+

@@ -36,7 +36,6 @@ async def add_mute(mute_data, session: AsyncSession):
                 chat_id=mute_data['chat_id'],
                 moderator_message=mute_data['moderator_message'],
                 admin_username=mute_data['admin_username'],
-                message_id=1,
                 date_of_mute=func.now()
             )
             session.add(mute)
@@ -159,7 +158,6 @@ async def get_last_mute(user_id: int, session: AsyncSession) -> typing.Dict[typi
         last_mute = {
             'id': mute.id,
             'user_id': int(mute.user_id),
-            'message_id': mute.message_id,
             'chat_id': int(mute.chat_id),
             'moderator_message': mute.moderator_message,
             'admin_username': mute.admin_username,

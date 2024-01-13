@@ -2,6 +2,8 @@
 Модели для данных
 """
 from aiogram import types
+from aiogram.filters.callback_data import CallbackData
+
 from core.utils.is_username import is_username
 
 
@@ -106,3 +108,8 @@ class UserData(BaseData):
             'admin_username': self.admin_username
         }
         return data
+
+
+class AdminFunctions(CallbackData, prefix='show_user'):
+    function: str
+    user_id: int
