@@ -3,6 +3,8 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message
 from aiogram.exceptions import TelegramBadRequest
 
+from core.utils.id_recognizer import add_user_to_db
+
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше
 class ConfigMiddleware(BaseMiddleware):
@@ -16,6 +18,8 @@ class ConfigMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
         async with self.session() as session:
+            if event.message:
+                await add_user_to_db(event.message, session)
             data['session'] = session
             for _ in range(3):
                 try:

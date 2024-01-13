@@ -1,8 +1,9 @@
-from aiogram import types, Bot
+from aiogram import types
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.database_functions.db_functions import get_id
-from core.keyboards.show_user_keyboard import show_user_keyboard
 from core.utils.is_username import is_username
+from ..callback_privatechat_functions.callback_show_users import name_alias_keyboard, alias_funcs
 from core.utils.send_report import send_report_to_group
 from core.handlers.privatechat_functions.status import status
 
@@ -26,7 +27,8 @@ async def show_user_handler(message: types.Message, session):
     answer = await status(user_id=user_id, session=session)
 
     try:
-        await message.answer(answer, reply_markup=show_user_keyboard)
+        builder: InlineKeyboardBuilder = await name_alias_keyboard(user_id, alias_funcs)
+        await message.answer(answer, reply_markup=builder.as_markup())
     except Exception as e:
         await send_report_to_group(user_id=user_id, chat_id='private', chat_username=chat_username,
                                    user_username=user_username, problem=f'Не сработал show_user, ошибка: {e}')

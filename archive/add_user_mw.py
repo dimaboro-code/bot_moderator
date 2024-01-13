@@ -1,7 +1,7 @@
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from core.utils.id_recognizer import know_id
+from core.utils.id_recognizer import add_user_to_db
 from core.utils.send_report import send_report_to_group
 
 
@@ -12,7 +12,7 @@ class AddUserMiddleware(BaseMiddleware):
         event: Message,
         data: Dict[str, Any]
     ) -> Any:
-        add = await know_id(event, session=data['session'])
+        add = await add_user_to_db(event, session=data['session'])
         if not add:
             user_id = event.from_user.id
             username = event.from_user.username

@@ -1,7 +1,6 @@
 # all actions logger, currently doesn't exist
 import logging
 
-import aiogram.types
 # run webhook
 from aiogram import F, Router, Bot
 from aiogram.filters import Command, CommandStart
@@ -28,19 +27,15 @@ from core.handlers.privatechat_functions.show_user import show_user_handler
 from core.handlers.privatechat_functions.status import status_handler
 from core.handlers.privatechat_functions.test_db_handler import test_db_handler
 from core.handlers.privatechat_functions.unmute import unmute_handler
-from core.middlewares.add_user_mw import AddUserMiddleware
 from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
 from core.utils.delete_old_ids import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
 from core.config import bot, dp, async_session
+from core.models.data_models import AdminFunctions
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-
-async def echo(message: aiogram.types.Message, bot: aiogram.Bot):
-    pass
 
 
 # webhook control
@@ -56,9 +51,7 @@ async def on_startup(bot: Bot):
 
 # HANDLERS
 def setup_handlers(router: Router):
-    router.callback_query.register(show_user_react, F.data.startswith('show_user'))
-
-    router.message.middleware.register(AddUserMiddleware())  # перехватываем все сообщения, вносим в базу
+    router.callback_query.register(show_user_react, AdminFunctions.filter())
     # debug
     router.message.register(eraser, Command(commands='eraser'), AdminFilter())
 
@@ -80,7 +73,6 @@ def setup_handlers(router: Router):
     router.message.register(unmute_handler, Command(commands='unmute'), F.chat.type == 'private')
     router.message.register(get_chat_id_handler, Command(commands='get_chat_id'), F.chat.type == 'private')
     router.message.register(show_user_handler, Command(commands='show_user'), F.chat.type == 'private', AdminFilter())
-    router.message.register(echo)
     return router
 
 

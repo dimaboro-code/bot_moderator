@@ -1,4 +1,5 @@
 from aiogram import types
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.handlers.privatechat_functions.bot_help import bot_help
 from core.handlers.privatechat_functions.status import status
