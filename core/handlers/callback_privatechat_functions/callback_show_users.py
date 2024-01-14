@@ -1,7 +1,8 @@
+from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from core.config import bot
+from core import ConfigVars
 from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives
 from core.handlers.privatechat_functions.status import status
 from core.models.data_models import AdminFunctions
@@ -15,11 +16,11 @@ react_funcs = {
 alias_funcs = {
     'Добавить 1 разблок': 'add_unblock',
     'Удалить 1 разблок': 'remove_unblock',
-    'Удалить все разблоки': 'remove_all_unblocks'
+    'Удалить все разблоки': 'remove_all_unblocks',
 }
 
 
-async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, session):
+async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, session, bot: Bot):
     user_id = callback_data.user_id
     await react_funcs[callback_data.function](user_id, session=session)
     updated_text = await status(user_id, session)
@@ -41,6 +42,3 @@ async def name_alias_keyboard(user_id: int, funcs: dict) -> InlineKeyboardBuilde
         )
     builder.adjust(1, repeat=True)
     return builder
-
-
-

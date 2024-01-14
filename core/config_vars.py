@@ -107,5 +107,5 @@ class ConfigVars:
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
 
-    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
-    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
+    # DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная

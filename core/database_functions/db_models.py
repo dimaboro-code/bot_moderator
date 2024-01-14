@@ -54,7 +54,6 @@ class Mute(Base):
     __tablename__ = 'mutes'
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete="CASCADE"))
-    message_id: Mapped[int] = mapped_column(Numeric, nullable=True)  # TODO выпилить нахуй
     chat_id: Mapped[int] = mapped_column(Numeric, nullable=False)
     moderator_message: Mapped[str] = mapped_column(Text)
     admin_username: Mapped[str] = mapped_column(Text, nullable=False)
