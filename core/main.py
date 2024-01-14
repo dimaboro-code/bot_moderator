@@ -14,8 +14,8 @@ from core.database_functions.db_functions import async_main
 from core.filters.admin_filter import AdminFilter
 from core.handlers.callback_privatechat_functions.callback_show_users import show_user_react
 # GROUP FUNCTION IMPORTS
-from core.handlers.group_functions.add_unblocks import add_unblocks
-from core.handlers.group_functions.join_cleaner import join_cleaner
+from core.handlers.group_functions.add_unblocks import add_unblocks_handler
+from core.services.join_cleaner import join_cleaner
 from core.handlers.group_functions.mute_main import mute_handler
 # PRIVATECHAT FUNCTION IMPORTS
 from core.handlers.privatechat_functions.bot_help import bot_help
@@ -57,7 +57,7 @@ def setup_handlers(router: Router):
 
     # GROUP CHAT FUNCTION REGISTERS
     router.message.register(mute_handler, Command(commands='mute'), AdminFilter())
-    router.message.register(add_unblocks, Command(commands='add_unblocks'), AdminFilter())
+    router.message.register(add_unblocks_handler, Command(commands='add_unblocks'), AdminFilter())
     router.message.register(join_cleaner, F.content_type.in_(ConfigVars.MESSAGES_FOR_DELETE))
 
     # PRIVATE HANDLERS

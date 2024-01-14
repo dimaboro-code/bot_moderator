@@ -92,12 +92,11 @@ async def checks(moderator_message: types.Message, bot: Bot, session):
     # Есть два вида работы функции мьют
     # По юзернейму и по реплею
     # Если есть и то, и то, выбираем реплей.
+    # TODO разбить на три разных проверки, перекинуть в utils
 
     username = is_username(moderator_message.text)
 
     if username is not None:
-        print(f'username{username}')
-
         user_id = await get_id(username, session)
         if user_id is None:
             return False, 'К сожалению, пользователя нет в базе.'
