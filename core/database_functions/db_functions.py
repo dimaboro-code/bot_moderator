@@ -162,9 +162,34 @@ async def get_last_mute(user_id: int, session: AsyncSession) -> typing.Dict[typi
             'date_of_mute': mute.date_of_mute
         }
         print('БД, Последний мьют', last_mute)
+        await session.commit()
         return last_mute
     except Exception as e:
         print('Поиск последнего мьюта сломан, ошибка:', e)
+
+
+async def get_all_mutes(user_id: int, session: AsyncSession) -> typing.Dict[typing.AnyStr, typing.Any]:
+    query = select(Mute).where(user_id == Mute.user_id)
+    try:
+        result: Result = await session.execute(query)
+        mutes = result.scalars().all()
+        mutes_list = []
+        if len(mutes) is None:
+            return
+        for mute in mutes:
+            mute_dict = {
+                'id': mute.id,
+                'user_id': int(mute.user_id),
+                'chat_id': int(mute.chat_id),
+                'moderator_message': mute.moderator_message,
+                'admin_username': mute.admin_username,
+                'date_of_mute': mute.date_of_mute
+            }
+            mutes_list.append(mute_dict)
+        print('БД, все мьюты', mutes_list)
+        return mutes_list
+    except Exception as e:
+        print('Поиск всех мьютов сломан, ошибка:', e)
 
 
 async def db_unmute(user_id: int, session: AsyncSession):
