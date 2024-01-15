@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database_functions.db_models import User, Mute, Id, Base
 from core.config import async_session, engine
 
-# sess = async_session()
-
 
 async def add_user(user_id: int, session: AsyncSession):
     try:
@@ -56,7 +54,7 @@ async def add_mute(mute_data, session: AsyncSession):
         return False
 
 
-async def add_lives(user_id: int, session: AsyncSession, lives: int = 1):
+async def add_lives(user_id: int, session: AsyncSession, lives: int = 1, *args):
     try:
         # Получаем текущее количество жизней из базы данных
         query = select(User.user_blocks).where(user_id == User.user_id)
@@ -84,7 +82,7 @@ async def add_lives(user_id: int, session: AsyncSession, lives: int = 1):
         return False
 
 
-async def delete_lives(user_id: int, session: AsyncSession, deaths: int = 1):
+async def delete_lives(user_id: int, session: AsyncSession, deaths: int = 1, *args):
     try:
         # Получаем текущее количество жизней из базы данных
         result = await session.execute(
@@ -117,7 +115,7 @@ async def delete_lives(user_id: int, session: AsyncSession, deaths: int = 1):
         print('Делит лайвс, что-то пошло не так, ошибка:', e)
 
 
-async def delete_all_lives(user_id: int, session: AsyncSession):
+async def delete_all_lives(user_id: int, session: AsyncSession, *args):
     try:
         # Получаем текущее количество жизней из базы данных
         result = await session.execute(
