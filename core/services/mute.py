@@ -41,6 +41,7 @@ async def mute(data: UserData, bot: Bot, session, chats: List[int] = ConfigVars.
     try:
         await send_mute_report(**data.as_dict())
     except Exception as e:
+        print(e)
         problem = f'Мьют, не удалось отправить отчет. Ошибка: {e}'
         await send_bug_report(problem=problem, **data.as_dict())
         return False

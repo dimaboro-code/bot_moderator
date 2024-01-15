@@ -28,10 +28,10 @@ async def restrict(user_id: int, chat_id: int, bot: Bot, chats: List[int] = Conf
     # если минимум в одном чате мьют не прошел
     if False in report.values():
         # если ни в одном не прошел
-        if True not in report.values():
-            return False
         problem_list = [f'Не прошел мьют в чате{chat_id}, ошибка: {e}' for chat_id, e in exeps.items()]
         problem = '\n'.join(problem_list)
         await send_bug_report(user_id=user_id, user_username='no matter', chat_id=chat_id, chat_username='None',
                               problem=problem)  # TODO переделать в модель для данных
+        if True not in report.values():
+            return False
     return True  # TODO переделать в модель для данных

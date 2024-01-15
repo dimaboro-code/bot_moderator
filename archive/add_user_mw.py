@@ -19,6 +19,6 @@ class AddUserMiddleware(BaseMiddleware):
             chat_id = event.chat.id
             chat_username = event.chat.username
             problem = 'Не удалось добавить пользователя в базу'
-            await send_bug_report(user_id, username, chat_id, chat_username, problem)
+            await send_bug_report(user_id, chat_id, problem, username, chat_username)
 
         return await handler(event, data)

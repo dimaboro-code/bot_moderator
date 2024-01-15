@@ -1,6 +1,6 @@
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, Message
+from aiogram.types import TelegramObject
 from aiogram.exceptions import TelegramBadRequest
 
 from core.utils.add_user_to_db import add_user_to_db
