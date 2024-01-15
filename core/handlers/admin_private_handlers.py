@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core import ConfigVars
-from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives
+from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_last_mute
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import AdminFunctions, UserData
 from core.services.mute import mute
@@ -91,8 +91,9 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
         data = UserData()
         data.parse_message(call.message, user_id=user_id)
         data.chat_id = ConfigVars.CHATS[0]
+        last_mute = get_last_mute(user_id, session)
+        data.reason_message = last_mute['moderator_message']
         success = await mute(data=data, bot=bot, session=session)
-        print(data.for_mute)
         if not success:
             await call.answer(text='Мьют не прошел, отчет направлен разработчику', show_alert=True)
             return

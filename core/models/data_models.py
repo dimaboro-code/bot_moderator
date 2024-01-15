@@ -63,8 +63,7 @@ class UserData(BaseData):
             self.admin_username = message.from_user.username
             self.chat_id = message.chat.id
             self.chat_username = message.chat.username
-            self.reason_message = (' '.join(message.text.split()[2:]) if len(message.text.split()) <= 8
-                                   else 'Ручной мьют, причину уточняйте у модератора')
+            self.reason_message = ' '.join(message.text.split()[2:])
             self.is_reply = False
         else:
             raise Exception
