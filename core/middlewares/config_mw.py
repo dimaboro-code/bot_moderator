@@ -3,7 +3,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from aiogram.exceptions import TelegramBadRequest
 
-from core.utils.id_recognizer import add_user_to_db
+from core.utils.add_user_to_db import add_user_to_db
 
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше

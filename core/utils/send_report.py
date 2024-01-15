@@ -3,7 +3,7 @@ from core.config_vars import ConfigVars
 from ..config import bot as bt
 
 
-async def send_report_to_channel(
+async def send_mute_report(
     user_id: int,
     username: str,
     admin_username: str,
@@ -41,7 +41,7 @@ async def send_report_to_channel(
                            )
 
 
-async def send_report_to_group(
+async def send_bug_report(
     user_id: int,
     chat_id: int | str,
     problem: str | Exception,
@@ -51,8 +51,6 @@ async def send_report_to_group(
     log_chat: str = ConfigVars.LOG_CHAT,
     **kwargs
 ):
-    if kwargs:
-        pass
     if type(problem) is Exception:
         problem = str(problem)
     await bot.send_message(chat_id=log_chat,

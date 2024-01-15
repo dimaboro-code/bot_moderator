@@ -49,3 +49,5 @@ async def test_simple_db(session: AsyncSession, engine: AsyncEngine = CONN) -> b
     except Exception as e:
         print('Тесты бд не прошли', e)
         return False
+
+
