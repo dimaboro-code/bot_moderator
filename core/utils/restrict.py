@@ -1,7 +1,7 @@
 from typing import List
 from aiogram import Bot, types
 from core.config_vars import ConfigVars
-from core.utils.send_report import send_report_to_group
+from core.utils.send_report import send_bug_report
 
 
 async def restrict(user_id: int, chat_id: int, bot: Bot, chats: List[int] = ConfigVars.CHATS,
@@ -32,6 +32,6 @@ async def restrict(user_id: int, chat_id: int, bot: Bot, chats: List[int] = Conf
             return False
         problem_list = [f'Не прошел мьют в чате{chat_id}, ошибка: {e}' for chat_id, e in exeps.items()]
         problem = '\n'.join(problem_list)
-        await send_report_to_group(user_id=user_id, user_username='no matter', chat_id=chat_id, chat_username='None',
-                                   problem=problem)  # TODO переделать в модель для данных
+        await send_bug_report(user_id=user_id, user_username='no matter', chat_id=chat_id, chat_username='None',
+                              problem=problem)  # TODO переделать в модель для данных
     return True  # TODO переделать в модель для данных

@@ -1,6 +1,6 @@
 from aiogram.types import Message
 
-from core.utils.send_report import send_report_to_channel
+from core.utils.send_report import send_mute_report
 
 
 async def send_report_handler(message: Message) -> None:
@@ -14,4 +14,4 @@ async def send_report_handler(message: Message) -> None:
     admin = 'test_admin'
     chat_username = 'test_chat'
     reason_message = 'test reason'
-    await send_report_to_channel(user_id, username, admin, chat_username, reason_message)
+    await send_mute_report(user_id, username, admin, chat_username, reason_message)

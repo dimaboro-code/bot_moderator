@@ -3,10 +3,10 @@ from typing import List
 
 from core.config_vars import ConfigVars
 from core.models.data_models import UserData
-from core.utils.delete_message import delete_message
-from core.utils.send_report import send_report_to_channel, send_report_to_group
+from core.utils.delete_message_with_delay import delete_message
+from core.utils.send_report import send_mute_report, send_bug_report
 from core.database_functions.db_functions import get_id, add_mute
-from core.utils.is_username import is_username
+from core.utils.get_username_from_text import is_username
 from core.utils.restrict import restrict
 
 
@@ -73,15 +73,15 @@ async def mute(data: UserData, bot: Bot, session, chats: List[int] = ConfigVars.
     muted = await add_mute(data.for_mute, session=session)
     if not muted:
         problem = 'Мьют не добавлен в базу данных.'
-        await send_report_to_group(problem=problem, **data.as_dict())
+        await send_bug_report(problem=problem, **data.as_dict())
         return False
 
     # отправляем отчет в канал
     try:
-        await send_report_to_channel(**data.as_dict())
+        await send_mute_report(**data.as_dict())
     except Exception as e:
         problem = f'Мьют, не удалось отправить отчет. Ошибка: {e}'
-        await send_report_to_group(problem=problem, **data.as_dict())
+        await send_bug_report(problem=problem, **data.as_dict())
         return False
 
     # Мьют прошел (минимум в одном чате), инфа в базе, отчет в канале

@@ -1,22 +1,13 @@
 from typing import List
-from aiogram import types, Bot
+
+from aiogram import Bot, types
 from aiogram.exceptions import TelegramBadRequest
 
-from core.config_vars import ConfigVars
-from core.database_functions.db_functions import get_user, get_last_mute, db_unmute, add_lives
-from core.handlers.privatechat_functions.status import status
+from core import ConfigVars
+from core.database_functions.db_functions import get_user, get_last_mute, add_lives, db_unmute
+from core.services.status import status
 from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
-
-
-async def unmute_handler(message: types.Message, bot: Bot, session):
-    user_id = message.from_user.id
-    success, answer = await unmute(user_id=user_id, bot=bot, session=session)
-    if success:
-        await message.answer('Успешно')
-        await message.answer(answer)
-    else:
-        await message.answer(answer)
 
 
 async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
@@ -61,5 +52,5 @@ async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
 
-    answer = await status(user_id, session)
+    answer = await status(user_id, session, bot)
     return True, answer

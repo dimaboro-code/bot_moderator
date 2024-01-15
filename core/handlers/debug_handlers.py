@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database_functions.db_functions import delete_user
 from core.database_functions.test_db import test_simple_db
 from core.filters.admin_filter import AdminFilter
-from core.utils.send_report import send_report_to_channel
+from core.utils.send_report import send_mute_report
 
 debug_router = Router()
 debug_router.message.filter(F.chat.type == ChatType.PRIVATE, AdminFilter())
@@ -44,7 +44,7 @@ async def send_report_handler(message: Message) -> None:
     admin = 'test_admin'
     chat_username = 'test_chat'
     reason_message = 'test reason'
-    await send_report_to_channel(user_id, username, admin, chat_username, reason_message)
+    await send_mute_report(user_id, username, admin, chat_username, reason_message)
 
 
 @debug_router.message(Command('get_chat_id'))

@@ -1,8 +1,8 @@
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from core.utils.id_recognizer import add_user_to_db
-from core.utils.send_report import send_report_to_group
+from core.utils.add_user_to_db import add_user_to_db
+from core.utils.send_report import send_bug_report
 
 
 class AddUserMiddleware(BaseMiddleware):
@@ -19,6 +19,6 @@ class AddUserMiddleware(BaseMiddleware):
             chat_id = event.chat.id
             chat_username = event.chat.username
             problem = 'Не удалось добавить пользователя в базу'
-            await send_report_to_group(user_id, username, chat_id, chat_username, problem)
+            await send_bug_report(user_id, username, chat_id, chat_username, problem)
 
         return await handler(event, data)

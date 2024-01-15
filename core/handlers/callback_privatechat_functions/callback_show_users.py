@@ -2,7 +2,6 @@ from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from core import ConfigVars
 from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives
 from core.handlers.privatechat_functions.status import status
 from core.models.data_models import AdminFunctions

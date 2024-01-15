@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database_functions.db_models import User, Mute, Id, Base
 from core.config import async_session, engine
 
-# sess = async_session()
-
 
 async def add_user(user_id: int, session: AsyncSession):
     try:

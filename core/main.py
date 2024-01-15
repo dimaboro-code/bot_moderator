@@ -29,7 +29,7 @@ from core.handlers.privatechat_functions.test_db_handler import test_db_handler
 from core.handlers.privatechat_functions.unmute import unmute_handler
 from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
-from core.utils.delete_old_ids import setup_schedule
+from core.services.db_old_ids_cleaner import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
 from core.config import bot, dp, async_session
 from core.models.data_models import AdminFunctions

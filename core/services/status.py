@@ -1,24 +1,10 @@
-from aiogram import types
+from aiogram import types, Bot
 
-from core.config import bot
-from core.database_functions.db_functions import get_username, get_user, get_last_mute
+from core.database_functions.db_functions import get_user, get_last_mute, get_username
 from core.utils.send_report import send_bug_report
 
 
-async def status_handler(message: types.Message, session):
-    """
-     start func
-    :param message:
-    :return:
-    """
-    user_id = message.from_user.id
-
-    answer = await status(user_id=user_id, session=session)
-
-    await message.answer(answer)
-
-
-async def status(user_id: int, session):
+async def status(user_id: int, session, bot: Bot):
     user_data = await get_user(user_id=user_id, session=session)
     if user_data is None:
         answer = 'Пользователя нет в базе данных'

@@ -5,7 +5,7 @@ from core.database_functions.db_functions import add_lives
 from core.filters.admin_filter import AdminFilter
 from core.handlers.group_functions.mute_main import checks, mute
 from core.models.data_models import UserData
-from core.utils.delete_message import delete_message
+from core.utils.delete_message_with_delay import delete_message
 
 admin_group_router = Router()
 admin_group_router.message.filter(AdminFilter())

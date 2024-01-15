@@ -4,7 +4,7 @@
 from aiogram import types
 from aiogram.filters.callback_data import CallbackData
 
-from core.utils.is_username import is_username
+from core.utils.get_username_from_text import is_username
 
 
 class BaseData:
