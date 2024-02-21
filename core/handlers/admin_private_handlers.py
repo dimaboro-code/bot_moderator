@@ -9,9 +9,8 @@ from core.database_functions.db_functions import add_lives, delete_lives, delete
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import AdminFunctions, UserData
 from core.services.mute import mute
-from core.services.status import status
+from core.services.status import status, status_log
 from core.services.unmute import unmute
-from core.utils.keyboards.name_alias_keyboard import name_alias_keyboard
 from core.utils.send_report import send_bug_report
 from core.utils.text_checks import get_id_from_text
 from core.utils.get_username_from_text import get_status_from_text
@@ -19,12 +18,18 @@ from core.utils.get_username_from_text import get_status_from_text
 admin_private_router = Router()
 admin_private_router.message.filter(F.chat.type == ChatType.PRIVATE, AdminFilter())
 
+
+async def back(*args, **kwargs):
+    pass
+
 react_funcs = {
     'add_unblock': add_lives,
     'remove_unblock': delete_lives,
     'remove_all_unblocks': delete_all_lives,
     'unblock': unmute,
-    'mute': mute
+    'mute': mute,
+    'mute_story': status_log,
+    'back': back
 }
 
 alias_funcs = {
@@ -32,7 +37,8 @@ alias_funcs = {
     'Удалить 1 разблок': 'remove_unblock',
     'Удалить все разблоки': 'remove_all_unblocks',
     'Разблокировать': 'unblock',
-    'Заблокировать': 'mute'
+    'Заблокировать': 'mute',
+    'Показать историю мьютов': 'mute_story'
 }
 
 
@@ -91,13 +97,27 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
         data = UserData()
         data.parse_message(call.message, user_id=user_id)
         data.chat_id = ConfigVars.CHATS[0]
-        last_mute = get_last_mute(user_id, session)
+        last_mute = await get_last_mute(user_id, session)
         data.reason_message = last_mute['moderator_message']
         success = await mute(data=data, bot=bot, session=session)
         if not success:
             await call.answer(text='Мьют не прошел, отчет направлен разработчику', show_alert=True)
             return
         updated_text = await status(user_id, session, bot)
+    elif callback_data.function == 'mute_story':
+        updated_text = await react_funcs[callback_data.function](user_id, session, bot)
+        builder = InlineKeyboardBuilder()
+        builder.button(
+            text='Скрыть историю мьютов',
+            callback_data=AdminFunctions(function='back', user_id=user_id)
+        )
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id, message_id=call.message.message_id,
+            text=updated_text,
+            reply_markup=builder.as_markup()
+        )
+        await call.answer(show_alert=False, text='Успешно')
+        return
     else:
         await react_funcs[callback_data.function](user_id, session=session)
         updated_text = await status(user_id, session, bot)
@@ -106,12 +126,10 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
     print('статус: ', current_status)
     builder = InlineKeyboardBuilder()
     for button, func in alias_funcs.items():
-        if func == 'mute':
-            if current_status == 'в мьюте':
-                continue
-        if func == 'unblock':
-            if current_status == 'без ограничений':
-                continue
+        if func == 'mute' and current_status == 'в мьюте':
+            continue
+        if func == 'unblock' and current_status == 'без ограничений':
+            continue
         builder.button(
             text=button,
             callback_data=AdminFunctions(function=func, user_id=user_id)
@@ -124,3 +142,28 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
         reply_markup=builder.as_markup()
     )
     await call.answer(show_alert=False, text='Успешно')
+
+
+@admin_private_router.message(Command('show_user_history'))
+async def show_user_history_handler(message: Message, session, bot: Bot):
+    len_msg = len(message.text.split())
+    user_username = message.from_user.username
+    chat_username = message.chat.username
+
+    if len_msg < 2:
+        answer = 'Некорректная команда. Должна быть /show_user <user_id> или /show_user <@username>.'
+        await message.answer(answer)
+        return
+
+    user_id = await get_id_from_text(message.text, session)
+    if user_id is None:
+        answer = 'Пользователь не найден.'
+        await message.answer(answer)
+        return
+
+    answer = await status_log(user_id=user_id, session=session, bot=bot)
+    try:
+        await message.answer(answer)
+    except Exception as e:
+        await send_bug_report(user_id=user_id, chat_id='private', chat_username=chat_username,
+                              user_username=user_username, problem=f'Не сработал show_user_history, ошибка: {e}')
