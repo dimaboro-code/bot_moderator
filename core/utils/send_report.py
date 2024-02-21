@@ -32,7 +32,7 @@ async def send_mute_report(
     await bot.send_message(chat_id=log_chanel,
                            text=f'Мьют @{username},\n'
                                 f'user id: {user_id},\n'
-                                f'Подробнее: <a href="t.me/@{str(ConfigVars.BOT_USERNAME)}?start={user_id}">'
+                                f'Подробнее: <a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start={user_id}">'
                                 f'<b>{username}</b></a>\n\n'
                                 f'Чат: @{chat_username}\n'
                                 f'Админ: @{admin_username}\n'

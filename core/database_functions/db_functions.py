@@ -18,15 +18,19 @@ async def add_user(user_id: int, session: AsyncSession):
             stmt_user = stmt_user.on_conflict_do_nothing(index_elements=['user_id'])
             await session.execute(stmt_user)
         await session.commit()
-        print('БД, адд юзер')
+        print('БД, адд юзер, тз закрыта')
         return True
     except Exception as e:
+        await session.rollback()
         print(f'user id {user_id} не добавлен, ошибка:{e}')
         return False
 
 
 async def add_mute(mute_data, session: AsyncSession):
     try:
+        if session.in_transaction():
+            print('хуйня')
+            await session.commit()
         async with session.begin():
             # Добавление записи в таблицу Mute
             mute = Mute(
@@ -50,7 +54,7 @@ async def add_mute(mute_data, session: AsyncSession):
 
     except Exception as e:
         await session.rollback()  # Откат изменений при возникновении ошибки
-        logging.error('Ошибка при выполнении транзакции: %s', e)
+        logging.error('Ошибка при выполнении транзакции добавления мьюта: %s', e)
         return False
 
 
@@ -140,6 +144,7 @@ async def get_user(user_id: int, session: AsyncSession):
             'user_blocks': user.user_blocks,
             'is_muted': user.is_muted
         }
+        await session.commit()
         return user_data
     except Exception as e:
         print('Юзер не найден, ошибка', e)
@@ -187,6 +192,7 @@ async def get_all_mutes(user_id: int, session: AsyncSession) -> typing.Dict[typi
             }
             mutes_list.append(mute_dict)
         print('БД, все мьюты', mutes_list)
+        await session.commit()
         return mutes_list
     except Exception as e:
         print('Поиск всех мьютов сломан, ошибка:', e)
@@ -218,10 +224,10 @@ async def delete_user(user_id: int, session: AsyncSession):
             await session.execute(
                 delete(User).where(user_id == User.user_id)
             )
-            await session.commit()
             print(f"Пользователь с ID {user_id} удален.")
         else:
             print(f"Пользователь с ID {user_id} не найден.")
+        await session.commit()
     except Exception as e:
         print('Не удалось удалить пользователя, сломано: ', e)
 
@@ -240,6 +246,7 @@ async def add_id(username: str, user_id: int, session: AsyncSession):
         return True
 
     except Exception as e:
+        await session.rollback()
         print(f"Произошла ошибка при добавлении айди: {str(e)}")
         return False
 
@@ -251,6 +258,7 @@ async def get_id(username: str, session: AsyncSession):
         )
         user_id = result.scalar()
         print('БД, Гет айди, юзер айди:', user_id)
+        await session.commit()
         return user_id
 
     except Exception as e:
@@ -264,6 +272,7 @@ async def get_username(user_id: int, session: AsyncSession):
         )
         username = result.scalar()
         print('БД, Гет юзернейм:', username)
+        await session.commit()
         return username
 
     except Exception as e:
