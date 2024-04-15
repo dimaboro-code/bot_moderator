@@ -38,11 +38,11 @@ async def bot_help(message: Message):
     :param message:
     :return:
     """
-    text = 'Доступные команды\n\n'
-    text += '/start - запустить бота\n'
-    text += '/status - текущее состояние\n'
-    text += '/unmute - разблокироваться\n'
-    text += '/help - список доступных команд\n'
+    text = ('Доступные команды\n\n'
+            '/start - запустить бота\n'
+            '/status - текущее состояние\n'
+            '/unmute - разблокироваться\n'
+            '/help - список доступных команд\n')
     await message.answer(text, reply_markup=ReplyKeyboardRemove())
 
 
