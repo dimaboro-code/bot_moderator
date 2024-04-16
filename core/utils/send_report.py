@@ -37,7 +37,7 @@ async def send_mute_report(
                                 f'Чат: @{chat_username}\n'
                                 f'Админ: @{admin_username}\n'
                                 f'Причина: {reason_message}',
-                           parse_mode='HTML'
+                           parse_mode='HTML', disable_web_page_preview=True
                            )
 
 

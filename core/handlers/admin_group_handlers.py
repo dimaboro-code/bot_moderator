@@ -41,6 +41,7 @@ async def mute_handler(moderator_message: types.Message, bot: Bot, session):
     success_message = await moderator_message.answer(
         f'Пользователь {data.username} попал в мьют.'
     )
+
     try:
         await bot.delete_message(
             chat_id=moderator_message.chat.id,
