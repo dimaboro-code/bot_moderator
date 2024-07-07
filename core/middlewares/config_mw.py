@@ -1,11 +1,12 @@
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
-from aiogram.enums import ChatAction
-from aiogram.types import TelegramObject
+from aiogram.types import TelegramObject, Message, Update
 from aiogram.exceptions import TelegramBadRequest
-from ..redis import rclient
+from redis_om import Migrator
+
+from core.database_functions.redis1 import RedisUser
+
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше
 class ConfigMiddleware(BaseMiddleware):
@@ -15,38 +16,38 @@ class ConfigMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
+        event: Update,
         data: Dict[str, Any]
     ) -> Any:
         async with self.session() as session:
             try:
-                if event.message is not None:
-                    if event.message.from_user.username:
-                        name = event.message.from_user.username
-                    elif event.message.from_user.last_name:
-                        name = event.message.from_user.first_name + ' ' + event.message.from_user.last_name
+                if isinstance(event.message, Message):
+                    message = event.message
+                    if message.from_user.username:
+                        name = message.from_user.username
+                    elif message.from_user.last_name:
+                        name = message.from_user.first_name + ' ' + message.from_user.last_name
                     else:
-                        name = event.message.from_user.first_name
-                    text = event.message.text
-                    tg_id = event.message.from_user.id
-                    time = datetime.now()
-                    data = rclient.get(tg_id)
-                    if data is None:
-                        data = {'text': text,
-                                'tg_id': tg_id,
-                                'name': name,
-                                'time': time}
-                        ex_time = time+timedelta(days=1)
-                        rclient.set(tg_id, json.dumps(data), exat=ex_time.timestamp())
-                        rclient.set(name, json.dumps(data), exat=ex_time.timestamp())
-                else:
-                    pass
+                        name = message.from_user.first_name
+                    tg_id = message.from_user.id
+                    time_msg = datetime.now()
+                    print(name, tg_id, time_msg)
+                    Migrator().run()
+                    user_list = RedisUser.find(RedisUser.tg_id == tg_id).all()
+                    if len(user_list) == 0:
+                        user = RedisUser(username=name, tg_id=tg_id, time_msg=time_msg)
+                    else:
+                        user = user_list[0]
+                        user.time_msg = time_msg
+                    user.update()
+                    user.expire(36000)
             except Exception as e:
-                print('no redis')
+                print('no redis,', e)
             data['session'] = session
             try:
                 await handler(event, data)
             except TelegramBadRequest as e:
-                with open('errors.log', 'a') as f:
-                    f.write(f'Ошибка: {e} - запрос: {event.model_dump_json()}\n')
+                print('бэд рекуест, ошибка ', e)
+            # except Exception as e:
+            #     print(f'Не работает, ошибка: {e}')
         return

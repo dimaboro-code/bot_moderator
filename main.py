@@ -9,7 +9,7 @@ from aiohttp import web
 # settings import
 from core.config_vars import ConfigVars
 # full database import
-from core.database_functions.db_functions import create_all_tables
+from core.database_functions.db_functions import create_db
 from core.handlers import admin_group_router, admin_private_router, user_private_router, debug_router, service_router
 # GROUP FUNCTION IMPORTS
 from core.middlewares.config_mw import ConfigMiddleware
@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 # webhook control
 async def on_startup(bot: Bot):
-    await create_all_tables()
+    await create_db()
     await setup_schedule()
     admins = await get_admins_ids()
     dp['admins'] = admins
