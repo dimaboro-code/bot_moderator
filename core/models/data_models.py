@@ -3,6 +3,7 @@
 """
 from aiogram import types
 from aiogram.filters.callback_data import CallbackData
+from aiogram.fsm.state import StatesGroup, State
 
 from core.utils.get_username_from_text import is_username
 
@@ -91,3 +92,8 @@ class UserData(BaseData):
 class AdminFunctions(CallbackData, prefix='show_user'):
     function: str
     user_id: int
+
+
+class BanSteps(StatesGroup):
+    name = State()
+    time_of_message = State()

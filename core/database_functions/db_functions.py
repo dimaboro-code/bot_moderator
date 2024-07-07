@@ -297,6 +297,6 @@ async def delete_old_data(sessionmaker=async_session, days: int = 15, user_id: i
         print(f"Произошла ошибка при удалении старых данных: {str(e)}")
 
 
-async def async_main():
+async def create_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
