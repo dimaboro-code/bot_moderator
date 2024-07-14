@@ -3,6 +3,7 @@
 """
 from aiogram import types
 from aiogram.filters.callback_data import CallbackData
+from aiogram.fsm.state import StatesGroup, State
 
 from core.utils.get_username_from_text import is_username
 
@@ -71,8 +72,7 @@ class UserData(BaseData):
             self.admin_username = message.from_user.username
             self.chat_id = message.chat.id
             self.chat_username = message.chat.username
-            self.reason_message = (' '.join(message.text.split()[2:]) if len(message.text.split()) <= 8
-                                   else 'Ручной мьют, причину уточняйте у модератора')
+            self.reason_message = ' '.join(message.text.split()[2:])
             self.is_reply = False
         else:
             raise Exception
@@ -92,3 +92,8 @@ class UserData(BaseData):
 class AdminFunctions(CallbackData, prefix='show_user'):
     function: str
     user_id: int
+
+
+class BanSteps(StatesGroup):
+    name = State()
+    time_of_message = State()

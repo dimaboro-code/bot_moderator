@@ -10,7 +10,7 @@ from core.filters.admin_filter import AdminFilter
 from core.models.data_models import AdminFunctions, UserData
 from core.services.mute import mute
 from core.services.status import status, status_log
-from core.services.unmute import unmute
+from core.services.unmute import admin_unmute
 from core.utils.send_report import send_bug_report
 from core.utils.text_checks import get_id_from_text
 from core.utils.get_username_from_text import get_status_from_text
@@ -26,7 +26,7 @@ react_funcs = {
     'add_unblock': add_lives,
     'remove_unblock': delete_lives,
     'remove_all_unblocks': delete_all_lives,
-    'unblock': unmute,
+    'unblock': admin_unmute,
     'mute': mute,
     'mute_story': status_log,
     'back': back

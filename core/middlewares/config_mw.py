@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
+from aiogram.types import TelegramObject, Message, Update
 from aiogram.exceptions import TelegramBadRequest
+from redis_om import Migrator
 
-from core.utils.add_user_to_db import add_user_to_db
+from core.database_functions.redis1 import RedisUser
 
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше
@@ -14,20 +16,38 @@ class ConfigMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
+        event: Update,
         data: Dict[str, Any]
     ) -> Any:
         async with self.session() as session:
-            if event.message:
-                await add_user_to_db(event.message, session)
+            try:
+                if isinstance(event.message, Message):
+                    message = event.message
+                    if message.from_user.username:
+                        name = message.from_user.username
+                    elif message.from_user.last_name:
+                        name = message.from_user.first_name + ' ' + message.from_user.last_name
+                    else:
+                        name = message.from_user.first_name
+                    tg_id = message.from_user.id
+                    time_msg = datetime.now()
+                    print(name, tg_id, time_msg)
+                    Migrator().run()
+                    user_list = RedisUser.find(RedisUser.tg_id == tg_id).all()
+                    if len(user_list) == 0:
+                        user = RedisUser(username=name, tg_id=tg_id, time_msg=time_msg)
+                    else:
+                        user = user_list[0]
+                        user.time_msg = time_msg
+                    user.update()
+                    user.expire(36000)
+            except Exception as e:
+                print('no redis,', e)
             data['session'] = session
-            for _ in range(3):
-                try:
-                    await handler(event, data)
-                    break
-                except TelegramBadRequest as e:
-                    print('бэд рекуест, ошибка ', e)
-                    continue
-                except Exception as e:
-                    print(f'Не работает, ошибка: {e}')
+            try:
+                await handler(event, data)
+            except TelegramBadRequest as e:
+                print('бэд рекуест, ошибка ', e)
+            # except Exception as e:
+            #     print(f'Не работает, ошибка: {e}')
         return
