@@ -59,12 +59,13 @@ class ConfigVars:
     BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
 
-    WEBHOOK_HOST = 'https://dfd2-37-99-47-231.ngrok-free.app'
+    WEBHOOK_HOST = 'https://b4e2-178-88-32-157.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
+
 
     MESSAGES_FOR_DELETE = (
         ContentType.NEW_CHAT_MEMBERS,

@@ -42,6 +42,7 @@ alias_funcs = {
 }
 
 
+# noinspection DuplicatedCode
 @admin_private_router.message(Command('show_user'))
 @admin_private_router.message(CommandStart(deep_link=True))
 async def show_user_handler(message: Message, session, bot: Bot):
@@ -144,6 +145,7 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
     await call.answer(show_alert=False, text='Успешно')
 
 
+# noinspection DuplicatedCode
 @admin_private_router.message(Command('show_user_history'))
 async def show_user_history_handler(message: Message, session, bot: Bot):
     len_msg = len(message.text.split())

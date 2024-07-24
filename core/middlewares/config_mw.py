@@ -1,16 +1,15 @@
-from datetime import datetime, timedelta
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message, Update
 from aiogram.exceptions import TelegramBadRequest
-from redis_om import Migrator
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
-from core.database_functions.redis1 import RedisUser
+from core.database_functions.db_functions import get_username, add_id
 
 
 # отсюда нужно создавать сессию бд, которую потом пробрасывать дальше
 class ConfigMiddleware(BaseMiddleware):
-    def __init__(self, async_session):
+    def __init__(self, async_session: async_sessionmaker[AsyncSession]):
         self.session = async_session
 
     async def __call__(
@@ -24,23 +23,16 @@ class ConfigMiddleware(BaseMiddleware):
                 if isinstance(event.message, Message):
                     message = event.message
                     if message.from_user.username:
-                        name = message.from_user.username
+                        username = message.from_user.username
                     elif message.from_user.last_name:
-                        name = message.from_user.first_name + ' ' + message.from_user.last_name
+                        username = message.from_user.first_name + ' ' + message.from_user.last_name
                     else:
-                        name = message.from_user.first_name
+                        username = message.from_user.first_name
                     tg_id = message.from_user.id
-                    time_msg = datetime.now()
-                    print(name, tg_id, time_msg)
-                    Migrator().run()
-                    user_list = RedisUser.find(RedisUser.tg_id == tg_id).all()
-                    if len(user_list) == 0:
-                        user = RedisUser(username=name, tg_id=tg_id, time_msg=time_msg)
-                    else:
-                        user = user_list[0]
-                        user.time_msg = time_msg
-                    user.update()
-                    user.expire(36000)
+                    user = await get_username(tg_id, session)
+                    if not user:
+                        await add_id(username, tg_id, session)
+
             except Exception as e:
                 print('no redis,', e)
             data['session'] = session
@@ -48,6 +40,4 @@ class ConfigMiddleware(BaseMiddleware):
                 await handler(event, data)
             except TelegramBadRequest as e:
                 print('бэд рекуест, ошибка ', e)
-            # except Exception as e:
-            #     print(f'Не работает, ошибка: {e}')
         return

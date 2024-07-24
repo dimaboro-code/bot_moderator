@@ -6,8 +6,7 @@ from aiogram.fsm.context import FSMContext
 from redis_om import Migrator
 
 from core import ConfigVars
-from core.database_functions.db_functions import add_lives, add_mute
-from core.database_functions.redis1 import RedisUser
+from core.database_functions.db_functions import add_lives, add_mute, get_id
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData, BanSteps
 from core.services.mute import mute
@@ -94,7 +93,7 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
 
 
 @admin_group_router.message(Command(commands='ban'))
-async def ban_name_handler(message: types.Message, bot: Bot, state: FSMContext):
+async def ban_name_handler(message: types.Message, state: FSMContext):
     await state.set_state(BanSteps.name)
     msg = await message.answer('Пожалуйста, укажите юзернейм пользователя. Если юзернейм отсутствует, '
                                'укажите имя и фамилию пользователя. Если фамилия также отсутствует,'
@@ -115,7 +114,7 @@ async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, ses
     print('Бан, степ 1')
     text = message.text.strip()
     Migrator().run()
-    users_list = RedisUser.find(RedisUser.username == text).all()
+    users_list = await get_id(username=text, session=session)
     if len(users_list) == 0:
         await state.clear()
         msg = await message.answer('Пользователь не найден. Если желаете продолжить, введите команду '
@@ -131,10 +130,9 @@ async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, ses
         await delete_message(message, 5)
     else:
         user = users_list[0]
-        print(users_list)
-        if isinstance(user, RedisUser):
+        if user:
             await state.clear()
-            tg_id = user.tg_id
+            tg_id = user.user_id
             await ban_name(message=message, user_to_ban=tg_id, bot=bot, session=session)
         else:
             await state.clear()
@@ -149,6 +147,7 @@ async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, ses
     message_text = message.text.strip()
     try:
         target_dt = datetime.strptime(message_text, '%H:%M')
+        target_dt = datetime.combine(datetime.min, target_dt.time())
     except ValueError:
         msg = await message.answer(
             'Неверный формат времени. Введите время повторно в формате ЧЧ:ММ или используйте команду /cancel'
@@ -164,7 +163,8 @@ async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, ses
         closest_user, min_diff = await calculate_closest_user_time(target_dt.time(), users_list)
 
         if closest_user:
-            precision = abs((datetime.combine(datetime.min, closest_user.time_msg.time()) - target_dt).total_seconds())
+            clos = datetime.combine(datetime.min, closest_user.created_at.time())
+            precision = abs((clos - target_dt).total_seconds())
             if precision > 300:  # 5 минут = 300 секунд
                 msg = await message.answer(
                     'Разница в указанном вами времени с ближайшим пользователем более 5 минут. '
@@ -174,7 +174,7 @@ async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, ses
                 await delete_message(message, 5)
             else:
                 await state.clear()
-                tg_id = closest_user.tg_id
+                tg_id = closest_user.user_id
                 await ban_name(message=message, user_to_ban=tg_id, bot=bot, session=session)
         else:
             msg = await message.answer('Не найдено подходящее время среди пользователей.')
@@ -222,7 +222,7 @@ async def calculate_closest_user_time(target_time, users_list):
     target_dt = datetime.combine(datetime.min, target_time)
 
     for user in users_list:
-        user_time = user.time_msg.time()
+        user_time = user.created_at.time()
         current_dt = datetime.combine(datetime.min, user_time)
         diff = abs(target_dt - current_dt)
         if diff < min_diff:
