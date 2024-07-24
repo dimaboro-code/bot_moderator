@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from aiogram import Router, Bot, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from redis_om import Migrator
 
 from core import ConfigVars
 from core.database_functions.db_functions import add_lives, add_mute, get_id
@@ -113,7 +112,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, session):
     print('Бан, степ 1')
     text = message.text.strip()
-    Migrator().run()
     users_list = await get_id(username=text, session=session)
     if len(users_list) == 0:
         await state.clear()
