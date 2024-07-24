@@ -243,6 +243,7 @@ async def add_id(username: str, user_id: int, session: AsyncSession):
             await session.execute(stmt_id)
 
         await session.commit()
+        await session.refresh(stmt_id)
         return True
 
     except Exception as e:
@@ -254,9 +255,9 @@ async def add_id(username: str, user_id: int, session: AsyncSession):
 async def get_id(username: str, session: AsyncSession):
     try:
         result: Result = await session.execute(
-            select(Id.user_id).where(username == Id.username)
+            select(Id).where(username == Id.username)
         )
-        user_id = result.scalar()
+        user_id = result.scalars().all()
         print('БД, Гет айди, юзер айди:', user_id)
         await session.commit()
         return user_id
