@@ -11,6 +11,7 @@ from core.models.data_models import AdminFunctions, UserData
 from core.services.mute import mute
 from core.services.status import status, status_log
 from core.services.unmute import admin_unmute
+from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
 from core.utils.text_checks import get_id_from_text
 from core.utils.get_username_from_text import get_status_from_text
@@ -42,7 +43,22 @@ alias_funcs = {
 }
 
 
-# noinspection DuplicatedCode
+@admin_private_router.message(Command('admin_unmute'))
+async def admin_unmute(message: Message, bot: Bot, session):
+    user_id = await get_id_from_text(message.text, session)
+    if user_id is None:
+        print('баг, нет айди')
+        raise ValueError
+    restriction = await restrict(user_id=user_id, chat_id=user_id, bot=bot, chats=ConfigVars.CHATS,
+                                 permissions=ConfigVars.UNMUTE_SETTINGS)
+    # если разблок не прошел
+    if restriction is False:
+        answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
+        await message.answer(answer)
+    else:
+        await message.answer('Успешно')
+
+
 @admin_private_router.message(Command('show_user'))
 @admin_private_router.message(CommandStart(deep_link=True))
 async def show_user_handler(message: Message, session, bot: Bot):
