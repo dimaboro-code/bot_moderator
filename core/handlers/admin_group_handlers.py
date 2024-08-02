@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from core import ConfigVars
-from core.database_functions.db_functions import add_lives, add_mute, get_id
+from core.database_functions.db_functions import add_lives, add_mute, get_list_of_id
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData, BanSteps
 from core.services.mute import mute
@@ -112,7 +112,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext):
     print('Бан, степ 1')
     text = message.text.strip()
-    users_list = await get_id(username=text)
+    users_list = await get_list_of_id(username=text)
     if len(users_list) == 0:
         await state.clear()
         msg = await message.answer('Пользователь не найден. Если желаете продолжить, введите команду '

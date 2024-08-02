@@ -1,7 +1,7 @@
 from aiogram import Bot
 from aiogram.types import Message
 
-from core.database_functions.db_functions import get_id
+from core.database_functions.db_functions import get_list_of_id
 from core.utils.get_username_from_text import is_username
 
 
@@ -13,12 +13,16 @@ async def checks(moderator_message: Message, bot: Bot):
     username = is_username(moderator_message.text)
 
     if username is not None:
-        user_id = await get_id(username)
-        if user_id is None:
+        users_list = await get_list_of_id(username)
+        if len(users_list) == 0:
             return False, 'К сожалению, пользователя нет в базе.'
 
         if len(moderator_message.text.strip().split()) < 3:
             return False, 'Команда не содержит сообщение о причине мьюта'
+
+        if len(users_list) > 1:
+            return False, 'найдено несколько пользователей'
+        user_id = users_list[0].user_id
 
         member = await bot.get_chat_member(moderator_message.chat.id, user_id)
         if member.status == 'restricted' and not member.can_send_messages:
@@ -47,8 +51,15 @@ async def get_id_from_text(text: str) -> int:
     if pure_text.isdigit():
         user_id = int(pure_text)
     else:
-        username = is_username(pure_text)
-        if username is not None:
-            pure_text = username
-        user_id = await get_id(f'{pure_text}')
+        user_id = await get_user_id_by_username(pure_text)
     return user_id
+
+
+async def get_user_id_by_username(pure_text):
+    username = is_username(pure_text)
+    if username is not None:
+        pure_text = username
+    users_list = await get_list_of_id(str(pure_text))
+    if len(users_list) != 1:
+        return None
+    return users_list[0].user_id

@@ -262,16 +262,16 @@ async def add_id(username: str, user_id: int, session = async_session):
             return False
 
 
-async def get_id(username: str, session = async_session):
+async def get_list_of_id(username: str, session = async_session):
     async with session() as session:
         try:
             result: Result = await session.execute(
                 select(Id).where(username == Id.username)
             )
-            user_id: list[Id] = result.scalars().all()
-            print('БД, Гет айди, юзер айди:', user_id[0].user_id)
+            user_id: list[Id] | None = result.scalars().all()
+            print('БД, Гет айди, юзер айди:', user_id[0].user_id if user_id is not None else None)
             await session.commit()
-            return user_id
+            return None if user_id is None else user_id
 
         except Exception as e:
             print('гет айди, Ошибка: ', str(e))
