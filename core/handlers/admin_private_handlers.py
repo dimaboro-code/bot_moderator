@@ -59,7 +59,7 @@ async def admin_unmute(message: Message, bot: Bot):
         await message.answer('Успешно')
 
 
-@admin_private_router.message(Command('show_user'))
+@admin_private_router.message(Command('status'), F.text.len() > 10)
 @admin_private_router.message(CommandStart(deep_link=True))
 async def show_user_handler(message: Message, bot: Bot):
     len_msg = len(message.text.split())
@@ -67,7 +67,7 @@ async def show_user_handler(message: Message, bot: Bot):
     chat_username = message.chat.username
 
     if len_msg < 2:
-        answer = 'Некорректная команда. Должна быть /show_user <user_id> или /show_user <@username>.'
+        answer = 'Некорректная команда. Должна быть /status <user_id> или /status <@username>.'
         await message.answer(answer)
         return
 

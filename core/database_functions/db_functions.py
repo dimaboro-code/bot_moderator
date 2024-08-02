@@ -28,6 +28,9 @@ async def add_user(user_id: int, session = async_session):
 
 
 async def add_mute(mute_data, session = async_session):
+    user = await get_user(mute_data['user_id'])
+    if user is None:
+        await add_user(mute_data['user_id'])
     async with session() as session:
         try:
             if session.in_transaction():
@@ -53,7 +56,6 @@ async def add_mute(mute_data, session = async_session):
             await session.commit()  # Фиксация всех изменений в рамках транзакции
             print('Транзакция успешно завершена')
             return True
-
         except Exception as e:
             await session.rollback()  # Откат изменений при возникновении ошибки
             logging.error('Ошибка при выполнении транзакции добавления мьюта: %s', e)
@@ -271,7 +273,7 @@ async def get_list_of_id(username: str, session = async_session):
             user_id: list[Id] | None = result.scalars().all()
             print('БД, Гет айди, юзер айди:', user_id[0].user_id if user_id is not None else None)
             await session.commit()
-            return None if user_id is None else user_id
+            return [] if user_id is None else user_id
 
         except Exception as e:
             print('гет айди, Ошибка: ', str(e))
