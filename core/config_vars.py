@@ -19,10 +19,8 @@ import os
 from aiogram import types
 from aiogram.enums import ContentType
 
-# Только для тестов
 
-
-class ConfigVars:
+class ProdConfig:
     # Настройки для прода
     CHATS = (
         -1001302438185,  # figmachat
@@ -44,25 +42,40 @@ class ConfigVars:
     WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
     WEBAPP_HOST = '0.0.0.0'
     WEBAPP_PORT = int(os.getenv('PORT', default=8000))
+    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
 
-    # # настройки для тестов
-    # from dotenv import load_dotenv
-    # env = load_dotenv()
-    # if not env:
-    #     print('.env файл не найден')
-    #
-    # CHATS = (
-    #     -1001868029361,  # тест бота
-    # )
-    #
-    # LOG_CHANNEL: int = -1002065542994
-    # BOT_USERNAME: str = 'testing_projects_42_bot'
-    # LOG_CHAT: int = -1001868029361  # for mistakes
-    #
-    # WEBHOOK_HOST = 'https://4a94-5-76-255-147.ngrok-free.app'
-    # WEBAPP_HOST = '127.0.0.1'
-    # WEBAPP_PORT = 8080
+    # webhook settings
+    WEBHOOK_PATH = '/webhook'
+    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
+
+class DevConfig:
+    # настройки для тестов
+    from dotenv import load_dotenv
+    env = load_dotenv()
+    if not env:
+        print('.env файл не найден')
+
+    CHATS = (
+        -1001868029361,  # тест бота
+    )
+
+    LOG_CHANNEL: int = -1002065542994
+    BOT_USERNAME: str = 'testing_projects_42_bot'
+    LOG_CHAT: int = -1001868029361  # for mistakes
+
+    WEBHOOK_HOST = 'https://b4e2-178-88-32-157.ngrok-free.app'
+    WEBAPP_HOST = '127.0.0.1'
+    WEBAPP_PORT = 8080
+
+    # webhook settings
+    WEBHOOK_PATH = '/webhook'
+    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
+
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
+
+
+class ConfigVars(DevConfig):
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
 
@@ -100,12 +113,5 @@ class ConfigVars:
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    # webhook settings
-    WEBHOOK_PATH = '/webhook'
-    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
-
-    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
-    # DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная

@@ -10,7 +10,7 @@ async def setup_schedule():
         cron_expression = '0 * * * *'
 
         # Создание расписания и запуск
-        cron = aiocron.crontab(cron_expression, func=delete_old_data, args=[async_session])
+        cron = aiocron.crontab(cron_expression, func=delete_old_data)
         cron.start()
 
         print("Расписание успешно установлено")

@@ -14,21 +14,21 @@ debug_router.message.filter(F.chat.type == ChatType.PRIVATE, AdminFilter())
 
 
 @debug_router.message(Command('test_db'))
-async def test_db_handler(message: Message, session: AsyncSession) -> None:
-    test_result = await test_simple_db(session=session)
+async def test_db_handler(message: Message) -> None:
+    test_result = await test_simple_db()
     await message.answer(f'Тесты {("не пройдены", "пройдены успешно")[test_result]}\n'
                          f'Детали смотри в логах сервера')
 
 
 @debug_router.message(Command('eraser'))
-async def eraser(message: Message, session):
+async def eraser(message: Message):
     """
     func for deleting yourself from database
     only for admins
     :param message: admin send command to bot
     :return: sends message about success
     """
-    await delete_user(message.from_user.id, session)
+    await delete_user(message.from_user.id)
     await message.answer('Успешно')
 
 

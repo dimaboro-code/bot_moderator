@@ -17,8 +17,8 @@ admin_group_router.message.filter(AdminFilter())
 
 
 @admin_group_router.message(Command(commands='mute'))
-async def mute_handler(moderator_message: types.Message, bot: Bot, session):
-    permission = await checks(moderator_message, bot, session)
+async def mute_handler(moderator_message: types.Message, bot: Bot):
+    permission = await checks(moderator_message, bot)
     if permission[0] is False:
         answer_message = await moderator_message.reply(permission[1])
         await delete_message(answer_message, 2)
@@ -35,7 +35,7 @@ async def mute_handler(moderator_message: types.Message, bot: Bot, session):
     data = UserData()
     data.parse_message(moderator_message, user_id if not moderator_message.reply_to_message else None)
 
-    success = await mute(data=data, bot=bot, session=session)
+    success = await mute(data=data, bot=bot)
     if not success:
         msg = await moderator_message.answer('Мьют не прошел, отчет об ошибке отправлен разработчику')
         await delete_message(msg, 1)
@@ -59,10 +59,10 @@ async def mute_handler(moderator_message: types.Message, bot: Bot, session):
 
 
 @admin_group_router.message(Command('add_unblocks'))
-async def add_unblocks_handler(message: types.Message, session):
+async def add_unblocks_handler(message: types.Message):
     user_id = message.reply_to_message.from_user.id
     lives = int(message.text[14:]) if len(str(message.text)) >= 15 else 1
-    await add_lives(user_id, session, lives)
+    await add_lives(user_id, lives)
     await message.delete()
 
 
@@ -109,10 +109,10 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.delete()
 
 @admin_group_router.message(BanSteps.name)
-async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, session):
+async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext):
     print('Бан, степ 1')
     text = message.text.strip()
-    users_list = await get_id(username=text, session=session)
+    users_list = await get_id(username=text)
     if len(users_list) == 0:
         await state.clear()
         msg = await message.answer('Пользователь не найден. Если желаете продолжить, введите команду '
@@ -131,7 +131,7 @@ async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, ses
         if user:
             await state.clear()
             tg_id = user.user_id
-            await ban_name(message=message, user_to_ban=tg_id, bot=bot, session=session)
+            await ban_name(message=message, user_to_ban=tg_id, bot=bot)
         else:
             await state.clear()
             msg = await message.answer('Неизвестная ошибка, разработчик её уже чинит. Бан не прошел')
@@ -141,7 +141,7 @@ async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext, ses
 
 
 @admin_group_router.message(BanSteps.time_of_message)
-async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, session):
+async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext):
     message_text = message.text.strip()
     try:
         target_dt = datetime.strptime(message_text, '%H:%M')
@@ -173,7 +173,7 @@ async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, ses
             else:
                 await state.clear()
                 tg_id = closest_user.user_id
-                await ban_name(message=message, user_to_ban=tg_id, bot=bot, session=session)
+                await ban_name(message=message, user_to_ban=tg_id, bot=bot)
         else:
             msg = await message.answer('Не найдено подходящее время среди пользователей.')
             await delete_message(msg, 2)
@@ -185,7 +185,7 @@ async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext, ses
         await delete_message(message, 15)
 
 
-async def ban_name(message: types.Message, user_to_ban: int, bot: Bot, session):
+async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
 
     for chat in ConfigVars.CHATS:
         success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
@@ -200,7 +200,7 @@ async def ban_name(message: types.Message, user_to_ban: int, bot: Bot, session):
             'chat_id': ConfigVars.CHATS[0],
             'moderator_message': 'Пользователь забанен',
             'admin_username':message.from_user.username
-        }, session=session)
+        })
     try:
         await bot.delete_message(
             chat_id=message.chat.id,

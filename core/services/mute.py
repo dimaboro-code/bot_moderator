@@ -9,7 +9,7 @@ from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report, send_mute_report
 
 
-async def mute(data: UserData, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
+async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
                permissions: types.ChatPermissions = ConfigVars.MUTE_SETTINGS):
     """
     Мьют с занесением данных в бд и отчетом.
@@ -31,7 +31,7 @@ async def mute(data: UserData, bot: Bot, session, chats: List[int] = ConfigVars.
         return False
 
     # Если мьют прошел - добавляем в базу. В будущем по этому значению можно мьютить старых замьюченых в новых чатах
-    muted = await add_mute(data.for_mute, session=session)
+    muted = await add_mute(data.for_mute)
     if not muted:
         problem = 'Мьют не добавлен в базу данных.'
         await send_bug_report(problem=problem, **data.as_dict())
