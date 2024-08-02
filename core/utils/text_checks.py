@@ -5,16 +5,15 @@ from core.database_functions.db_functions import get_id
 from core.utils.get_username_from_text import is_username
 
 
-async def checks(moderator_message: Message, bot: Bot, session):
+async def checks(moderator_message: Message, bot: Bot):
     # Есть два вида работы функции мьют
     # По юзернейму и по реплею
     # Если есть и то, и то, выбираем реплей.
-    # TODO разбить на три разных проверки, перекинуть в utils
 
     username = is_username(moderator_message.text)
 
     if username is not None:
-        user_id = await get_id(username, session)
+        user_id = await get_id(username)
         if user_id is None:
             return False, 'К сожалению, пользователя нет в базе.'
 
@@ -42,7 +41,7 @@ async def checks(moderator_message: Message, bot: Bot, session):
     return True, user_id
 
 
-async def get_id_from_text(text: str, session):
+async def get_id_from_text(text: str) -> int:
     pure_text: str = text.split()[1]
 
     if pure_text.isdigit():
@@ -51,5 +50,5 @@ async def get_id_from_text(text: str, session):
         username = is_username(pure_text)
         if username is not None:
             pure_text = username
-        user_id = await get_id(f'{pure_text}', session)
+        user_id = await get_id(f'{pure_text}')
     return user_id

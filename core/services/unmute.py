@@ -10,10 +10,10 @@ from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
 
 
-async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
+async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
                  permissions: types.ChatPermissions = ConfigVars.UNMUTE_SETTINGS):
-    user_data = await get_user(user_id, session)
-    user_last_mute = await get_last_mute(user_id, session)
+    user_data = await get_user(user_id)
+    user_last_mute = await get_last_mute(user_id)
     if user_last_mute is None:
         answer = ('Вас нет в моей базе. Если у вас сохраняется блокировка,'
                   ' обратитесь к модераторам, например, @deanrie.')
@@ -34,7 +34,7 @@ async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS
             answer = 'Вы админ. Вас нельзя заблокировать.'
             return False, answer
         elif isinstance(member, types.ChatMemberRestricted) and member.can_send_messages is True:
-            await add_lives(user_id=user_id, session=session)
+            await add_lives(user_id=user_id)
         elif isinstance(member, types.ChatMemberBanned):
             answer = 'Вы забанены. Для снятия блокировки можете обратиться к админам.'
             return False, answer
@@ -52,18 +52,18 @@ async def unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS
         answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
         return False, answer
 
-    unmuted = await db_unmute(user_id, session)
+    unmuted = await db_unmute(user_id)
     if unmuted is False:
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
 
-    answer = await status(user_id, session, bot)
+    answer = await status(user_id, bot)
     return True, answer
 
 
-async def admin_unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars.CHATS,
+async def admin_unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
                  permissions: types.ChatPermissions = ConfigVars.UNMUTE_SETTINGS):
-    user_last_mute = await get_last_mute(user_id, session)
+    user_last_mute = await get_last_mute(user_id)
     if user_last_mute is None:
         answer = ('Ошибка базы данных, пользователь не найден. Сообщить о баге @dimaboro')
         return False, answer
@@ -75,10 +75,10 @@ async def admin_unmute(user_id, bot: Bot, session, chats: List[int] = ConfigVars
         answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
         return False, answer
 
-    unmuted = await db_unmute(user_id, session)
+    unmuted = await db_unmute(user_id)
     if unmuted is False:
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
 
-    answer = await status(user_id, session, bot)
+    answer = await status(user_id, bot)
     return True, answer

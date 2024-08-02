@@ -16,7 +16,7 @@ from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
 from core.services.db_old_ids_cleaner import setup_schedule
 from core.utils.is_chat_admin import get_admins_ids
-from core.config import bot, dp, async_session
+from core.config import bot, dp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,8 +33,8 @@ async def on_startup(bot: Bot):
                           secret_token=ConfigVars.WEBHOOK_SECRET)
 
 
-def start():
-    dp.update.middleware.register(ConfigMiddleware(async_session))
+def start_app():
+    dp.update.middleware.register(ConfigMiddleware())
     dp.include_router(admin_group_router)
     dp.include_router(admin_private_router)
     dp.include_router(debug_router)
@@ -54,4 +54,4 @@ def start():
 
 
 if __name__ == '__main__':
-    start()
+    start_app()

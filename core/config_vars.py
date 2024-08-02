@@ -19,32 +19,37 @@ import os
 from aiogram import types
 from aiogram.enums import ContentType
 
-# Только для тестов
+
+class ProdConfig:
+    # Настройки для прода
+    CHATS = (
+        -1001302438185,  # figmachat
+        -1001808148145,  # figmaforum
+        -1001398488197,  # designchat2
+        -1001535946932,  # systemschat
+        -1001124768091,  # framerchat
+        -1001753295642,  # whatthefontt
+        -1001191920744,  # slashcomments
+        -1001769444523,  # slashimagineai
+        -1001838011289,  # Bot Sandbox
+        -1001629596705,  # uireview
+    )
+    LOG_CHANNEL: int = -1001482081082  # /designer/mutes
+    BOT_USERNAME: str = 'slashdbot'
+    LOG_CHAT: int = -1001838011289  # for mistakes
+
+    HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+    WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+    WEBAPP_HOST = '0.0.0.0'
+    WEBAPP_PORT = int(os.getenv('PORT', default=8000))
+    DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
+
+    # webhook settings
+    WEBHOOK_PATH = '/webhook'
+    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
 
-class ConfigVars:
-    # # Настройки для прода
-    # CHATS = (
-    #     -1001302438185,  # figmachat
-    #     -1001808148145,  # figmaforum
-    #     -1001398488197,  # designchat2
-    #     -1001535946932,  # systemschat
-    #     -1001124768091,  # framerchat
-    #     -1001753295642,  # whatthefontt
-    #     -1001191920744,  # slashcomments
-    #     -1001769444523,  # slashimagineai
-    #     -1001838011289,  # Bot Sandbox
-    #     -1001629596705,  # uireview
-    # )
-    # LOG_CHANNEL: int = -1001482081082  # /designer/mutes
-    # BOT_USERNAME: str = 'slashdbot'
-    # LOG_CHAT: int = -1001838011289  # for mistakes
-    #
-    # HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
-    # WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    # WEBAPP_HOST = '0.0.0.0'
-    # WEBAPP_PORT = int(os.getenv('PORT', default=8000))
-
+class DevConfig:
     # настройки для тестов
     from dotenv import load_dotenv
     env = load_dotenv()
@@ -63,9 +68,16 @@ class ConfigVars:
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
+    # webhook settings
+    WEBHOOK_PATH = '/webhook'
+    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
+
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
+
+
+class ConfigVars(DevConfig):
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
-
 
     MESSAGES_FOR_DELETE = (
         ContentType.NEW_CHAT_MEMBERS,
@@ -101,12 +113,5 @@ class ConfigVars:
         **{i: True for i in types.ChatPermissions.model_fields.keys()}
     )
 
-    # webhook settings
-    WEBHOOK_PATH = '/webhook'
-    WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
-
-    # DATABASE_URL = os.getenv('DATABASE_URL_TRUE')  # Основная бд
-    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная

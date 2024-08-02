@@ -11,6 +11,7 @@ from core.models.data_models import AdminFunctions, UserData
 from core.services.mute import mute
 from core.services.status import status, status_log
 from core.services.unmute import admin_unmute
+from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
 from core.utils.text_checks import get_id_from_text
 from core.utils.get_username_from_text import get_status_from_text
@@ -42,10 +43,25 @@ alias_funcs = {
 }
 
 
-# noinspection DuplicatedCode
+@admin_private_router.message(Command('admin_unmute'))
+async def admin_unmute(message: Message, bot: Bot):
+    user_id = await get_id_from_text(message.text)
+    if user_id is None:
+        print('баг, нет айди')
+        raise ValueError
+    restriction = await restrict(user_id=user_id, chat_id=user_id, bot=bot, chats=ConfigVars.CHATS,
+                                 permissions=ConfigVars.UNMUTE_SETTINGS)
+    # если разблок не прошел
+    if restriction is False:
+        answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
+        await message.answer(answer)
+    else:
+        await message.answer('Успешно')
+
+
 @admin_private_router.message(Command('show_user'))
 @admin_private_router.message(CommandStart(deep_link=True))
-async def show_user_handler(message: Message, session, bot: Bot):
+async def show_user_handler(message: Message, bot: Bot):
     len_msg = len(message.text.split())
     user_username = message.from_user.username
     chat_username = message.chat.username
@@ -55,13 +71,13 @@ async def show_user_handler(message: Message, session, bot: Bot):
         await message.answer(answer)
         return
 
-    user_id = await get_id_from_text(message.text, session)
+    user_id = await get_id_from_text(message.text)
     if user_id is None:
         answer = 'Пользователь не найден.'
         await message.answer(answer)
         return
 
-    answer = await status(user_id=user_id, session=session, bot=bot)
+    answer = await status(user_id=user_id, bot=bot)
     current_status = get_status_from_text(answer)
 
     try:
@@ -87,26 +103,31 @@ async def show_user_handler(message: Message, session, bot: Bot):
 
 
 @admin_private_router.callback_query(AdminFunctions.filter())
-async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, session, bot: Bot):
+async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, bot: Bot, admins: list[int]):
     user_id = callback_data.user_id
     if callback_data.function == 'unblock':
-        success, updated_text = await react_funcs[callback_data.function](user_id, bot, session=session)
+        if user_id in admins:
+            await call.answer(show_alert=True, text='Это вообще как? Напиши, как у тебя получилось улететь в блок :)')
+        success, updated_text = await react_funcs[callback_data.function](user_id, bot)
         if not success:
             await call.answer(text=updated_text, show_alert=True)
             return
     elif callback_data.function == 'mute':
+        if user_id in admins:
+            await call.answer(show_alert=True, text='админы не блокируются даже через консоль :)')
+            return
         data = UserData()
         data.parse_message(call.message, user_id=user_id)
         data.chat_id = ConfigVars.CHATS[0]
-        last_mute = await get_last_mute(user_id, session)
+        last_mute = await get_last_mute(user_id)
         data.reason_message = last_mute['moderator_message']
-        success = await mute(data=data, bot=bot, session=session)
+        success = await mute(data=data, bot=bot)
         if not success:
             await call.answer(text='Мьют не прошел, отчет направлен разработчику', show_alert=True)
             return
-        updated_text = await status(user_id, session, bot)
+        updated_text = await status(user_id, bot)
     elif callback_data.function == 'mute_story':
-        updated_text = await react_funcs[callback_data.function](user_id, session, bot)
+        updated_text = await react_funcs[callback_data.function](user_id, bot)
         builder = InlineKeyboardBuilder()
         builder.button(
             text='Скрыть историю мьютов',
@@ -120,8 +141,8 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
         await call.answer(show_alert=False, text='Успешно')
         return
     else:
-        await react_funcs[callback_data.function](user_id, session=session)
-        updated_text = await status(user_id, session, bot)
+        await react_funcs[callback_data.function](user_id)
+        updated_text = await status(user_id, bot)
 
     current_status = get_status_from_text(updated_text)
     print('статус: ', current_status)
@@ -147,7 +168,7 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, se
 
 # noinspection DuplicatedCode
 @admin_private_router.message(Command('show_user_history'))
-async def show_user_history_handler(message: Message, session, bot: Bot):
+async def show_user_history_handler(message: Message, bot: Bot):
     len_msg = len(message.text.split())
     user_username = message.from_user.username
     chat_username = message.chat.username
@@ -157,13 +178,13 @@ async def show_user_history_handler(message: Message, session, bot: Bot):
         await message.answer(answer)
         return
 
-    user_id = await get_id_from_text(message.text, session)
+    user_id = await get_id_from_text(message.text)
     if user_id is None:
         answer = 'Пользователь не найден.'
         await message.answer(answer)
         return
 
-    answer = await status_log(user_id=user_id, session=session, bot=bot)
+    answer = await status_log(user_id=user_id, bot=bot)
     try:
         await message.answer(answer)
     except Exception as e:
