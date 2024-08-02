@@ -25,9 +25,7 @@ class ConfigMiddleware(BaseMiddleware):
                 else:
                     username = message.from_user.first_name
                 tg_id = message.from_user.id
-                user = await get_username(tg_id)
-                if not user:
-                    await add_id(username, tg_id)
+                await add_id(username, tg_id)
 
         except Exception as e:
             print('no redis,', e)
