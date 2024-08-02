@@ -6,12 +6,12 @@ from core.database_functions.db_functions import add_id, add_user
 from core.utils.send_report import send_bug_report
 
 
-async def add_user_to_db(message: types.Message, session: AsyncSession):
+async def add_user_to_db(message: types.Message):
     username = message.from_user.username
     user_id = message.from_user.id
 
-    user = await add_user(user_id=user_id, session=session)
-    un_id = await add_id(username=username, user_id=user_id, session=session)
+    user = await add_user(user_id=user_id)
+    un_id = await add_id(username=username, user_id=user_id)
     if not user or not un_id:
         user_id = user_id
         username = username

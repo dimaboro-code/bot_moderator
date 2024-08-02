@@ -4,14 +4,14 @@ from core.database_functions.db_functions import get_user, get_last_mute, get_us
 from core.utils.send_report import send_bug_report
 
 
-async def status(user_id: int, session, bot: Bot):
-    user_data = await get_user(user_id=user_id, session=session)
+async def status(user_id: int, bot: Bot):
+    user_data = await get_user(user_id=user_id)
     if user_data is None:
         answer = 'Пользователя нет в базе данных'
         return answer
 
-    user_last_mute = await get_last_mute(user_id=user_id, session=session)
-    username = await get_username(user_id=user_id, session=session)
+    user_last_mute = await get_last_mute(user_id=user_id)
+    username = await get_username(user_id=user_id)
     if user_last_mute is None:
         answer = (f'Пользователь: @{username}\n'
                   f'user id: {user_id},\n'
@@ -38,20 +38,21 @@ async def status(user_id: int, session, bot: Bot):
     return answer
 
 
-async def status_log(user_id: int, session, bot: Bot):
-    user_data = await get_user(user_id=user_id, session=session)
+async def status_log(user_id: int, bot: Bot):
+    user_data = await get_user(user_id=user_id)
     if user_data is None:
         answer = 'Пользователя нет в базе данных'
         return answer
 
-    user_mutes = await get_all_mutes(user_id=user_id, session=session)
-    username = await get_username(user_id=user_id, session=session)
+    user_mutes = await get_all_mutes(user_id=user_id)
+    username = await get_username(user_id=user_id)
     if user_mutes is None:
         answer = 'Пользователь ранее не блокировался'
         return answer
 
     answer_list = []
     for mute in user_mutes:
+        mute: dict
         try:
             chat: types.Chat = await bot.get_chat(mute["chat_id"])
             chat_username: str | None = chat.username

@@ -47,13 +47,16 @@ class UserData(BaseData):
         Returns: self
 
         """
-        if message.reply_to_message.from_user.username:
-            username = message.reply_to_message.from_user.username
-        elif message.reply_to_message.from_user.first_name and message.reply_to_message.from_user.last_name:
-            username = (message.reply_to_message.from_user.first_name + ' ' +
-                        message.reply_to_message.from_user.last_name)
+        if message.reply_to_message is not None:
+            if message.reply_to_message.from_user.username:
+                username = message.reply_to_message.from_user.username
+            elif message.reply_to_message.from_user.first_name and message.reply_to_message.from_user.last_name:
+                username = (message.reply_to_message.from_user.first_name + ' ' +
+                            message.reply_to_message.from_user.last_name)
+            else:
+                username = message.reply_to_message.from_user.first_name
         else:
-            username = message.reply_to_message.from_user.first_name
+            username = 'no_username'
 
         if message.reply_to_message and user_id is None:
             self.user_id = message.reply_to_message.from_user.id

@@ -33,7 +33,6 @@ async def send_welcome(message: Message, session, bot: Bot):
 
 @user_private_router.message(Command('help'))
 async def bot_help(message: Message):
-    # TODO переписать в нормальный вид
     """
     :param message:
     :return:
@@ -47,23 +46,26 @@ async def bot_help(message: Message):
 
 
 @user_private_router.message(Command('status'))
-async def status_handler(message: Message, session, bot: Bot):
+async def status_handler(message: Message, bot: Bot):
     """
      start func
     :param message:
     :return:
+
+    Args:
+        bot:
     """
     user_id = message.from_user.id
 
-    answer = await status(user_id=user_id, session=session, bot=bot)
+    answer = await status(user_id=user_id, bot=bot)
 
     await message.answer(answer)
 
 
 @user_private_router.message(Command('unmute'))
-async def unmute_handler(message: Message, bot: Bot, session):
+async def unmute_handler(message: Message, bot: Bot):
     user_id = message.from_user.id
-    success, answer = await unmute(user_id=user_id, bot=bot, session=session)
+    success, answer = await unmute(user_id=user_id, bot=bot)
     if success:
         await message.answer('Успешно')
         await message.answer(answer)
