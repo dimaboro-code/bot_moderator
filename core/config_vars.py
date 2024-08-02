@@ -75,7 +75,7 @@ class DevConfig:
     DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
 
 
-class ConfigVars(DevConfig):
+class ConfigVars(ProdConfig):
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
 
