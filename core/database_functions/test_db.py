@@ -17,7 +17,7 @@ ADD CONSTRAINT ids_user_id_key UNIQUE (user_id);
 """
 from core.database_functions.db_functions import add_user, add_lives, add_mute, get_user, \
     get_last_mute, delete_lives, db_unmute, delete_all_lives, add_id, \
-    get_id, delete_old_data, delete_user, engine as eng
+    get_list_of_id, delete_old_data, delete_user, engine as eng
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 CONN: AsyncEngine = eng
@@ -40,7 +40,7 @@ async def test_simple_db(engine: AsyncEngine = CONN) -> bool:
         await db_unmute(user_id=test_user_id)
         await delete_all_lives(user_id=test_user_id)
         await add_id(user_id=test_user_id, username='dds')
-        await get_id(username='dds')
+        await get_list_of_id(username='dds')
         await delete_old_data(days=0, user_id=test_user_id)
         await delete_user(user_id=test_user_id)
         print('Тесты бд успешно пройдены')
