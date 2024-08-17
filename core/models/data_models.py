@@ -99,4 +99,3 @@ class AdminFunctions(CallbackData, prefix='show_user'):
 
 class BanSteps(StatesGroup):
     name = State()
-    time_of_message = State()
