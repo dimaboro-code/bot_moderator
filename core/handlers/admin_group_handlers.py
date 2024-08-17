@@ -10,7 +10,7 @@ from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData, BanSteps
 from core.services.mute import mute
 from core.utils.delete_message_with_delay import delete_message
-from core.utils.text_checks import checks
+from core.utils.text_checks import checks, get_id_from_text, get_id_from_entities
 
 admin_group_router = Router()
 admin_group_router.message.filter(AdminFilter())
@@ -92,7 +92,18 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
 
 
 @admin_group_router.message(Command(commands='ban'))
-async def ban_name_handler(message: types.Message, state: FSMContext):
+async def ban_name_handler(message: types.Message, state: FSMContext, bot: Bot):
+    user_id = await get_id_from_text(message.text)
+    # Если текст - это юзернейм или айди, то айди найден. Если текст - не айди и не юзернейм, то не найден
+    if user_id is None and len(message.text.split()) > 1:
+        user_id = await get_id_from_entities(message.entities)
+    # Если текст есть, но не содержит айди или юзернейм, ищем его в энтити
+    if user_id is not None:
+        await ban_name(message=message, user_to_ban=user_id, bot=bot)
+        return
+    # и если нашли - баним
+    # А если не нашли - то сообщаем, что не нашли
+
     await state.set_state(BanSteps.name)
     msg = await message.answer('Пожалуйста, укажите юзернейм пользователя. Если юзернейм отсутствует, '
                                'укажите имя и фамилию пользователя. Если фамилия также отсутствует,'
@@ -108,81 +119,33 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await delete_message(msg, 3)
     await message.delete()
 
+
 @admin_group_router.message(BanSteps.name)
 async def ban_name_step(message: types.Message, bot: Bot, state: FSMContext):
-    print('Бан, степ 1')
-    text = message.text.strip()
-    users_list = await get_list_of_id(username=text)
-    if len(users_list) == 0:
-        await state.clear()
-        msg = await message.answer('Пользователь не найден. Если желаете продолжить, введите команду '
-                                   '/ban команду заново')
-        await delete_message(msg, 2)
-        await delete_message(message, 15)
-    elif len(users_list) > 1:
-        await state.set_state(BanSteps.time_of_message)
-        await state.set_data({'users': users_list})
-        msg = await message.answer('Найдено несколько пользователей. Чтобы определить, кого банить, напишите'
-                                   ', пожалуйста, время последнего сообщения в формате ЧЧ:ММ')
-        await delete_message(msg, 2)
-        await delete_message(message, 5)
-    else:
-        user = users_list[0]
-        if user:
+    """
+    Надо переписать, чтобы для безюзернеймовых брать инфу не из базы, а из энтитис
+    Args:
+        message:
+        bot:
+        state:
+
+    Returns:
+
+    """
+    # гет айди работает только со вторым словом из текста. Поэтому я сделал костыль, чтобы не менять всю функцию
+    user_id = await get_id_from_text(f'костыль {message.text}')
+    # Если текст - это юзернейм или айди, то айди найден. Если текст - не айди и не юзернейм, то не найден
+    if user_id is None:
+        user_id = await get_id_from_entities(message.entities)
+        if user_id is None:
             await state.clear()
-            tg_id = user.user_id
-            await ban_name(message=message, user_to_ban=tg_id, bot=bot)
-        else:
-            await state.clear()
-            msg = await message.answer('Неизвестная ошибка, разработчик её уже чинит. Бан не прошел')
+            msg = await message.answer('Пользователь не найден. Если желаете продолжить, введите команду '
+                                       '/ban команду заново')
             await delete_message(msg, 2)
             await delete_message(message, 15)
             return
-
-
-@admin_group_router.message(BanSteps.time_of_message)
-async def ban_time_step(message: types.Message, bot: Bot, state: FSMContext):
-    message_text = message.text.strip()
-    try:
-        target_dt = datetime.strptime(message_text, '%H:%M')
-        target_dt = datetime.combine(datetime.min, target_dt.time())
-    except ValueError:
-        msg = await message.answer(
-            'Неверный формат времени. Введите время повторно в формате ЧЧ:ММ или используйте команду /cancel'
-        )
-        await delete_message(msg, 2)
-        await delete_message(message, 5)
-        return
-
-    data = await state.get_data()
-    users_list = data.get('users')
-
-    if users_list:
-        closest_user, min_diff = await calculate_closest_user_time(target_dt.time(), users_list)
-
-        if closest_user:
-            clos = datetime.combine(datetime.min, closest_user.created_at.time())
-            precision = abs((clos - target_dt).total_seconds())
-            if precision > 300:  # 5 минут = 300 секунд
-                msg = await message.answer(
-                    'Разница в указанном вами времени с ближайшим пользователем более 5 минут. '
-                    'Пожалуйста, проверьте время последнего сообщения еще раз и введите его.'
-                )
-                await delete_message(msg, 2)
-                await delete_message(message, 5)
-            else:
-                await state.clear()
-                tg_id = closest_user.user_id
-                await ban_name(message=message, user_to_ban=tg_id, bot=bot)
-        else:
-            msg = await message.answer('Не найдено подходящее время среди пользователей.')
-            await delete_message(msg, 2)
-            await delete_message(message, 5)
-    else:
-        await state.clear()
-        msg = await message.answer('Неизвестная ошибка, разработчик её уже чинит. Бан не прошел')
-        await delete_message(msg, 2)
-        await delete_message(message, 15)
+    await state.clear()
+    await ban_name(message=message, user_to_ban=user_id, bot=bot)
 
 
 async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
@@ -195,12 +158,6 @@ async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
     success_message = await message.answer(
         f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
     )
-    await add_mute(mute_data={
-            'user_id': user_to_ban,
-            'chat_id': ConfigVars.CHATS[0],
-            'moderator_message': 'Пользователь забанен',
-            'admin_username':message.from_user.username
-        })
     try:
         await bot.delete_message(
             chat_id=message.chat.id,
@@ -211,19 +168,3 @@ async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
 
     await delete_message(message)
     await delete_message(success_message, 1)
-
-
-async def calculate_closest_user_time(target_time, users_list):
-    min_diff = timedelta.max
-    closest_user = None
-
-    target_dt = datetime.combine(datetime.min, target_time)
-
-    for user in users_list:
-        user_time = user.created_at.time()
-        current_dt = datetime.combine(datetime.min, user_time)
-        diff = abs(target_dt - current_dt)
-        if diff < min_diff:
-            min_diff = diff
-            closest_user = user
-    return closest_user, min_diff

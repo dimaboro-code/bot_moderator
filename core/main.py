@@ -10,7 +10,7 @@ from aiohttp import web
 from core.config_vars import ConfigVars
 # full database import
 from core.database_functions.db_functions import create_db
-from core.handlers import admin_group_router, admin_private_router, user_private_router, debug_router, service_router
+from core.handlers import all_routers
 # GROUP FUNCTION IMPORTS
 from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
@@ -35,11 +35,8 @@ async def on_startup(bot: Bot):
 
 def start_app():
     dp.update.middleware.register(ConfigMiddleware())
-    dp.include_router(admin_group_router)
-    dp.include_router(admin_private_router)
-    dp.include_router(debug_router)
-    dp.include_router(user_private_router)
-    dp.include_router(service_router)
+    [dp.include_router(router) for router in all_routers]
+
     dp.startup.register(on_startup)
 
     app = web.Application()

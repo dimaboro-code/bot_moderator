@@ -1,3 +1,5 @@
+import re
+
 from aiogram import Bot
 from aiogram.types import Message
 
@@ -45,9 +47,14 @@ async def checks(moderator_message: Message, bot: Bot):
     return True, user_id
 
 
-async def get_id_from_text(text: str) -> int:
-    pure_text: str = text.split()[1]
+async def get_id_from_text(text: str) -> int | None:
 
+    pure_text: list[str] = text.strip().split()
+    if len(pure_text) < 2:
+        return None
+    pure_text: str = pure_text[1]
+    if filter_text(pure_text) is None:
+        return None
     if pure_text.isdigit():
         user_id = int(pure_text)
     else:
@@ -63,3 +70,18 @@ async def get_user_id_by_username(pure_text):
     if len(users_list) != 1:
         return None
     return users_list[0].user_id
+
+
+async def get_id_from_entities(entities):
+    for entity in entities:
+        if entity.type == 'text_mention':
+            return entity.user.id
+    return None
+
+
+def filter_text(text: str) -> str | None:
+    # Оставляем только латинские буквы (a-z, A-Z), цифры (0-9), подчеркивания (_) и тире (-)
+    filtered_text = re.sub(r'[^a-zA-Z0-9_-]', '', text)
+    if text != filtered_text:
+        return None
+    return filtered_text
