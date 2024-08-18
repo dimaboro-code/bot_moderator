@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Integer, Boolean, Text, DateTime, Numeric
+from sqlalchemy import Integer, Boolean, Text, DateTime, Numeric, BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -70,3 +70,12 @@ class Id(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped[User] = relationship("User", back_populates="ids", cascade='delete')
+
+
+class DBChat(Base):
+    __tablename__ = 'chats'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    username: Mapped[str] = mapped_column(Text, nullable=True)
+    strict_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

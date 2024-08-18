@@ -1,10 +1,10 @@
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.enums.chat_type import ChatType
-from aiogram.types import Message
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import Message, Chat
 
-from core.database_functions.db_functions import delete_user
+from core import ConfigVars
+from core.database_functions.db_functions import delete_user, db_load_chats
 from core.database_functions.test_db import test_simple_db
 from core.filters.admin_filter import AdminFilter
 from core.utils.send_report import send_mute_report
@@ -61,3 +61,13 @@ async def get_chat_id_handler(message: Message, bot: Bot):
         chat_ids.append(str(chat_id.id))
         answer = ' '.join(chat_ids)
     await message.answer(answer)
+
+
+@debug_router.message(Command('load_chats'))
+async def load_chats(message: Message, bot: Bot) -> None:
+    chats_for_db = []
+    for chat_id in ConfigVars.CHATS:
+        chat: Chat = await bot.get_chat(chat_id)
+        chats_for_db.append(chat)
+    await db_load_chats(chats_for_db)
+    await message.answer('Успешно')

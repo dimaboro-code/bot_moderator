@@ -8,17 +8,17 @@ from .user_group_handlers import user_group_router
 all_routers = [
     admin_group_router,
     admin_private_router,
-    user_private_router,
     debug_router,
+    user_private_router,
+    user_group_router,
     service_router,
-    user_group_router
 ]
 
 __all__ = [
     'admin_group_router',
     'admin_private_router',
-    'user_private_router',
     'debug_router',
+    'user_private_router',
     'service_router',
     'all_routers',
     'user_group_router'
