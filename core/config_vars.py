@@ -115,3 +115,4 @@ class ConfigVars(DevConfig):
 
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
+    REDIS_URL = os.getenv('REDIS_URL')
