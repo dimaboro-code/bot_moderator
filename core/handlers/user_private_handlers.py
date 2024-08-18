@@ -1,8 +1,12 @@
+import asyncio
+import json
+
 from aiogram import Router, F, Bot
 from aiogram.enums import ChatType
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, ReplyKeyboardRemove
 
+from core.utils.create_redis_pool import get_conn
 from core.services.status import status
 from core.services.unmute import unmute
 
@@ -10,7 +14,24 @@ user_private_router = Router()
 user_private_router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 
-@user_private_router.message(CommandStart())
+@user_private_router.message(CommandStart(deep_link=True), F.text.contains('get_my_message'))
+@user_private_router.message(Command('get_my_message'))
+async def send_message(message: Message, bot: Bot):
+    async with get_conn() as redis:
+        redis_message = await redis.get(message.from_user.id)
+        if redis_message is None:
+            await message.answer('Нет сохраненных сообщений. Любые удаленные сообщения хранятся ровно '
+                                 'сутки с момента удаления')
+            return
+        list_msg = json.loads(redis_message)
+        await redis.delete(message.from_user.id)
+        for msg in list_msg:
+            msg = Message.model_validate_json(msg)
+            await bot(msg.send_copy(message.chat.id))
+            await asyncio.sleep(1)
+
+
+@user_private_router.message(CommandStart(), F.text.len() == 6)
 async def send_welcome(message: Message, bot: Bot):
     hello_message = (
         f'Привет!\n\n'
@@ -41,7 +62,8 @@ async def bot_help(message: Message):
             '/start - запустить бота\n'
             '/status - текущее состояние\n'
             '/unmute - разблокироваться\n'
-            '/help - список доступных команд\n')
+            '/help - список доступных команд\n'
+            '/get_my_message - получить удаленное сообщение')
     await message.answer(text, reply_markup=ReplyKeyboardRemove())
 
 

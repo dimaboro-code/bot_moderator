@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from core import ConfigVars
-from core.database_functions.db_functions import add_lives
+from core.database_functions.db_functions import add_lives, db_update_strict_chats
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData, BanSteps
 from core.services.mute import mute
@@ -14,6 +14,30 @@ from core.utils.text_checks import checks, get_id_from_text, get_id_from_entitie
 
 admin_group_router = Router()
 admin_group_router.message.filter(AdminFilter())
+
+
+@admin_group_router.message(Command('strict_mode_on'))
+async def strict_mode_on(message: types.Message, strict_chats: list):
+    if message.chat.id in strict_chats:
+        msg = await message.answer('В чате уже включен строгий режим')
+    else:
+        strict_chats.append(message.chat.id)
+        await db_update_strict_chats(strict_chats)
+        msg = await message.answer('Успешно')
+    await delete_message(msg, 2)
+    await message.delete()
+
+
+@admin_group_router.message(Command('strict_mode_off'))
+async def strict_mode_off(message: types.Message, strict_chats: list):
+    if message.chat.id in strict_chats:
+        await db_update_strict_chats(strict_chats, remove=True)
+        strict_chats.remove(message.chat.id)
+        msg = await message.answer('Успешно')
+    else:
+        msg = await message.answer('Строгий режим отключен')
+    await delete_message(msg, 2)
+    await message.delete()
 
 
 @admin_group_router.message(Command(commands='mute'))

@@ -64,7 +64,7 @@ class DevConfig:
     BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
 
-    WEBHOOK_HOST = 'https://b4e2-178-88-32-157.ngrok-free.app'
+    WEBHOOK_HOST = 'https://8497-195-82-28-111.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
@@ -115,3 +115,4 @@ class ConfigVars(ProdConfig):
 
     # webserver settings
     WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
+    REDIS_URL = os.getenv('REDIS_URL')

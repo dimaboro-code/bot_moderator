@@ -17,3 +17,5 @@ async def delete_message(message: types.Message, delay_time: int = 0):
 
     with suppress(Exception):
         await message.delete()
+        return True
+    return False

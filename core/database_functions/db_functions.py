@@ -6,7 +6,7 @@ from sqlalchemy import Result, func, and_
 from sqlalchemy import select, delete, update
 from sqlalchemy.dialects.postgresql import insert
 
-from core.database_functions.db_models import User, Mute, Id, Base
+from core.database_functions.db_models import User, Mute, Id, Base, DBChat
 from core.config import async_session, engine
 
 
@@ -279,7 +279,7 @@ async def get_list_of_id(username: str, session = async_session):
             print('гет айди, Ошибка: ', str(e))
 
 
-async def get_username(user_id: int, session = async_session):
+async def get_username(user_id: int, session=async_session):
     async with session() as session:
         try:
             result: Result = await session.execute(
@@ -292,6 +292,37 @@ async def get_username(user_id: int, session = async_session):
 
         except Exception as e:
             print('гет юзернейм, Ошибка: ', str(e))
+
+
+async def db_load_chats(chats_for_db, session=async_session):
+    async with session() as session:
+        for chat in chats_for_db:
+            db_chat = DBChat(
+                chat_id=chat.id,
+                title=chat.title,
+                username=chat.username
+            )
+            session.add(db_chat)
+        await session.commit()
+    return True
+
+
+async def db_update_strict_chats(strict_chats, remove=False, session=async_session):
+    async with session() as session:
+        for chat_id in strict_chats:
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not remove)
+            await session.execute(query)
+            await session.commit()
+    return True
+
+
+async def db_get_strict_chats(session=async_session):
+    async with session() as session:
+        query = select(DBChat.chat_id).where(DBChat.strict_mode == True)
+        result = await session.execute(query)
+        strict_chats = result.scalars().all()
+        print(strict_chats)
+        return strict_chats
 
 
 async def delete_old_data(session_maker=async_session, days: int = 15, user_id: int = None):
