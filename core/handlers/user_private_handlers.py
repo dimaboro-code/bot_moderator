@@ -20,7 +20,8 @@ async def send_message(message: Message, bot: Bot):
     async with get_conn() as redis:
         redis_message = await redis.get(message.from_user.id)
         if redis_message is None:
-            await message.answer('Нет сохраненных сообщений')
+            await message.answer('Нет сохраненных сообщений. Любые удаленные сообщения хранятся ровно '
+                                 'сутки с момента удаления')
             return
         list_msg = json.loads(redis_message)
         await redis.delete(message.from_user.id)
@@ -61,7 +62,8 @@ async def bot_help(message: Message):
             '/start - запустить бота\n'
             '/status - текущее состояние\n'
             '/unmute - разблокироваться\n'
-            '/help - список доступных команд\n')
+            '/help - список доступных команд\n'
+            '/get_my_message - получить удаленное сообщение')
     await message.answer(text, reply_markup=ReplyKeyboardRemove())
 
 

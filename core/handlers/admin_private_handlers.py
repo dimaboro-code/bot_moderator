@@ -60,7 +60,7 @@ async def admin_unmute(message: Message, bot: Bot):
 
 
 @admin_private_router.message(Command('status'), F.text.len() > 10)
-@admin_private_router.message(CommandStart(deep_link=True))
+@admin_private_router.message(CommandStart(deep_link=True), F.text.len() < 21)
 async def show_user_handler(message: Message, bot: Bot):
     len_msg = len(message.text.split())
     user_username = message.from_user.username
