@@ -35,10 +35,11 @@ async def strict_mode(message: types.Message, bot: Bot, reason_message: dict):
         await bot.delete_message(message.chat.id, reason_message.pop(message.chat.id))
     except Exception:
         pass
-    msg = await message.answer(f'Сообщение не содержит теги #годнота или #вопрос, или не отвечает на другое, '
-                               f'поэтому оно было удалено.'
+    msg = await message.answer('Сообщение не содержит теги #годнота или #вопрос, или не является ответом на другое'
+                               ' сообщение, поэтому оно было удалено. '
                                f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
-                               f'Восстановить</a>', parse_mode='HTML', disable_web_page_preview=True)
+                               '\nОтправить удаленное сообщение в лс</a>', parse_mode='HTML',
+                               disable_web_page_preview=True)
     reason_message[message.chat.id] = msg.message_id
     await message.delete()
     success = await delete_message(msg, 30)
