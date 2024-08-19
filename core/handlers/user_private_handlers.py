@@ -15,7 +15,7 @@ user_private_router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 
 @user_private_router.message(CommandStart(deep_link=True), F.text.contains('get_my_message'))
-@user_private_router.message(Command('get_my_message'))
+@user_private_router.message(Command('message'))
 async def send_message(message: Message, bot: Bot):
     async with get_conn() as redis:
         redis_message = await redis.get(message.from_user.id)
