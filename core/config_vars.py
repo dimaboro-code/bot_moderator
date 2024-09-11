@@ -64,7 +64,7 @@ class DevConfig:
     BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
 
-    WEBHOOK_HOST = 'https://8497-195-82-28-111.ngrok-free.app'
+    WEBHOOK_HOST = 'https://e48e-178-88-37-0.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
