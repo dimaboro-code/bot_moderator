@@ -12,19 +12,15 @@ async def checks(moderator_message: Message, bot: Bot):
     # По юзернейму и по реплею
     # Если есть и то, и то, выбираем реплей.
 
-    username = is_username(moderator_message.text)
+    user_id = await get_id_from_text(moderator_message.text)
 
-    if username is not None:
-        users_list = await get_list_of_id(username)
-        if len(users_list) == 0:
+    if user_id is None:
+        user_id = await get_id_from_entities(moderator_message.entities)
+        if user_id is None:
             return False, 'К сожалению, пользователя нет в базе.'
 
         if len(moderator_message.text.strip().split()) < 3:
             return False, 'Команда не содержит сообщение о причине мьюта'
-
-        if len(users_list) > 1:
-            return False, 'найдено несколько пользователей'
-        user_id = users_list[0].user_id
 
         member = await bot.get_chat_member(moderator_message.chat.id, user_id)
         if member.status == 'restricted' and not member.can_send_messages:
@@ -81,7 +77,7 @@ async def get_id_from_entities(entities):
 
 def filter_text(text: str) -> str | None:
     # Оставляем только латинские буквы (a-z, A-Z), цифры (0-9), подчеркивания (_) и тире (-)
-    filtered_text = re.sub(r'[^a-zA-Z0-9_-]', '', text)
+    filtered_text = re.sub(r'[^a-zA-Z0-9_@-]', '', text)
     if text != filtered_text:
         return None
     return filtered_text
