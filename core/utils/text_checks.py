@@ -13,12 +13,10 @@ async def checks(moderator_message: Message, bot: Bot):
     # Если есть и то, и то, выбираем реплей.
 
     user_id = await get_id_from_text(moderator_message.text)
-
     if user_id is None:
         user_id = await get_id_from_entities(moderator_message.entities)
-        if user_id is None:
-            return False, 'К сожалению, пользователя нет в базе.'
 
+    if user_id is not None:
         if len(moderator_message.text.strip().split()) < 3:
             return False, 'Команда не содержит сообщение о причине мьюта'
 
@@ -29,7 +27,7 @@ async def checks(moderator_message: Message, bot: Bot):
         return True, user_id
 
     if not moderator_message.reply_to_message:
-        return False, 'Команда должна быть ответом на сообщение или включать в себя юзернейм'
+        return False, 'Пользователь не найден'
 
     user_id = moderator_message.reply_to_message.from_user.id
 
