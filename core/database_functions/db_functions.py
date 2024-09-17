@@ -270,8 +270,7 @@ async def get_list_of_id(username: str, session = async_session):
             result: Result = await session.execute(
                 select(Id).where(username == Id.username)
             )
-            user_id: list[Id] | None = result.scalars().all()
-            print('БД, Гет айди, юзер айди:', user_id[0].user_id if user_id is not None else None)
+            user_id = result.scalars().all()
             await session.commit()
             return [] if user_id is None else user_id
 
