@@ -21,10 +21,12 @@ async def checks(moderator_message: Message, bot: Bot):
             return False, 'Команда не содержит сообщение о причине мьюта'
 
         member = await bot.get_chat_member(moderator_message.chat.id, user_id)
-        if member.status == 'restricted' and not member.can_send_messages:
-            return False, 'Пользователь уже в мьюте'
+        if member.status == 'restricted' and member.can_send_messages:
+            return True, user_id
+        if member.status == 'member' or member.status == 'left':
+            return True, user_id
 
-        return True, user_id
+        return False, 'Пользователя нельзя замьютить'
 
     if not moderator_message.reply_to_message:
         return False, 'Пользователь не найден'
@@ -35,10 +37,12 @@ async def checks(moderator_message: Message, bot: Bot):
         return False, 'Команда не содержит сообщение о причине мьюта'
 
     member = await bot.get_chat_member(moderator_message.chat.id, user_id)
-    if member.status == 'restricted' and not member.can_send_messages:
-        return False, 'Пользователь уже в мьюте'
+    if member.status == 'restricted' and member.can_send_messages:
+        return True, user_id
+    if member.status == 'member' or member.status == 'left':
+        return True, user_id
 
-    return True, user_id
+    return False, 'Пользователя нельзя замьютить'
 
 
 async def get_id_from_text(text: str) -> int | None:
@@ -79,3 +83,7 @@ def filter_text(text: str) -> str | None:
     if text != filtered_text:
         return None
     return filtered_text
+
+
+def split_string(input_string, max_length):
+    return [input_string[i:i + max_length] for i in range(0, len(input_string), max_length)]

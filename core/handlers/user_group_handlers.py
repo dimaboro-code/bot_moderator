@@ -9,6 +9,7 @@
 import json
 
 from aiogram import Router, types, Bot
+from aiogram.types import MessageId
 
 from core import ConfigVars
 from core.filters.admin_filter import HashTagFilter, StrictChatFilter
@@ -22,6 +23,10 @@ user_group_router = Router()
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())
 async def strict_mode(message: types.Message, bot: Bot, reason_message: dict):
+
+    message_copy_id: MessageId = await bot.copy_message(
+        ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id
+    )
     async with get_conn() as redis:
         redis: Redis
         redis_message = await redis.get(message.from_user.id)
@@ -29,28 +34,21 @@ async def strict_mode(message: types.Message, bot: Bot, reason_message: dict):
             list_msg: list = json.loads(redis_message)
         else:
             list_msg = []
-        list_msg.append(message.model_dump_json())
+        list_msg.append(message_copy_id.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
     try:
         await bot.delete_message(message.chat.id, reason_message.pop(message.chat.id))
-    except Exception:
+    except KeyError:
         pass
-    msg = await message.answer('Сообщение не содержит теги #годнота или #вопрос, или не является ответом на другое'
-                               ' сообщение, поэтому оно было удалено. '
-                               f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
-                               '\nОтправить удаленное сообщение в лс</a>', parse_mode='HTML', disable_web_page_preview=True)
+    msg = await message.answer(
+        'Сообщение не содержит теги #тема, #годнота или #вопрос, или не является '
+        'ответом на другое сообщение, поэтому оно было удалено. '
+        f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
+        '\nОтправить удаленное сообщение в лс</a>', parse_mode='HTML',
+        disable_web_page_preview=True
+    )
     reason_message[message.chat.id] = msg.message_id
     await message.delete()
     success = await delete_message(msg, 30)
     if success:
         reason_message.pop(message.chat.id)
-
-
-# TODO добавить в возврат
-async def strict_mode(message: types.Message):
-    for msg in split_string(message.model_dump_json(), 4096):
-        await message.answer(msg)
-
-
-def split_string(input_string, max_length):
-    return [input_string[i:i + max_length] for i in range(0, len(input_string), max_length)]
