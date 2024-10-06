@@ -26,18 +26,25 @@ class HashTagFilter(BaseFilter):
     allowed_hashtags = [
         'годнота',
         'вопрос',
-        'тема',
+        'тема'
     ]
 
     async def __call__(self, message: Message) -> bool:
         if message.reply_to_message:
             print('реплей')
             return True
-        if message.entities is not None :
+        if message.entities is not None:
             for entity in message.entities:
                 if entity.type == MessageEntityType.HASHTAG:
                     print('с хэштегом')
                     hashtag = message.text[entity.offset+1:(entity.offset + entity.length)].lower()
+                    if hashtag in self.allowed_hashtags:
+                        return True
+        elif message.caption_entities is not None:
+            for entity in message.caption_entities:
+                if entity.type == MessageEntityType.HASHTAG:
+                    print('с хэштегом')
+                    hashtag = message.caption[entity.offset+1:(entity.offset + entity.length)].lower()
                     if hashtag in self.allowed_hashtags:
                         return True
         return False

@@ -10,8 +10,7 @@ from core.database_functions.db_models import User, Mute, Id, Base, DBChat
 from core.config import async_session, engine
 
 
-
-async def add_user(user_id: int, session = async_session):
+async def add_user(user_id: int, session=async_session):
     async with session() as session:
         try:
             async with session.begin():
@@ -27,7 +26,7 @@ async def add_user(user_id: int, session = async_session):
             return False
 
 
-async def add_mute(mute_data, session = async_session):
+async def add_mute(mute_data, session=async_session):
     user = await get_user(mute_data['user_id'])
     if user is None:
         await add_user(mute_data['user_id'])
@@ -62,7 +61,7 @@ async def add_mute(mute_data, session = async_session):
             return False
 
 
-async def add_lives(user_id: int, session = async_session, lives: int = 1, *args):
+async def add_lives(user_id: int, session=async_session, lives: int = 1):
     async with session() as session:
         try:
             # Получаем текущее количество жизней из базы данных
@@ -91,7 +90,7 @@ async def add_lives(user_id: int, session = async_session, lives: int = 1, *args
             return False
 
 
-async def delete_lives(user_id: int, session=async_session, deaths: int = 1, *args):
+async def delete_lives(user_id: int, session=async_session, deaths: int = 1):
     async with session() as session:
         try:
             # Получаем текущее количество жизней из базы данных
@@ -125,7 +124,7 @@ async def delete_lives(user_id: int, session=async_session, deaths: int = 1, *ar
             print('Делит лайвс, что-то пошло не так, ошибка:', e)
 
 
-async def delete_all_lives(user_id: int, session = async_session, *args):
+async def delete_all_lives(user_id: int, session=async_session):
     async with session() as session:
         try:
             # Получаем текущее количество жизней из базы данных
@@ -139,9 +138,9 @@ async def delete_all_lives(user_id: int, session = async_session, *args):
             print('Удалить все жизни, что-то пошло не так, ошибка: ', e)
 
 
-async def get_user(user_id: int, session = async_session):
+async def get_user(user_id: int, session=async_session):
     async with session() as session:
-    # Получаем данные пользователя из базы данных
+        # Получаем данные пользователя из базы данных
         try:
             result: Result = await session.execute(
                 select(User).where(user_id == User.user_id)
@@ -158,7 +157,7 @@ async def get_user(user_id: int, session = async_session):
             print('Юзер не найден, ошибка', e)
 
 
-async def get_last_mute(user_id: int, session = async_session) -> typing.Dict[typing.AnyStr, typing.Any]:
+async def get_last_mute(user_id: int, session=async_session) -> typing.Dict[typing.AnyStr, typing.Any] | None:
     async with session() as session:
         subquery = select(func.max(Mute.id)).where(user_id == Mute.user_id).scalar_subquery()
         query = select(Mute).filter(user_id == Mute.user_id, Mute.id == subquery)
@@ -182,7 +181,7 @@ async def get_last_mute(user_id: int, session = async_session) -> typing.Dict[ty
             print('Поиск последнего мьюта сломан, ошибка:', e)
 
 
-async def get_all_mutes(user_id: int, session = async_session) -> typing.Dict[typing.AnyStr, typing.Any]:
+async def get_all_mutes(user_id: int, session=async_session) -> typing.Any | None:
     async with session() as session:
         query = select(Mute).where(user_id == Mute.user_id)
         try:
@@ -208,7 +207,7 @@ async def get_all_mutes(user_id: int, session = async_session) -> typing.Dict[ty
             print('Поиск всех мьютов сломан, ошибка:', e)
 
 
-async def db_unmute(user_id: int, session = async_session):
+async def db_unmute(user_id: int, session=async_session):
     async with session() as session:
         stmt = update(User).where(user_id == User.user_id
                                   ).values(is_muted=False, user_blocks=User.user_blocks - 1
@@ -225,7 +224,7 @@ async def db_unmute(user_id: int, session = async_session):
             return False
 
 
-async def delete_user(user_id: int, session = async_session):
+async def delete_user(user_id: int, session=async_session):
     async with session() as session:
         # Находим пользователя по user_id и удаляем его
         query = select(User).where(user_id == User.user_id)
@@ -244,7 +243,7 @@ async def delete_user(user_id: int, session = async_session):
             print('Не удалось удалить пользователя, сломано: ', e)
 
 
-async def add_id(username: str, user_id: int, session = async_session):
+async def add_id(username: str, user_id: int, session=async_session):
     async with session() as session:
         try:
             async with session.begin():
@@ -264,18 +263,18 @@ async def add_id(username: str, user_id: int, session = async_session):
             return False
 
 
-async def get_list_of_id(username: str, session = async_session):
+async def get_list_of_id(username: str, session=async_session):
     async with session() as session:
         try:
             result: Result = await session.execute(
                 select(Id).where(username == Id.username)
             )
-            user_id = result.scalars().all()
-            await session.commit()
-            return [] if user_id is None else user_id
-
         except Exception as e:
             print('гет айди, Ошибка: ', str(e))
+        else:
+            user_id = result.scalars().all()
+            await session.commit()
+        return [] if user_id is None else user_id
 
 
 async def get_username(user_id: int, session=async_session):
@@ -317,10 +316,9 @@ async def db_update_strict_chats(strict_chats, remove=False, session=async_sessi
 
 async def db_get_strict_chats(session=async_session):
     async with session() as session:
-        query = select(DBChat.chat_id).where(DBChat.strict_mode == True)
+        query = select(DBChat.chat_id).where(DBChat.strict_mode is True)
         result = await session.execute(query)
         strict_chats = result.scalars().all()
-        print(strict_chats)
         return strict_chats
 
 

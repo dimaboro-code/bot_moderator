@@ -37,6 +37,7 @@ class ProdConfig:
     LOG_CHANNEL: int = -1001482081082  # /designer/mutes
     BOT_USERNAME: str = 'slashdbot'
     LOG_CHAT: int = -1001838011289  # for mistakes
+    MESSAGE_CONTAINER_CHAT: int = -1002455952036  # for strict mode.
 
     HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
     WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
@@ -63,8 +64,9 @@ class DevConfig:
     LOG_CHANNEL: int = -1002065542994
     BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
+    MESSAGE_CONTAINER_CHAT: int = -4549380236
 
-    WEBHOOK_HOST = 'https://8497-195-82-28-111.ngrok-free.app'
+    WEBHOOK_HOST = 'https://80e9-95-57-138-25.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 

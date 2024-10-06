@@ -1,10 +1,11 @@
+import asyncio
 from typing import Dict, Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message, Update
 from aiogram.exceptions import TelegramBadRequest
 
 from core.config import engine
-from core.database_functions.db_functions import get_username, add_id
+from core.database_functions.db_functions import add_id
 
 
 class ConfigMiddleware(BaseMiddleware):
@@ -27,6 +28,9 @@ class ConfigMiddleware(BaseMiddleware):
         try:
             await handler(event, data)
             await engine.dispose()
-        except TelegramBadRequest as e:
-            print('бэд рекуест, ошибка ', e)
+        except TelegramBadRequest:
+            await asyncio.sleep(8)
+            await handler(event, data)
+        finally:
+            await engine.dispose()
         return

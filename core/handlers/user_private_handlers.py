@@ -1,11 +1,12 @@
-import asyncio
 import json
 
 from aiogram import Router, F, Bot
 from aiogram.enums import ChatType
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, ReplyKeyboardRemove
 
+from core import ConfigVars
 from core.utils.create_redis_pool import get_conn
 from core.services.status import status
 from core.services.unmute import unmute
@@ -15,7 +16,7 @@ user_private_router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 
 @user_private_router.message(CommandStart(deep_link=True), F.text.contains('get_my_message'))
-@user_private_router.message(Command('message'))
+@user_private_router.message(Command('get_my_message'))
 async def send_message(message: Message, bot: Bot):
     async with get_conn() as redis:
         redis_message = await redis.get(message.from_user.id)
@@ -23,12 +24,14 @@ async def send_message(message: Message, bot: Bot):
             await message.answer('Нет сохраненных сообщений. Любые удаленные сообщения хранятся ровно '
                                  'сутки с момента удаления')
             return
-        list_msg = json.loads(redis_message)
-        await redis.delete(message.from_user.id)
-        for msg in list_msg:
-            msg = Message.model_validate_json(msg)
-            await bot(msg.send_copy(message.chat.id))
-            await asyncio.sleep(1)
+        list_msg_id = json.loads(redis_message)
+        for msg_id in list_msg_id:
+            try:
+                await bot.copy_message(message.chat.id, ConfigVars.MESSAGE_CONTAINER_CHAT, msg_id)
+            except TelegramBadRequest as e:
+                print(f'bad request: {e}')
+            else:
+                await redis.delete(message.from_user.id)
 
 
 @user_private_router.message(CommandStart(), F.text.len() == 6)
@@ -70,17 +73,16 @@ async def bot_help(message: Message):
 @user_private_router.message(Command('status'))
 async def status_handler(message: Message, bot: Bot):
     """
-     start func
-    :param message:
-    :return:
-
+    My status
     Args:
+        message:
         bot:
+
+    Returns:
+
     """
     user_id = message.from_user.id
-
     answer = await status(user_id=user_id, bot=bot)
-
     await message.answer(answer)
 
 
