@@ -81,7 +81,6 @@ async def show_user_handler(message: Message, bot: Bot):
     current_status = get_status_from_text(answer)
 
     try:
-        # TODO переписать на свежую голову
         builder = InlineKeyboardBuilder()
         for button, func in alias_funcs.items():
             if func == 'mute':

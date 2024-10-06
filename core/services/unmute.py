@@ -38,8 +38,9 @@ async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
         elif isinstance(member, types.ChatMemberBanned):
             answer = 'Вы забанены. Для снятия блокировки можете обратиться к админам.'
             return False, answer
-        else:
-            print(member.status)
+        elif isinstance(member, types.ChatMemberLeft):
+            answer = 'Вы разблокированы в чате, в котором были заблокированы. Можете вновь вступить в него'
+            return False, answer
     except TelegramBadRequest as e:
         problem = f'Анмьют, нет доступа к чату последнего мьюта, ошибка: {e}'
         await send_bug_report(user_id, 'None', user_id, 'None', problem)
@@ -51,23 +52,20 @@ async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
     if restriction is False:
         answer = 'Не удалось разблокировать, отчет направлен разработчику. Обратитесь к модераторам, например, @deanrie'
         return False, answer
-
     unmuted = await db_unmute(user_id)
     if unmuted is False:
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
-
     answer = await status(user_id, bot)
     return True, answer
 
 
 async def admin_unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
-                 permissions: types.ChatPermissions = ConfigVars.UNMUTE_SETTINGS):
+                       permissions: types.ChatPermissions = ConfigVars.UNMUTE_SETTINGS):
     user_last_mute = await get_last_mute(user_id)
     if user_last_mute is None:
-        answer = ('Ошибка базы данных, пользователь не найден. Сообщить о баге @dimaboro')
+        answer = 'Ошибка базы данных, пользователь не найден. Сообщить о баге @dimaboro'
         return False, answer
-
 
     restriction = await restrict(user_id=user_id, chat_id=user_id, bot=bot, chats=chats, permissions=permissions)
     # если разблок не прошел
