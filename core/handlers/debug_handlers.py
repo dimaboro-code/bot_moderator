@@ -50,7 +50,7 @@ async def send_report_handler(message: Message) -> None:
 @debug_router.message(Command('get_chat_id'))
 async def get_chat_id_handler(message: Message, bot: Bot):
     if len(message.text.split()) == 1:
-        await message.answer('Не указан username группы или канала')
+        await message.answer(f'Id текущего чата: {message.chat.id}')
         return
     chat_ids = []
     text = message.text.strip().split()
