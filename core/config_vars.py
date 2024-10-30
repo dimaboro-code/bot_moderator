@@ -37,7 +37,7 @@ class ProdConfig:
     LOG_CHANNEL: int = -1001482081082  # /designer/mutes
     BOT_USERNAME: str = 'slashdbot'
     LOG_CHAT: int = -1001838011289  # for mistakes
-    MESSAGE_CONTAINER_CHAT: int = -1  # for strict mode.
+    MESSAGE_CONTAINER_CHAT: int = -1002455952036  # for strict mode.
 
     HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
     WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
@@ -77,7 +77,7 @@ class DevConfig:
     DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
 
 
-class ConfigVars(DevConfig):
+class ConfigVars(ProdConfig):
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
 

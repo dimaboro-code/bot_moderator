@@ -126,8 +126,6 @@ async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
     for chat in ConfigVars.CHATS:
         success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
         if not success:
-            with open("ban.log", "a") as f:
-                f.write(f'Бан не прошел. Пользователь {user_to_ban}, чат {chat}\n')
             await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}'
                                                                      f', чат {chat}\n')
     success_message = await message.answer(
