@@ -37,7 +37,8 @@ async def on_startup(bot: Bot):
 
 def start_app():
     dp.update.middleware.register(ConfigMiddleware())
-    [dp.include_router(router) for router in all_routers]
+    for router in all_routers:
+        dp.include_router(router)
 
     dp.startup.register(on_startup)
 
