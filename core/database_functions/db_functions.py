@@ -316,7 +316,7 @@ async def db_update_strict_chats(strict_chats, remove=False, session=async_sessi
 
 async def db_get_strict_chats(session=async_session):
     async with session() as session:
-        query = select(DBChat.chat_id).where(DBChat.strict_mode is True)
+        query = select(DBChat.chat_id).where(DBChat.strict_mode==True)
         result = await session.execute(query)
         strict_chats = result.scalars().all()
         return strict_chats
