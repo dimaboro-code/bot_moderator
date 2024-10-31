@@ -103,6 +103,20 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
     await delete_message(success_message, 1)
 
 
+@admin_group_router.message(Command(commands='fban'), F.reply_to_message)
+async def ban_forward_handler(moderator_message: types.Message, bot: Bot):
+    user_to_ban = moderator_message.reply_to_message.forward_from.id
+    for chat in ConfigVars.CHATS:
+        success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
+        if not success:
+            await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}')
+    success_message = await moderator_message.answer(
+        f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
+    )
+    await delete_message(moderator_message)
+    await delete_message(success_message, 1)
+
+
 @admin_group_router.message(Command(commands='ban'))
 async def ban_name_handler(message: types.Message, bot: Bot):
     user_id = await get_id_from_text(message.text)
