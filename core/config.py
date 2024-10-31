@@ -1,10 +1,9 @@
 from aiogram import Bot, Dispatcher
-from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
 
 from .config_vars import ConfigVars
 
-bot = Bot(token=ConfigVars.TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(token=ConfigVars.TOKEN)
 dp = Dispatcher()
 
 engine: AsyncEngine = create_async_engine(

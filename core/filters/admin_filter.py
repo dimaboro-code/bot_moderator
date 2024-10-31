@@ -26,7 +26,8 @@ class HashTagFilter(BaseFilter):
     allowed_hashtags = [
         'годнота',
         'вопрос',
-        'тема'
+        'тема',
+        'ревью'
     ]
 
     async def __call__(self, message: Message) -> bool:

@@ -66,7 +66,7 @@ class DevConfig:
     LOG_CHAT: int = -1001868029361  # for mistakes
     MESSAGE_CONTAINER_CHAT: int = -4549380236
 
-    WEBHOOK_HOST = 'https://80e9-95-57-138-25.ngrok-free.app'
+    WEBHOOK_HOST = 'https://6f08-78-109-149-100.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 
@@ -77,7 +77,7 @@ class DevConfig:
     DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
 
 
-class ConfigVars(ProdConfig):
+class ConfigVars(DevConfig):
     # Общие настройки
     TOKEN = os.getenv('BOT_TOKEN')  # Боты разные, но значение в обоих случаях берется из ENV
 

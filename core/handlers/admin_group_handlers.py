@@ -16,11 +16,11 @@ admin_group_router.message.filter(AdminFilter())
 @admin_group_router.message(Command('strict_mode_on'))
 async def strict_mode_on(message: types.Message, strict_chats: list):
     if message.chat.id in strict_chats:
-        msg = await message.answer('В чате уже включен строгий режим')
+        msg = await message.answer('Strict Reply включен')
     else:
         strict_chats.append(message.chat.id)
         await db_update_strict_chats(strict_chats)
-        msg = await message.answer('Успешно')
+        msg = await message.answer('Strict Reply уже включен')
     await delete_message(msg, 2)
     await message.delete()
 
@@ -30,9 +30,9 @@ async def strict_mode_off(message: types.Message, strict_chats: list):
     if message.chat.id in strict_chats:
         await db_update_strict_chats(strict_chats, remove=True)
         strict_chats.remove(message.chat.id)
-        msg = await message.answer('Успешно')
+        msg = await message.answer('Strict Reply отключен')
     else:
-        msg = await message.answer('Строгий режим отключен')
+        msg = await message.answer('Strict Reply уже отключен')
     await delete_message(msg, 2)
     await message.delete()
 
