@@ -305,10 +305,10 @@ async def db_load_chats(chats_for_db, session=async_session):
     return True
 
 
-async def db_update_strict_chats(strict_chats, remove=False, session=async_session):
+async def db_update_strict_chats(strict_chats, not_remove=True, session=async_session):
     async with session() as session:
         for chat_id in strict_chats:
-            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not remove)
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not_remove)
             await session.execute(query)
             await session.commit()
     return True
@@ -316,7 +316,7 @@ async def db_update_strict_chats(strict_chats, remove=False, session=async_sessi
 
 async def db_get_strict_chats(session=async_session):
     async with session() as session:
-        query = select(DBChat.chat_id).where(DBChat.strict_mode is True)
+        query = select(DBChat.chat_id).where(DBChat.strict_mode==True)
         result = await session.execute(query)
         strict_chats = result.scalars().all()
         return strict_chats

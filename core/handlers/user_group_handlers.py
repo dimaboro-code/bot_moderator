@@ -8,7 +8,6 @@
 # перейдите по ссылке.
 
 
-
 import json
 
 from aiogram import Router, types, Bot
@@ -19,13 +18,12 @@ from core.filters.admin_filter import HashTagFilter, StrictChatFilter
 from redis.asyncio import Redis
 
 from core.utils.create_redis_pool import get_conn
-from core.utils.delete_message_with_delay import delete_message
 
 user_group_router = Router()
 
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())
-async def strict_mode(message: types.Message, bot: Bot, reason_message: dict):
+async def strict_mode(message: types.Message, bot: Bot):
 
     message_copy_id: MessageId = await bot.copy_message(
         ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id
@@ -39,19 +37,13 @@ async def strict_mode(message: types.Message, bot: Bot, reason_message: dict):
             list_msg = []
         list_msg.append(message_copy_id.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
-    try:
-        await bot.delete_message(message.chat.id, reason_message.pop(message.chat.id))
-    except KeyError:
-        pass
-    msg = await message.answer(
-        'Сообщение не содержит теги #тема, #годнота или #вопрос, или не является '
-        'ответом на другое сообщение, поэтому оно было удалено. '
-        f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
-        '\nОтправить удаленное сообщение в лс</a>', parse_mode='HTML',
-        disable_web_page_preview=True
-    )
-    reason_message[message.chat.id] = msg.message_id
+    # msg = await message.answer(
+    #     'Привет, @username! В чате действует функция Strict Reply, смотри правила (slashdesigner.ru/designchat).'
+    #     ' Пришлось удалить твоё сообщение, потому что оно не было ответом на другое, либо не содержало хэштегов, '
+    #     'которыми мы начинаем новые треды: #тема, #годнота #вопрос или #ревью. Я сохранил его и могу переслать его тебе'
+    #     ' в течение суток. \n'
+    #     f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
+    #     '\nВосстановить</a>', parse_mode='HTML',
+    #     disable_web_page_preview=True
+    # )
     await message.delete()
-    success = await delete_message(msg, 30)
-    if success:
-        reason_message.pop(message.chat.id)
