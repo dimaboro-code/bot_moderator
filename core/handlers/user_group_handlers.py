@@ -11,7 +11,7 @@
 import json
 
 from aiogram import Router, types, Bot
-from aiogram.types import MessageId
+from aiogram.exceptions import TelegramBadRequest
 
 from core import ConfigVars
 from core.filters.admin_filter import HashTagFilter, StrictChatFilter
@@ -24,10 +24,12 @@ user_group_router = Router()
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())
 async def strict_mode(message: types.Message, bot: Bot):
-
-    message_copy: types.Message = await bot.forward_message(
-        ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id
-    )
+    try:
+        message_copy: types.Message = await bot.forward_message(
+            ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id
+        )
+    except TelegramBadRequest:
+        return
     async with get_conn() as redis:
         redis: Redis
         redis_message = await redis.get(message.from_user.id)
@@ -38,7 +40,7 @@ async def strict_mode(message: types.Message, bot: Bot):
         list_msg.append(message_copy.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
     # msg = await message.answer(
-    #     'Привет, @username! В чате действует функция Strict Reply, смотри правила (slashdesigner.ru/designchat).'
+    #     'Привет! В чате действует функция Strict Reply, смотри правила (slashdesigner.ru/designchat).'
     #     ' Пришлось удалить твоё сообщение, потому что оно не было ответом на другое, либо не содержало хэштегов, '
     #     'которыми мы начинаем новые треды: #тема, #годнота #вопрос или #ревью. Я сохранил его и могу переслать его тебе'
     #     ' в течение суток. \n'
