@@ -1,6 +1,5 @@
-from aiogram import Router, F, Bot
+from aiogram import Router, Bot
 from aiogram.filters import Command
-from aiogram.enums.chat_type import ChatType
 from aiogram.types import Message, Chat
 
 from core import ConfigVars

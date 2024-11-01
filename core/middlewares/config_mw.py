@@ -27,7 +27,6 @@ class ConfigMiddleware(BaseMiddleware):
             print('no redis,', e)
         try:
             await handler(event, data)
-            await engine.dispose()
         except TelegramBadRequest:
             await asyncio.sleep(8)
             await handler(event, data)
