@@ -66,7 +66,7 @@ class DevConfig:
     LOG_CHAT: int = -1001868029361  # for mistakes
     MESSAGE_CONTAINER_CHAT: int = -4549380236
 
-    WEBHOOK_HOST = 'https://80e9-95-57-138-25.ngrok-free.app'
+    WEBHOOK_HOST = 'https://6f08-78-109-149-100.ngrok-free.app'
     WEBAPP_HOST = '127.0.0.1'
     WEBAPP_PORT = 8080
 

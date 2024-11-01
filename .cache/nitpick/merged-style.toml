@@ -2,32 +2,19 @@
 minimum_version = "0.29.0"
 
 [nitpick.styles]
-include = [ "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/file-structure.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/flake8.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/darglint.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/mypy.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/poetry.toml", "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/styleguide.toml",]
+include = [ "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/file-structure.toml", "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/flake8.toml", "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/darglint.toml", "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/mypy.toml", "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/poetry.toml", "file:///Users/dimaboro/PycharmProjects/bot_moderator/styles/styleguide.toml",]
 
 ["setup.cfg".flake8]
 strictness = "long"
-format = "wemake"
 show-source = true
-max-line-length = 80
+max-line-length = 120
 max-complexity = 6
 docstring-style = "numpy"
 ignore = "D100,D104,D401,W504,RST303,RST304,DAR103,DAR203"
 
 ["setup.cfg".mypy]
-allow_redefinition = false
-check_untyped_defs = true
-ignore_errors = false
-ignore_missing_imports = true
-implicit_reexport = false
-local_partial_types = true
-no_implicit_optional = true
-strict_equality = true
-strict_optional = true
-warn_no_return = true
-warn_redundant_casts = true
+strict = true
 warn_unreachable = true
-warn_unused_configs = true
-warn_unused_ignores = true
 
 ["setup.cfg".isort]
 profile = "wemake"

@@ -16,11 +16,11 @@ admin_group_router.message.filter(AdminFilter())
 @admin_group_router.message(Command('strict_mode_on'))
 async def strict_mode_on(message: types.Message, strict_chats: list):
     if message.chat.id in strict_chats:
-        msg = await message.answer('В чате уже включен строгий режим')
+        msg = await message.answer('Strict Reply включен')
     else:
         strict_chats.append(message.chat.id)
         await db_update_strict_chats(strict_chats)
-        msg = await message.answer('Успешно')
+        msg = await message.answer('Strict Reply уже включен')
     await delete_message(msg, 2)
     await message.delete()
 
@@ -28,11 +28,11 @@ async def strict_mode_on(message: types.Message, strict_chats: list):
 @admin_group_router.message(Command('strict_mode_off'))
 async def strict_mode_off(message: types.Message, strict_chats: list):
     if message.chat.id in strict_chats:
-        await db_update_strict_chats(strict_chats, remove=True)
+        await db_update_strict_chats(strict_chats, not_remove=False)
         strict_chats.remove(message.chat.id)
-        msg = await message.answer('Успешно')
+        msg = await message.answer('Strict Reply отключен')
     else:
-        msg = await message.answer('Строгий режим отключен')
+        msg = await message.answer('Strict Reply уже отключен')
     await delete_message(msg, 2)
     await message.delete()
 
@@ -99,6 +99,20 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
     except Exception as e:
         print('Сообщение с нарушением не удалено, ошибка:', e)
 
+    await delete_message(moderator_message)
+    await delete_message(success_message, 1)
+
+
+@admin_group_router.message(Command(commands='fban'), F.reply_to_message)
+async def ban_forward_handler(moderator_message: types.Message, bot: Bot):
+    user_to_ban = moderator_message.reply_to_message.forward_from.id
+    for chat in ConfigVars.CHATS:
+        success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
+        if not success:
+            await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}')
+    success_message = await moderator_message.answer(
+        f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
+    )
     await delete_message(moderator_message)
     await delete_message(success_message, 1)
 

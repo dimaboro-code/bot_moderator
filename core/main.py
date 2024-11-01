@@ -29,15 +29,26 @@ async def on_startup(bot: Bot):
     admins = await get_admins_ids()
     dp['admins'] = admins
     dp['strict_chats'] = await db_get_strict_chats()
-    dp['reason_message'] = dict()
     await bot.set_webhook(url=ConfigVars.WEBHOOK_URL,
                           drop_pending_updates=True,
                           secret_token=ConfigVars.WEBHOOK_SECRET)
+    # await bot.send_message(
+    #     chat_id=ConfigVars.LOG_CHAT,
+    #     text='Привет! В чате действует функция Strict Reply, смотри правила (slashdesigner.ru/designchat).'
+    #     ' Пришлось удалить твоё сообщение, потому что оно не было ответом на другое, либо не содержало хэштегов, '
+    #     'которыми мы начинаем новые треды: #тема, #годнота #вопрос или #ревью. Я сохранил его и могу переслать его тебе'
+    #     ' в течение суток. \n'
+    #     f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
+    #     '\nВосстановить</a>',
+    #     parse_mode='HTML',
+    #     disable_web_page_preview=True
+    # )
 
 
 def start_app():
     dp.update.middleware.register(ConfigMiddleware())
-    [dp.include_router(router) for router in all_routers]
+    for router in all_routers:
+        dp.include_router(router)
 
     dp.startup.register(on_startup)
 
