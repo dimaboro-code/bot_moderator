@@ -7,6 +7,7 @@ from core import ConfigVars
 from core.database_functions.db_functions import add_lives, db_update_strict_chats
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData
+from core.services.ban import ban_name
 from core.services.mute import mute
 from core.utils.create_redis_pool import get_conn
 from core.utils.delete_message_with_delay import delete_message
@@ -106,22 +107,6 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
     await delete_message(success_message, 1)
 
 
-@admin_group_router.message(Command(commands='fban'), F.reply_to_message)
-async def ban_forward_handler(moderator_message: types.Message, bot: Bot):
-    user_to_ban = moderator_message.reply_to_message.forward_from.id
-    async with get_conn() as redis:
-        saved_message = await redis.get(user_to_ban)
-        if saved_message:
-            await redis.delete(user_to_ban)
-            saved_message = json.loads(saved_message)
-            await bot.delete_messages(ConfigVars.MESSAGE_CONTAINER_CHAT, saved_message)
-    for chat in ConfigVars.CHATS:
-        success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
-        if not success:
-            await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}')
-    await delete_message(moderator_message)
-
-
 @admin_group_router.message(Command(commands='ban'))
 async def ban_name_handler(message: types.Message, bot: Bot):
     user_id = await get_id_from_text(message.text)
@@ -130,25 +115,15 @@ async def ban_name_handler(message: types.Message, bot: Bot):
         user_id = await get_id_from_entities(message.entities)
     # Если текст есть, но не содержит айди или юзернейм, ищем его в энтити
     if user_id is not None:
-        await ban_name(message=message, user_to_ban=user_id, bot=bot)
+        await ban_name(user_to_ban=user_id, bot=bot)
+        success_message = await message.answer(
+            f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
+        )
+        await message.delete()
+        await delete_message(success_message, 1)
         return
     # и если нашли - баним
     # А если не нашли - то сообщаем, что не нашли
     msg = await message.answer('Пользователь не найден')
     await delete_message(msg, 2)
     await message.delete()
-
-
-async def ban_name(message: types.Message, user_to_ban: int, bot: Bot):
-
-    for chat in ConfigVars.CHATS:
-        success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
-        if not success:
-            await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}'
-                                                                     f', чат {chat}\n')
-    success_message = await message.answer(
-        f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
-    )
-
-    await message.delete()
-    await delete_message(success_message, 1)

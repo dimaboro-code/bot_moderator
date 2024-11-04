@@ -97,5 +97,6 @@ class AdminFunctions(CallbackData, prefix='show_user'):
     user_id: int
 
 
-class BanSteps(StatesGroup):
-    name = State()
+class BanHammer(CallbackData, prefix='banhammer'):
+    function: str
+    user_id: int

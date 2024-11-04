@@ -1,3 +1,5 @@
+import json
+
 from aiogram import Router, F, Bot
 from aiogram.filters import Command, CommandStart
 from aiogram.enums.chat_type import ChatType
@@ -7,10 +9,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from core import ConfigVars
 from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_last_mute
 from core.filters.admin_filter import AdminFilter
-from core.models.data_models import AdminFunctions, UserData
+from core.models.data_models import AdminFunctions, UserData, BanHammer
+from core.services.ban import ban_name, get_bh_keyboard
 from core.services.mute import mute
 from core.services.status import status, status_log
 from core.services.unmute import admin_unmute
+from core.utils.create_redis_pool import get_conn
 from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
 from core.utils.text_checks import get_id_from_text
@@ -161,3 +165,47 @@ async def admin_funcs_callback(call: CallbackQuery, callback_data: AdminFunction
         reply_markup=builder.as_markup()
     )
     await call.answer(show_alert=False, text='Успешно')
+
+
+@admin_private_router.callback_query(BanHammer.filter())
+async def admin_funcs_callback(call: CallbackQuery, callback_data: BanHammer, bot: Bot, admins: list[int]):
+    user_id = callback_data.user_id
+    if user_id in admins:
+        await call.answer('Это сообщение скопировано у админа. Админы бессмертны.', show_alert=True)
+        await bot.edit_message_reply_markup(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=None
+        )
+    match callback_data.function:
+        case 'ban_last':
+            async with get_conn() as redis:
+                saved_message = await redis.get(user_id)
+                if saved_message:
+                    await redis.delete(user_id)
+                    saved_message = json.loads(saved_message)
+                    await bot.delete_messages(ConfigVars.MESSAGE_CONTAINER_CHAT, saved_message)
+            await ban_name(user_id, bot)
+        case 'ban_first':
+            builder = InlineKeyboardBuilder()
+            builder.button(
+                text='Подтвердить бан',
+                callback_data=BanHammer(function='ban_last', user_id=user_id)
+            )
+            builder.button(
+                text='Отмена',
+                callback_data=BanHammer(function='show', user_id=user_id)
+            )
+            builder.adjust(1, repeat=True)
+            await bot.edit_message_reply_markup(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                reply_markup=builder.as_markup()
+            )
+        case 'show':
+            builder = get_bh_keyboard(user_id)
+            await bot.edit_message_reply_markup(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                reply_markup=builder.as_markup()
+            )

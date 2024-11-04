@@ -18,6 +18,7 @@ from core import ConfigVars
 from core.filters.admin_filter import HashTagFilter, StrictChatFilter
 from redis.asyncio import Redis
 
+from core.services.ban import get_bh_keyboard
 from core.utils.create_redis_pool import get_conn
 
 user_group_router = Router()
@@ -25,10 +26,17 @@ user_group_router.message.filter(F.chat.type != ChatType.PRIVATE)
 
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())
-async def strict_mode(message: types.Message, bot: Bot):
+async def strict_mode(message: types.Message, bot: Bot, admins: list[int]):
+    user_id = message.from_user.id
+    builder = get_bh_keyboard(user_id)
     try:
-        message_copy: types.Message = await bot.forward_message(
-            ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id
+        if message.from_user.id in admins:
+            keyboard = None
+        else:
+            keyboard = builder.as_markup()
+        message_copy: types.MessageId = await bot.copy_message(
+            ConfigVars.MESSAGE_CONTAINER_CHAT, from_chat_id=message.chat.id, message_id=message.message_id,
+            reply_markup=keyboard
         )
     except TelegramBadRequest:
         return
@@ -42,7 +50,6 @@ async def strict_mode(message: types.Message, bot: Bot):
         list_msg.append(message_copy.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
     await message.delete()
-
 
 # # оставить в комментах пока
 # @user_group_router.message()
