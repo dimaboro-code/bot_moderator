@@ -22,7 +22,7 @@ async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
     Returns: False если что-то не сработало, True если все ок
 
     """
-    restriction = await restrict(user_id=data.user_id, chat_id=data.chat_id, bot=bot,
+    restriction = await restrict(user_id=data.user_id, chat_id_orig=data.chat_id, bot=bot,
                                  chats=chats, permissions=permissions)
     # если мьют не прошел
     if restriction is False:
@@ -31,14 +31,14 @@ async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
     muted = await add_mute(data.for_mute)
     if not muted:
         problem = 'Мьют не добавлен в базу данных.'
-        await send_bug_report(problem=problem, **data.as_dict())
+        await send_bug_report(problem=problem, **data.as_dict(), bot=bot)
         return False
     # отправляем отчет в канал
     try:
-        await send_mute_report(**data.as_dict())
+        await send_mute_report(**data.as_dict(), bot=bot)
     except Exception as e:
         problem = f'Мьют, не удалось отправить отчет. Ошибка: {e}'
-        await send_bug_report(problem=problem, **data.as_dict())
+        await send_bug_report(problem=problem, **data.as_dict(), bot=bot)
         return False
     # Мьют прошел (минимум в одном чате), инфа в базе, отчет в канале
     return True

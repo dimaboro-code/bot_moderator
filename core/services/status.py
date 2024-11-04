@@ -9,7 +9,6 @@ async def status(user_id: int, bot: Bot):
     if user_data is None:
         answer = 'Пользователя нет в базе данных'
         return answer
-
     user_last_mute = await get_last_mute(user_id=user_id)
     username = await get_username(user_id=user_id)
     if user_last_mute is None:
@@ -25,7 +24,7 @@ async def status(user_id: int, bot: Bot):
     except Exception as e:
         chat_username = None
         await send_bug_report(user_id=user_id, user_username=username, chat_id='private', chat_username='None',
-                              problem=f'Статус, не удалось получить данные о чате, ошибка: {e}')
+                              problem=f'Статус, не удалось получить данные о чате, ошибка: {e}', bot=bot)
     answer = (f'Пользователь: @{username}\n'
               f'user id: {user_id},\n'
               f'Статус: {("без ограничений", "в мьюте")[user_data["is_muted"]]}\n'  #
@@ -59,7 +58,7 @@ async def status_log(user_id: int, bot: Bot):
         except Exception as e:
             chat_username = None
             await send_bug_report(user_id=user_id, user_username=username, chat_id='private', chat_username='None',
-                                  problem=f'Статус, не удалось получить данные о чате, ошибка: {e}')
+                                  problem=f'Статус, не удалось получить данные о чате, ошибка: {e}', bot=bot)
         answer_list.append(f'Мьют №{mute["id"]}\n'
                            f'Причина: {mute["moderator_message"]}\n'
                            f'Чат: @{chat_username}\n'

@@ -1,5 +1,5 @@
 from redis.asyncio import Redis
-from core.config_vars import ConfigVars
+from core.config import ConfigVars
 from urllib.parse import urlparse
 
 

@@ -2,12 +2,12 @@
 import logging
 
 # run webhook
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 
 # settings import
-from core.config_vars import ConfigVars
+from core.config import ConfigVars
 # full database import
 from core.database_functions.db_functions import create_db, db_get_strict_chats
 from core.handlers import all_routers
@@ -15,18 +15,21 @@ from core.handlers import all_routers
 from core.middlewares.config_mw import ConfigMiddleware
 # SETUP FUNCTIONS
 from core.services.db_old_ids_cleaner import setup_schedule
-from core.utils.is_chat_admin import get_admins_ids
-from core.config import bot, dp
+from core.utils.list_of_admins_ids import get_admins_ids
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+
+bot = Bot(token=ConfigVars.TOKEN)
+dp = Dispatcher()
 
 
 # webhook control
 async def on_startup(bot: Bot):
     await create_db()
     await setup_schedule()
-    admins = await get_admins_ids()
+    admins = await get_admins_ids(bot)
     dp['admins'] = admins
     dp['strict_chats'] = await db_get_strict_chats()
     dp['reason_message'] = dict()

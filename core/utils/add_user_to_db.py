@@ -1,12 +1,11 @@
 import logging
-from aiogram import types
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram import types, Bot
 
 from core.database_functions.db_functions import add_id, add_user
 from core.utils.send_report import send_bug_report
 
 
-async def add_user_to_db(message: types.Message):
+async def add_user_to_db(message: types.Message, bot: Bot):
     username = message.from_user.username
     user_id = message.from_user.id
 
@@ -18,7 +17,8 @@ async def add_user_to_db(message: types.Message):
         chat_id = message.chat.id
         chat_username = message.chat.username
         problem = f'Не удалось добавить в базу: user={user}, un_id={un_id}'
-        await send_bug_report(user_id, chat_id, problem, username, chat_username)
+        await send_bug_report(user_id=user_id, chat_id=chat_id, problem=problem, user_username=username,
+                              chat_username=chat_username, bot=bot)
         return False
 
     logging.info(f'Пользователь @{username} c ID {user_id} добавлен в базу')

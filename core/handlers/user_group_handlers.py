@@ -10,7 +10,8 @@
 
 import json
 
-from aiogram import Router, types, Bot
+from aiogram import Router, types, Bot, F
+from aiogram.enums import ChatType
 from aiogram.exceptions import TelegramBadRequest
 
 from core import ConfigVars
@@ -20,6 +21,7 @@ from redis.asyncio import Redis
 from core.utils.create_redis_pool import get_conn
 
 user_group_router = Router()
+user_group_router.message.filter(F.chat.type != ChatType.PRIVATE)
 
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())
@@ -39,13 +41,4 @@ async def strict_mode(message: types.Message, bot: Bot):
             list_msg = []
         list_msg.append(message_copy.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
-    # msg = await message.answer(
-    #     'Привет! В чате действует функция Strict Reply, смотри правила (slashdesigner.ru/designchat).'
-    #     ' Пришлось удалить твоё сообщение, потому что оно не было ответом на другое, либо не содержало хэштегов, '
-    #     'которыми мы начинаем новые треды: #тема, #годнота #вопрос или #ревью. Я сохранил его и могу переслать его тебе'
-    #     ' в течение суток. \n'
-    #     f'<a href="t.me/{str(ConfigVars.BOT_USERNAME)}?start=get_my_message">'
-    #     '\nВосстановить</a>', parse_mode='HTML',
-    #     disable_web_page_preview=True
-    # )
     await message.delete()

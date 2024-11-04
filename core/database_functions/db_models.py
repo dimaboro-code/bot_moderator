@@ -29,11 +29,13 @@ from datetime import datetime
 from sqlalchemy import Integer, Boolean, Text, DateTime, Numeric, BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+
+from core import ConfigVars
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -68,7 +70,6 @@ class Id(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete="CASCADE"), unique=True)
     username: Mapped[str] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
     user: Mapped[User] = relationship("User", back_populates="ids", cascade='delete')
 
 
@@ -79,3 +80,9 @@ class DBChat(Base):
     title: Mapped[str] = mapped_column(Text, nullable=False)
     username: Mapped[str] = mapped_column(Text, nullable=True)
     strict_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
+engine: AsyncEngine = create_async_engine(
+    ConfigVars.DATABASE_URL, echo=False, connect_args={"ssl": 'prefer'}
+)
+async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False)

@@ -1,6 +1,5 @@
 from aiogram import Bot
-from core.config_vars import ConfigVars
-from ..config import bot as bt
+from core.config import ConfigVars
 
 
 async def send_mute_report(
@@ -9,8 +8,8 @@ async def send_mute_report(
     admin_username: str,
     chat_username: str,
     reason_message: str,
+    bot: Bot,
     log_chanel: int = ConfigVars.LOG_CHANNEL,
-    bot: Bot = bt,
     **kwargs
 ):
     """
@@ -45,9 +44,10 @@ async def send_bug_report(
     user_id: int,
     chat_id: int | str,
     problem: str | Exception,
+    *,
     user_username: str | None = None,
     chat_username: str | None = None,
-    bot: Bot = bt,
+    bot: Bot = None,
     log_chat: str = ConfigVars.LOG_CHAT,
     **kwargs
 ):

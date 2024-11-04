@@ -44,12 +44,12 @@ alias_funcs = {
 
 
 @admin_private_router.message(Command('admin_unmute'))
-async def admin_unmute(message: Message, bot: Bot):
+async def real_admin_unmute(message: Message, bot: Bot):
     user_id = await get_id_from_text(message.text)
     if user_id is None:
         print('баг, нет айди')
-        raise ValueError
-    restriction = await restrict(user_id=user_id, chat_id=user_id, bot=bot, chats=ConfigVars.CHATS,
+        raise ValueError('no id in text')
+    restriction = await restrict(user_id=user_id, chat_id_orig=user_id, bot=bot, chats=ConfigVars.CHATS,
                                  permissions=ConfigVars.UNMUTE_SETTINGS)
     # если разблок не прошел
     if restriction is False:
@@ -61,7 +61,7 @@ async def admin_unmute(message: Message, bot: Bot):
 
 @admin_private_router.message(Command('status'), F.text.len() > 10)
 @admin_private_router.message(CommandStart(deep_link=True), F.text.len() < 21)
-async def show_user_handler(message: Message, bot: Bot):
+async def admin_status_handler(message: Message, bot: Bot):
     len_msg = len(message.text.split())
     user_username = message.from_user.username
     chat_username = message.chat.username
@@ -98,53 +98,52 @@ async def show_user_handler(message: Message, bot: Bot):
         await message.answer(answer, reply_markup=builder.as_markup())
     except Exception as e:
         await send_bug_report(user_id=user_id, chat_id='private', chat_username=chat_username,
-                              user_username=user_username, problem=f'Не сработал show_user, ошибка: {e}')
+                              user_username=user_username, problem=f'Не сработал show_user, ошибка: {e}', bot=bot)
 
 
 @admin_private_router.callback_query(AdminFunctions.filter())
-async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, bot: Bot, admins: list[int]):
+async def admin_funcs_callback(call: CallbackQuery, callback_data: AdminFunctions, bot: Bot, admins: list[int]):
     user_id = callback_data.user_id
-    if callback_data.function == 'unblock':
-        if user_id in admins:
-            await call.answer(show_alert=True, text='Это вообще как? Напиши, как у тебя получилось улететь в блок :)')
-        success, updated_text = await react_funcs[callback_data.function](user_id, bot)
-        if not success:
-            await call.answer(text=updated_text, show_alert=True)
+    match callback_data.function:
+        case 'unblock':
+            if user_id in admins:
+                await call.answer(show_alert=True, text='Это вообще как? Напиши, как у тебя получилось улететь в блок :)')
+            success, updated_text = await react_funcs[callback_data.function](user_id, bot)
+            if not success:
+                await call.answer(text=updated_text, show_alert=True)
+                return
+        case 'mute':
+            if user_id in admins:
+                await call.answer(show_alert=True, text='админы не блокируются даже через консоль :)')
+                return
+            data = UserData()
+            data.parse_message(call.message, user_id=user_id)
+            data.chat_id = ConfigVars.CHATS[0]
+            last_mute = await get_last_mute(user_id)
+            data.reason_message = last_mute['moderator_message']
+            success = await mute(data=data, bot=bot)
+            if not success:
+                await call.answer(text='Мьют не прошел, отчет направлен разработчику', show_alert=True)
+                return
+            updated_text = await status(user_id, bot)
+        case 'mute_story':
+            updated_text = await react_funcs[callback_data.function](user_id, bot)
+            builder = InlineKeyboardBuilder()
+            builder.button(
+                text='Скрыть историю мьютов',
+                callback_data=AdminFunctions(function='back', user_id=user_id)
+            )
+            await bot.edit_message_text(
+                chat_id=call.message.chat.id, message_id=call.message.message_id,
+                text=updated_text,
+                reply_markup=builder.as_markup()
+            )
+            await call.answer(show_alert=False, text='Успешно')
             return
-    elif callback_data.function == 'mute':
-        if user_id in admins:
-            await call.answer(show_alert=True, text='админы не блокируются даже через консоль :)')
-            return
-        data = UserData()
-        data.parse_message(call.message, user_id=user_id)
-        data.chat_id = ConfigVars.CHATS[0]
-        last_mute = await get_last_mute(user_id)
-        data.reason_message = last_mute['moderator_message']
-        success = await mute(data=data, bot=bot)
-        if not success:
-            await call.answer(text='Мьют не прошел, отчет направлен разработчику', show_alert=True)
-            return
-        updated_text = await status(user_id, bot)
-    elif callback_data.function == 'mute_story':
-        updated_text = await react_funcs[callback_data.function](user_id, bot)
-        builder = InlineKeyboardBuilder()
-        builder.button(
-            text='Скрыть историю мьютов',
-            callback_data=AdminFunctions(function='back', user_id=user_id)
-        )
-        await bot.edit_message_text(
-            chat_id=call.message.chat.id, message_id=call.message.message_id,
-            text=updated_text,
-            reply_markup=builder.as_markup()
-        )
-        await call.answer(show_alert=False, text='Успешно')
-        return
-    else:
-        await react_funcs[callback_data.function](user_id)
-        updated_text = await status(user_id, bot)
-
+        case _:
+            await react_funcs[callback_data.function](user_id)
+            updated_text = await status(user_id, bot)
     current_status = get_status_from_text(updated_text)
-    print('статус: ', current_status)
     builder = InlineKeyboardBuilder()
     for button, func in alias_funcs.items():
         if func == 'mute' and current_status == 'в мьюте':
@@ -156,36 +155,9 @@ async def show_user_react(call: CallbackQuery, callback_data: AdminFunctions, bo
             callback_data=AdminFunctions(function=func, user_id=user_id)
         )
     builder.adjust(1, repeat=True)
-
     await bot.edit_message_text(
         chat_id=call.message.chat.id, message_id=call.message.message_id,
         text=updated_text,
         reply_markup=builder.as_markup()
     )
     await call.answer(show_alert=False, text='Успешно')
-
-
-# noinspection DuplicatedCode
-@admin_private_router.message(Command('show_user_history'))
-async def show_user_history_handler(message: Message, bot: Bot):
-    len_msg = len(message.text.split())
-    user_username = message.from_user.username
-    chat_username = message.chat.username
-
-    if len_msg < 2:
-        answer = 'Некорректная команда. Должна быть /show_user <user_id> или /show_user <@username>.'
-        await message.answer(answer)
-        return
-
-    user_id = await get_id_from_text(message.text)
-    if user_id is None:
-        answer = 'Пользователь не найден.'
-        await message.answer(answer)
-        return
-
-    answer = await status_log(user_id=user_id, bot=bot)
-    try:
-        await message.answer(answer)
-    except Exception as e:
-        await send_bug_report(user_id=user_id, chat_id='private', chat_username=chat_username,
-                              user_username=user_username, problem=f'Не сработал show_user_history, ошибка: {e}')

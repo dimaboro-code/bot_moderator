@@ -1,3 +1,5 @@
+import json
+
 from aiogram import Router, Bot, types, F
 from aiogram.filters import Command
 
@@ -6,6 +8,7 @@ from core.database_functions.db_functions import add_lives, db_update_strict_cha
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData
 from core.services.mute import mute
+from core.utils.create_redis_pool import get_conn
 from core.utils.delete_message_with_delay import delete_message
 from core.utils.text_checks import checks, get_id_from_text, get_id_from_entities
 
@@ -16,11 +19,11 @@ admin_group_router.message.filter(AdminFilter())
 @admin_group_router.message(Command('strict_mode_on'))
 async def strict_mode_on(message: types.Message, strict_chats: list):
     if message.chat.id in strict_chats:
-        msg = await message.answer('Strict Reply включен')
+        msg = await message.answer('Strict Reply уже включен')
     else:
         strict_chats.append(message.chat.id)
         await db_update_strict_chats(strict_chats)
-        msg = await message.answer('Strict Reply уже включен')
+        msg = await message.answer('Strict Reply включен')
     await delete_message(msg, 2)
     await message.delete()
 
@@ -106,15 +109,17 @@ async def ban_reply_handler(moderator_message: types.Message, bot: Bot):
 @admin_group_router.message(Command(commands='fban'), F.reply_to_message)
 async def ban_forward_handler(moderator_message: types.Message, bot: Bot):
     user_to_ban = moderator_message.reply_to_message.forward_from.id
+    async with get_conn() as redis:
+        saved_message = await redis.get(user_to_ban)
+        if saved_message:
+            await redis.delete(user_to_ban)
+            saved_message = json.loads(saved_message)
+            await bot.delete_messages(ConfigVars.MESSAGE_CONTAINER_CHAT, saved_message)
     for chat in ConfigVars.CHATS:
         success = await bot.ban_chat_member(chat_id=chat, user_id=user_to_ban, until_date=10, revoke_messages=True)
         if not success:
             await bot.send_message(chat_id=ConfigVars.LOG_CHAT, text=f'Бан не прошел. Пользователь {user_to_ban}')
-    success_message = await moderator_message.answer(
-        f'Пользователь попал в бан. Отменить данное действие возможно только вручную '
-    )
     await delete_message(moderator_message)
-    await delete_message(success_message, 1)
 
 
 @admin_group_router.message(Command(commands='ban'))
@@ -129,7 +134,6 @@ async def ban_name_handler(message: types.Message, bot: Bot):
         return
     # и если нашли - баним
     # А если не нашли - то сообщаем, что не нашли
-
     msg = await message.answer('Пользователь не найден')
     await delete_message(msg, 2)
     await message.delete()

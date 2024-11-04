@@ -6,8 +6,7 @@ from sqlalchemy import Result, func, and_
 from sqlalchemy import select, delete, update
 from sqlalchemy.dialects.postgresql import insert
 
-from core.database_functions.db_models import User, Mute, Id, Base, DBChat
-from core.config import async_session, engine
+from core.database_functions.db_models import User, Mute, Id, Base, DBChat, engine, async_session
 
 
 async def add_user(user_id: int, session=async_session):
@@ -322,18 +321,29 @@ async def db_get_strict_chats(session=async_session):
         return strict_chats
 
 
-async def delete_old_data(session_maker=async_session, days: int = 15, user_id: int = None):
+async def delete_old_data(async_session=async_session, days: int = 15, user_id: int = None):
     try:
-        async with session_maker() as session:
+        async with async_session() as session:
             days_ago = datetime.now() - timedelta(days=days)
-
             conditions = (Id.created_at < days_ago)
             if user_id is not None:
                 conditions = and_(conditions, Id.user_id == user_id)
+            # Step 1: удаляем все, что
+            mute_subquery = select(Mute.user_id).distinct()
+            delete_user_query = (
+                delete(User)
+                .where(
+                    and_(
+                        User.user_id.notin_(mute_subquery),  # Exclude users in Mute
+                        User.user_id.in_(select(Id.user_id).where(conditions))  # Include users meeting Id conditions
+                    )
+                )
+            )
+            await session.execute(delete_user_query)
+            # Step 2: по идее не нужен
+            delete_id_query = select(Id).where(conditions)
+            await session.execute(delete_id_query)
 
-            delete_query = delete(Id).where(conditions)
-
-            await session.execute(delete_query)
             await session.commit()
             print('Old data deleted successfully')
     except Exception as e:

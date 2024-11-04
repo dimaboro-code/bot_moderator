@@ -32,7 +32,7 @@ async def eraser(message: Message):
 
 
 @debug_router.message(Command('send_report'))
-async def send_report_handler(message: Message) -> None:
+async def send_report_handler(message: Message, bot: Bot) -> None:
     """
     Данная функция создана для отладки, возможно, станет полноценной частью функционала.
     :param message:
@@ -43,7 +43,7 @@ async def send_report_handler(message: Message) -> None:
     admin = 'test_admin'
     chat_username = 'test_chat'
     reason_message = 'test reason'
-    await send_mute_report(user_id, username, admin, chat_username, reason_message)
+    await send_mute_report(user_id, username, admin, chat_username, reason_message, bot=bot)
 
 
 @debug_router.message(Command('get_chat_id'))
@@ -54,11 +54,10 @@ async def get_chat_id_handler(message: Message, bot: Bot):
     chat_ids = []
     text = message.text.strip().split()
     text.pop(0)
-    answer = ''
     for chat in text:
         chat_id = await bot.get_chat(chat)
         chat_ids.append(str(chat_id.id))
-        answer = ' '.join(chat_ids)
+    answer = ' '.join(chat_ids)
     await message.answer(answer)
 
 
