@@ -42,3 +42,12 @@ async def strict_mode(message: types.Message, bot: Bot):
         list_msg.append(message_copy.message_id)
         await redis.set(message.from_user.id, json.dumps(list_msg), ex=86400)
     await message.delete()
+
+
+# # оставить в комментах пока
+# @user_group_router.message()
+# async def strict_mode(message: types.Message, bot: Bot):
+#     msg = str(message.model_dump())
+#     string = [msg[i:i + 4096] for i in range(0, len(msg), 4096)]
+#     for msg in string:
+#         await message.answer(msg)

@@ -1,6 +1,10 @@
+import asyncio
+
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from aiogram.enums import MessageEntityType
+
+from core.utils.create_redis_pool import get_conn
 
 
 class AdminFilter(BaseFilter):
@@ -31,24 +35,37 @@ class HashTagFilter(BaseFilter):
     ]
 
     async def __call__(self, message: Message) -> bool:
+        allow = False
         if message.reply_to_message:
             print('реплей')
-            return True
-        if message.entities is not None:
+            allow = True
+        elif message.entities is not None:
             for entity in message.entities:
                 if entity.type == MessageEntityType.HASHTAG:
                     print('с хэштегом')
                     hashtag = message.text[entity.offset+1:(entity.offset + entity.length)].lower()
                     if hashtag in self.allowed_hashtags:
-                        return True
+                        allow = True
         elif message.caption_entities is not None:
             for entity in message.caption_entities:
                 if entity.type == MessageEntityType.HASHTAG:
                     print('с хэштегом')
                     hashtag = message.caption[entity.offset+1:(entity.offset + entity.length)].lower()
                     if hashtag in self.allowed_hashtags:
-                        return True
-        return False
+                        allow = True
+        if allow and message.media_group_id:
+            async with get_conn() as redis:
+                redis_key = f'media_group_id:{message.from_user.id}'
+                await redis.set(redis_key, message.media_group_id, ex=600)
+        if not allow and message.media_group_id:
+            print('медиа группа')
+            await asyncio.sleep(1)
+            async with get_conn() as redis:
+                redis_key = f'media_group_id:{message.from_user.id}'
+                redis_value = await redis.get(redis_key)
+            if int(redis_value) == int(message.media_group_id):
+                allow = True
+        return allow
 
 
 class StrictChatFilter(BaseFilter):
