@@ -77,3 +77,14 @@ class StrictChatFilter(BaseFilter):
         if message.chat.id in strict_chats:
             return True
         return False
+
+
+class CapchaChatFilter(BaseFilter):
+    """
+    Отделяет чаты, в которых должна работать капча от тех, где не должен
+    """
+    async def __call__(self, message: Message, chat_settings: dict) -> bool:
+        capcha_chats = chat_settings.get('capcha_chats', [])
+        if message.chat.id in capcha_chats:
+            return True
+        return False
