@@ -5,7 +5,7 @@ from aiogram.types import Message, Chat
 from core import ConfigVars
 from core.database_functions.db_functions import delete_user, db_load_chats
 from core.database_functions.test_db import test_simple_db
-from core.filters.admin_filter import AdminFilter
+from core.filters.filters import AdminFilter
 from core.utils.send_report import send_mute_report
 
 debug_router = Router()

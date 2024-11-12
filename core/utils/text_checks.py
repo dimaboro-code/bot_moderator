@@ -25,9 +25,10 @@ async def checks(moderator_message: Message, bot: Bot):
             return True, user_id
         if member.status == 'member' or member.status == 'left':
             return True, user_id
-
-        return False, 'Пользователя нельзя замьютить'
-
+        if member.status in ('administrator', 'creator'):
+            return False, 'Пользователя нельзя замьютить, он админ'
+        if member.status == 'restricted':
+            return False, 'Пользователь уже в мьюте'
     if not moderator_message.reply_to_message:
         return False, 'Пользователь не найден'
 

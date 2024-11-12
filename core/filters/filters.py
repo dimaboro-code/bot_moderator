@@ -70,9 +70,21 @@ class HashTagFilter(BaseFilter):
 
 class StrictChatFilter(BaseFilter):
     """
-    Отделяет чаты, в которых должен работать хэндлер от тех, где не должен
+    Отделяет чаты, в которых должен работать стрикт мод от тех, где не должен
     """
-    async def __call__(self, message: Message, strict_chats: list) -> bool:
+    async def __call__(self, message: Message, chat_settings: dict) -> bool:
+        strict_chats = chat_settings.get('strict_chats', [])
         if message.chat.id in strict_chats:
+            return True
+        return False
+
+
+class CapchaChatFilter(BaseFilter):
+    """
+    Отделяет чаты, в которых должна работать капча от тех, где не должен
+    """
+    async def __call__(self, message: Message, chat_settings: dict) -> bool:
+        capcha_chats = chat_settings.get('capcha_chats', [])
+        if message.chat.id in capcha_chats:
             return True
         return False

@@ -4,7 +4,7 @@ from aiogram import Bot, types
 from aiogram.exceptions import TelegramBadRequest
 
 from core import ConfigVars
-from core.database_functions.db_functions import get_user, get_last_mute, add_lives, db_unmute
+from core.database_functions.db_functions import get_user, get_last_mute, add_lives, db_unmute, delete_mute
 from core.services.status import status
 from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report
@@ -55,6 +55,8 @@ async def unmute(user_id, bot: Bot, chats: List[int] = ConfigVars.CHATS,
     if unmuted is False:
         answer = 'Вы разблокированы. Не удалось обновить данные в базе, отчет направлен разработчику.'
         return False, answer
+    if user_last_mute.get('moderator_message') == 'capcha':
+        await delete_mute(user_id)
     answer = await status(user_id, bot)
     return True, answer
 

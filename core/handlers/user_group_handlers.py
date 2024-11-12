@@ -15,7 +15,7 @@ from aiogram.enums import ChatType
 from aiogram.exceptions import TelegramBadRequest
 
 from core import ConfigVars
-from core.filters.admin_filter import HashTagFilter, StrictChatFilter
+from core.filters.filters import HashTagFilter, StrictChatFilter
 from redis.asyncio import Redis
 
 from core.services.ban import get_bh_keyboard
