@@ -1,15 +1,12 @@
-import json
-
 from aiogram import Router, Bot, types, F
 from aiogram.filters import Command
 
 from core import ConfigVars
 from core.database_functions.db_functions import add_lives, db_update_strict_chats, db_update_capcha_chats
-from core.filters.admin_filter import AdminFilter
+from core.filters.filters import AdminFilter
 from core.models.data_models import UserData
 from core.services.ban import ban_name
 from core.services.mute import mute
-from core.utils.create_redis_pool import get_conn
 from core.utils.delete_message_with_delay import delete_message
 from core.utils.text_checks import checks, get_id_from_text, get_id_from_entities
 

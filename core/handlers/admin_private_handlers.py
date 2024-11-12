@@ -8,7 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core import ConfigVars
 from core.database_functions.db_functions import add_lives, delete_lives, delete_all_lives, get_last_mute
-from core.filters.admin_filter import AdminFilter
+from core.filters.filters import AdminFilter
 from core.models.data_models import AdminFunctions, UserData, BanHammer
 from core.services.ban import ban_name, get_bh_keyboard
 from core.services.mute import mute
