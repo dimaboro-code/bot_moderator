@@ -80,6 +80,7 @@ class DBChat(Base):
     title: Mapped[str] = mapped_column(Text, nullable=False)
     username: Mapped[str] = mapped_column(Text, nullable=True)
     strict_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    capcha: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 engine: AsyncEngine = create_async_engine(
