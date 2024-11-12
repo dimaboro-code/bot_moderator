@@ -6,7 +6,7 @@ from core.utils.send_report import send_bug_report
 
 
 async def add_user_to_db(message: types.Message, bot: Bot):
-    username = message.from_user.username
+    username = message.from_user.username if isinstance(message.from_user.username, str) else 'None'
     user_id = message.from_user.id
 
     user = await add_user(user_id=user_id)
