@@ -304,30 +304,38 @@ async def db_load_chats(chats_for_db, session=async_session):
     return True
 
 
-async def db_update_strict_chats(capcha_chats, turn_off=False, session=async_session):
-    async with session() as session:
-        for chat_id in capcha_chats:
-            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not turn_off)
-            await session.execute(query)
-            await session.commit()
-    return True
-
-
-async def db_update_capcha(strict_chats, turn_off=False, session=async_session):
-    async with session() as session:
-        for chat_id in strict_chats:
-            query = update(DBChat).where(DBChat.chat_id == chat_id).values(capcha=not turn_off)
-            await session.execute(query)
-            await session.commit()
-    return True
-
-
 async def db_get_strict_chats(session=async_session):
     async with session() as session:
         query = select(DBChat.chat_id).where(DBChat.strict_mode==True)
         result = await session.execute(query)
         strict_chats = result.scalars().all()
         return strict_chats
+
+
+async def db_update_strict_chats(strict_chats, turn_off=False, session=async_session):
+    async with session() as session:
+        for chat_id in strict_chats:
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not turn_off)
+            await session.execute(query)
+            await session.commit()
+    return True
+
+
+async def db_get_capcha_chats(session=async_session):
+    async with session() as session:
+        query = select(DBChat.chat_id).where(DBChat.capcha==True)
+        result = await session.execute(query)
+        capcha_chats = result.scalars().all()
+        return capcha_chats
+
+
+async def db_update_capcha_chats(capcha_chats, turn_off=False, session=async_session):
+    async with session() as session:
+        for chat_id in capcha_chats:
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(capcha=not turn_off)
+            await session.execute(query)
+            await session.commit()
+    return True
 
 
 async def delete_old_data(async_session=async_session, days: int = 15, user_id: int = None):
