@@ -1,6 +1,7 @@
 import json
 
 from aiogram import Router, F, Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Message, CallbackQuery
@@ -186,26 +187,7 @@ async def admin_funcs_callback(call: CallbackQuery, callback_data: BanHammer, bo
                     saved_message = json.loads(saved_message)
                     await bot.delete_messages(ConfigVars.MESSAGE_CONTAINER_CHAT, saved_message)
             await ban_name(user_id, bot)
-        case 'ban_first':
-            builder = InlineKeyboardBuilder()
-            builder.button(
-                text='Подтвердить бан',
-                callback_data=BanHammer(function='ban_last', user_id=user_id)
-            )
-            builder.button(
-                text='Отмена',
-                callback_data=BanHammer(function='show', user_id=user_id)
-            )
-            builder.adjust(1, repeat=True)
-            await bot.edit_message_reply_markup(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                reply_markup=builder.as_markup()
-            )
-        case 'show':
-            builder = get_bh_keyboard(user_id)
-            await bot.edit_message_reply_markup(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                reply_markup=builder.as_markup()
-            )
+            try:
+                await call.message.delete()
+            except TelegramBadRequest:
+                print('Ban, message for delete not found')
