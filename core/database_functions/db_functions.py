@@ -242,6 +242,25 @@ async def delete_user(user_id: int, session=async_session):
             print('Не удалось удалить пользователя, сломано: ', e)
 
 
+async def delete_mute(user_id: int, session=async_session):
+    async with session() as session:
+        # Находим пользователя по user_id и удаляем его
+        query = select(Mute).where(user_id == Mute.user_id)
+        try:
+            result: Result = await session.execute(query)
+            mute: Mute = result.scalars().first()
+            if mute:
+                await session.execute(
+                    delete(Mute).where(mute.id == Mute.id)
+                )
+                print(f'Мьют {mute.id} пользователя {user_id} удален')
+            else:
+                print(f'Мьют {mute.id} пользователя {user_id} не удален')
+            await session.commit()
+        except Exception as e:
+            print('Не удалось удалить пользователя, сломано: ', e)
+
+
 async def add_id(username: str, user_id: int, session=async_session):
     async with session() as session:
         try:
