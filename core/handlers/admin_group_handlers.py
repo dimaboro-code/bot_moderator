@@ -43,6 +43,32 @@ async def strict_mode_off(message: types.Message, chat_settings: dict):
     await message.delete()
 
 
+@admin_group_router.message(Command('capcha_on'))
+async def capcha_on(message: types.Message, chat_settings: dict):
+    capcha_chats = chat_settings.get('capcha_chats', [])
+    if message.chat.id in capcha_chats:
+        msg = await message.answer('Capcha уже включена')
+    else:
+        chat_settings.setdefault('capcha_chats', []).append(message.chat.id)
+        await db_update_capcha_chats([message.chat.id])
+        msg = await message.answer('Capcha включена')
+    await delete_message(msg, 2)
+    await message.delete()
+
+
+@admin_group_router.message(Command('capcha_off'))
+async def capcha_off(message: types.Message, chat_settings: dict):
+    capcha_chats = chat_settings.get('capcha_chats', [])
+    if message.chat.id in capcha_chats:
+        await db_update_capcha_chats([message.chat.id], turn_off=True)
+        capcha_chats.remove(message.chat.id)
+        msg = await message.answer('Capcha отключена')
+    else:
+        msg = await message.answer('Capcha уже отключена')
+    await delete_message(msg, 2)
+    await message.delete()
+
+
 @admin_group_router.message(Command(commands='mute'))
 async def mute_handler(moderator_message: types.Message, bot: Bot):
     permission = await checks(moderator_message, bot)
