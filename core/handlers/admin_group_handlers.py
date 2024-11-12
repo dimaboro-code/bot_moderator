@@ -4,7 +4,7 @@ from aiogram import Router, Bot, types, F
 from aiogram.filters import Command
 
 from core import ConfigVars
-from core.database_functions.db_functions import add_lives, db_update_strict_chats
+from core.database_functions.db_functions import add_lives, db_update_strict_chats, db_update_capcha_chats
 from core.filters.admin_filter import AdminFilter
 from core.models.data_models import UserData
 from core.services.ban import ban_name
@@ -18,21 +18,23 @@ admin_group_router.message.filter(AdminFilter())
 
 
 @admin_group_router.message(Command('strict_mode_on'))
-async def strict_mode_on(message: types.Message, strict_chats: list):
+async def strict_mode_on(message: types.Message, chat_settings: dict):
+    strict_chats = chat_settings.get('strict_chats', [])
     if message.chat.id in strict_chats:
         msg = await message.answer('Strict Reply уже включен')
     else:
         strict_chats.append(message.chat.id)
-        await db_update_strict_chats(strict_chats)
+        await db_update_strict_chats([message.chat.id])
         msg = await message.answer('Strict Reply включен')
     await delete_message(msg, 2)
     await message.delete()
 
 
 @admin_group_router.message(Command('strict_mode_off'))
-async def strict_mode_off(message: types.Message, strict_chats: list):
+async def strict_mode_off(message: types.Message, chat_settings: dict):
+    strict_chats = chat_settings.get('strict_chats', [])
     if message.chat.id in strict_chats:
-        await db_update_strict_chats(strict_chats, not_remove=False)
+        await db_update_strict_chats([message.chat.id], turn_off=True)
         strict_chats.remove(message.chat.id)
         msg = await message.answer('Strict Reply отключен')
     else:

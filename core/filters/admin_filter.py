@@ -72,7 +72,8 @@ class StrictChatFilter(BaseFilter):
     """
     Отделяет чаты, в которых должен работать хэндлер от тех, где не должен
     """
-    async def __call__(self, message: Message, strict_chats: list) -> bool:
+    async def __call__(self, message: Message, chat_settings: dict) -> bool:
+        strict_chats = chat_settings.get('strict_chats', [])
         if message.chat.id in strict_chats:
             return True
         return False
