@@ -15,17 +15,20 @@ service_router.message.filter(F.content_type.in_(ConfigVars.MESSAGES_FOR_DELETE)
 
 @service_router.message(CapchaChatFilter(), F.content_type == ContentType.NEW_CHAT_MEMBERS)
 async def capcha_handler(message: Message, bot: Bot, admins: list):
+    await message.delete()
     user_id = message.from_user.id
     if user_id in admins:
         return
     last_mute = await get_last_mute(user_id)
     if last_mute:
+        print('old user joined chat')
         # не новый пользователь
         return
     data = UserData()
     data.parse_message(message, user_id=user_id)
     data.chat_id = message.chat.id
     data.reason_message = 'capcha'
+    data.admin_username = 'dimaboro'
     await add_lives(user_id)
     await mute(data=data, bot=bot)
 
