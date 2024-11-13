@@ -1,0 +1,25 @@
+networks:
+  internal:
+
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+
+  ngrok:
+    container_name: ngrok
+    image: wernight/ngrok
+    env_file:
+      - container.env
+    command: ngrok http app:8080
+    ports:
+      - "4040:4040"
+
+  app:
+    build: .
+    container_name: tg-bot
+    depends_on:
+      - ngrok
+      - redis
+    env_file:
+      - container.env
