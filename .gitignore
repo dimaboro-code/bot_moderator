@@ -13,6 +13,6 @@ __pycache__/
 db_data/
 .DS_Store
 heroku.session.sql
-/.env
+*.env
 /Writerside/
 setup.cfg
