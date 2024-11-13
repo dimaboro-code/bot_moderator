@@ -13,11 +13,28 @@ WEBAPP_PORT = 8080  # должен совпадать с proxypass в настр
 Статья об этом всем: https://mkdev.me/ru/posts/ngrok-kogda-nuzhno-prokinut-vash-servis-v-internet
 Если хочется еще больше поугарать - настрой SSL.
 """
-
+import asyncio
 import os
 
+import httpx
 from aiogram import types
 from aiogram.enums import ContentType
+
+
+async def get_ngrok_url(ngrok_api_url, max_retries=10, delay=5):
+    async with httpx.AsyncClient() as client:
+        for attempt in range(max_retries):
+            try:
+                response = await client.get(ngrok_api_url)
+                response.raise_for_status()
+                data = response.json()
+                public_url = data['tunnels'][0]['public_url']
+                print(f"Ngrok public URL: {public_url}")
+                return public_url
+            except httpx.RequestError as e:
+                print(f"Attempt {attempt + 1}/{max_retries} failed: {e}")
+                await asyncio.sleep(delay)
+        raise Exception("Failed to get ngrok URL after multiple attempts")
 
 
 class ProdConfig:
@@ -55,31 +72,35 @@ class ProdConfig:
 class DevConfig:
     # настройки для тестов
     from dotenv import load_dotenv
-    env = load_dotenv()
+    env = load_dotenv(dotenv_path='../dev.env')
     if not env:
         print('.env файл не найден')
 
     CHATS = (
         -1001868029361,  # тест бота
     )
-
+    ngrok_api_url = os.getenv('NGROK_API_URL', 'http://ngrok/api/tunnels')
     LOG_CHANNEL: int = -1002065542994
     BOT_USERNAME: str = 'testing_projects_42_bot'
     LOG_CHAT: int = -1001868029361  # for mistakes
     MESSAGE_CONTAINER_CHAT: int = -4549380236
-
-    WEBHOOK_HOST = 'https://d4ca-2a03-32c0-4-51dc-4014-c1e2-7f7e-9b7e.ngrok-free.app'
-    WEBAPP_HOST = '127.0.0.1'
-    WEBAPP_PORT = 8080
+    WEBHOOK_HOST = asyncio.run(get_ngrok_url(ngrok_api_url))
+    WEBAPP_HOST = os.getenv("WEBAPP_HOST")
+    WEBAPP_PORT = int(os.getenv("WEBAPP_PORT"))
 
     # webhook settings
     WEBHOOK_PATH = '/webhook'
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
-    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@host.docker.internal:5432/postgres'  # для тестов, локальная
 
 
 def get_settings():
+    '''
+    для хероку
+    Returns:
+
+    '''
     dev_settings = bool(os.getenv('SET_DEV_SETTINGS', False))
     if dev_settings:
         return DevConfig
