@@ -19,7 +19,7 @@ def get_bh_keyboard(user_id):
     builder = InlineKeyboardBuilder()
     builder.button(
         text='Забанить',
-        callback_data=BanHammer(user_id=user_id, function='ban_last'),
+        callback_data=BanHammer(user_id=user_id, function='ban_first'),
     )
     builder.adjust(1, repeat=True)
     return builder
