@@ -15,6 +15,7 @@ class ConfigMiddleware(BaseMiddleware):
         event: Update,
         data: Dict[str, Any]
     ) -> Any:
+        print('Message type: ', type(event))
         if isinstance(event.message, Message):
             message = event.message
             await add_user_to_db(message=message, bot=data['bot'])
