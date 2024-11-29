@@ -19,16 +19,21 @@ async def capcha_handler(message: Message, bot: Bot, admins: list):
     user_id = message.from_user.id
     if user_id in admins:
         return
-    last_mute = await get_last_mute(user_id)
-    if last_mute:
-        print('old user joined chat')
-        # не новый пользователь
-        return
+    # last_mute = await get_last_mute(user_id)
+    # if last_mute:
+    #     print('old user joined chat')
+    #     # не новый пользователь
+    #     return
     data = UserData()
-    data.parse_message(message, user_id=user_id)
+    data.user_id = user_id
+    data.username = str(message.from_user.username)
+    data.admin_id = 114099198
+    data.admin_username = 'dimaboro'
     data.chat_id = message.chat.id
+    data.chat_username = message.chat.username
     data.reason_message = 'capcha'
     data.admin_username = 'dimaboro'
+    data.is_reply = False
     await add_lives(user_id)
     await mute(data=data, bot=bot)
 
