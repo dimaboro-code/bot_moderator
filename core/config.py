@@ -53,12 +53,12 @@ class ProdConfig:
     LOG_CHANNEL: int = -1001482081082  # /designer/mutes
     BOT_USERNAME: str = 'slashdbot'
     LOG_CHAT: int = -1001838011289  # for mistakes
-    MESSAGE_CONTAINER_CHAT: int = -1002455952036  # for strict mode.
+    MESSAGE_CONTAINER_CHAT: int = -1002455952036  # for strict mode
 
     HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
     WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-    WEBAPP_HOST = '0.0.0.0'
-    WEBAPP_PORT = int(os.getenv('PORT', default=8000))
+    WEBAPP_HOST = os.getenv('WEBAPP_HOST', default='0.0.0.0')
+    WEBAPP_PORT = int(os.getenv('WEBAPP_PORT', default=8000))
     DATABASE_URL = os.getenv('DATABASE_URL', '')  # Основная бд
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
@@ -79,16 +79,16 @@ class DevConfig:
         -1001868029361,  # тест бота
     )
     ngrok_api_url = os.getenv('NGROK_API_URL', 'http://ngrok/api/tunnels')
-    LOG_CHANNEL: int = -1002065542994
-    BOT_USERNAME: str = 'testing_projects_42_bot'
-    LOG_CHAT: int = -1001868029361  # for mistakes
-    MESSAGE_CONTAINER_CHAT: int = -4549380236
+    LOG_CHANNEL: int = os.getenv('LOG_CHANNEL', -1002065542994)
+    BOT_USERNAME: str = 'testing_projects_42_bot'  # telegram
+    LOG_CHAT: int = os.getenv('LOG_CHAT', -1001868029361)  # for mistakes, db
+    MESSAGE_CONTAINER_CHAT: int = -4549380236  # db
     WEBHOOK_HOST = asyncio.run(get_ngrok_url(ngrok_api_url))
     WEBAPP_HOST = os.getenv("WEBAPP_HOST")
     WEBAPP_PORT = int(os.getenv("WEBAPP_PORT"))
 
     # webhook settings
-    WEBHOOK_PATH = '/webhook'
+    WEBHOOK_PATH = os.getenv('WEBHOOK_PATH', default='/webhook')
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
     DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@host.docker.internal:5432/postgres'  # для тестов, локальная
