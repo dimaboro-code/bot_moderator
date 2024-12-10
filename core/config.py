@@ -42,7 +42,6 @@ class ProdConfig:
     CHATS = (
         -1001398488197,  # designchat2
         -1001302438185,  # figmachat
-        -1001808148145,  # figmaforum
         -1001535946932,  # systemschat
         -1001124768091,  # framerchat
         -1001753295642,  # whatthefontt
