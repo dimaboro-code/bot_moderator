@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, Chat
 
 from core import ConfigVars
-from core.database_functions.db_functions import delete_user, db_load_chats
+from core.database_functions.db_functions import delete_user, db_add_chats, db_get_chats
 from core.database_functions.test_db import test_simple_db
 from core.filters.filters import AdminFilter
 from core.utils.send_report import send_mute_report
@@ -67,5 +67,12 @@ async def load_chats(message: Message, bot: Bot) -> None:
     for chat_id in ConfigVars.CHATS:
         chat: Chat = await bot.get_chat(chat_id)
         chats_for_db.append(chat)
-    await db_load_chats(chats_for_db)
+    await db_add_chats(chats_for_db)
     await message.answer('Успешно')
+
+
+@debug_router.message(Command('chats_list'))
+async def show_db_chats(message: Message, bot: Bot) -> None:
+    chats = await db_get_chats()
+    for chat in chats:
+        await message.answer(f'chat_id: {chat.chat_id},\nchat_name: {chat.title},\nchat_username: {chat.username}')

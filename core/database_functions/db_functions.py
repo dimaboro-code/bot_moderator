@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 import typing
 
+from aiogram.types import Chat
 from sqlalchemy import Result, func, and_
 from sqlalchemy import select, delete, update
 from sqlalchemy.dialects.postgresql import insert
@@ -310,7 +311,7 @@ async def get_username(user_id: int, session=async_session):
             print('гет юзернейм, Ошибка: ', str(e))
 
 
-async def db_load_chats(chats_for_db, session=async_session):
+async def db_add_chats(chats_for_db: list[Chat], session=async_session):
     async with session() as session:
         for chat in chats_for_db:
             db_chat = DBChat(
@@ -321,6 +322,13 @@ async def db_load_chats(chats_for_db, session=async_session):
             session.add(db_chat)
         await session.commit()
     return True
+
+
+async def db_get_chats(session=async_session):
+    async with session() as session:
+        result = await session.execute(select(DBChat))
+        chats = result.scalars().all()
+        return chats
 
 
 async def db_get_strict_chats(session=async_session):
