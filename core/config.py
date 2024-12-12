@@ -71,7 +71,7 @@ class ProdConfig:
 class DevConfig:
     # настройки для тестов
     from dotenv import load_dotenv
-    env = load_dotenv(dotenv_path='../dev.env')
+    env = load_dotenv(dotenv_path='./dev.env')
     if not env:
         print('.env файл не найден')
 
@@ -91,7 +91,7 @@ class DevConfig:
     WEBHOOK_PATH = os.getenv('WEBHOOK_PATH', default='/webhook')
     WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
-    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@host.docker.internal:5432/postgres'  # для тестов, локальная
+    DATABASE_URL = 'postgresql+asyncpg://postgres:2026523@localhost:5432/postgres'  # для тестов, локальная
 
 
 def get_settings():

@@ -13,6 +13,7 @@ import json
 from aiogram import Router, types, Bot, F
 from aiogram.enums import ChatType
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import ChatJoinRequest
 
 from core import ConfigVars
 from core.filters.filters import HashTagFilter, StrictChatFilter
@@ -23,6 +24,19 @@ from core.utils.create_redis_pool import get_conn
 
 user_group_router = Router()
 user_group_router.message.filter(F.chat.type != ChatType.PRIVATE)
+
+
+@user_group_router.chat_join_request()
+async def captcha(request: ChatJoinRequest, bot: Bot):
+    chat_name = request.chat.title
+    user_chat_id = request.user_chat_id
+    print('request')
+    message = (f'Здравствуйте!\n\nВы подали заявку на вступление в чат {chat_name}.\n'
+               'Для того, чтобы вступить в чат, прочтите правила сообщества, '
+               'затем отправьте мне команду /imnotaspammer.'
+               'правила сообщества доступны в закрепленном сообщении в чате или по команде /start')
+    await bot.send_message(user_chat_id, message)
+
 
 
 @user_group_router.message(StrictChatFilter(), HashTagFilter().__invert__())

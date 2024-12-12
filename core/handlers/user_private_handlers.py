@@ -93,3 +93,14 @@ async def unmute_handler(message: Message, bot: Bot):
         await message.answer(answer)
     else:
         await message.answer(answer)
+
+
+@user_private_router.message(Command('imnotaspammer'))
+async def imnotaspammer(message: Message, bot: Bot):
+    user_id = message.from_user.id
+    for chat_id in ConfigVars.CHATS:
+        try:
+            await bot.approve_chat_join_request(chat_id, user_id)
+        except Exception as e:
+            print(e)
+    await message.answer('Успешно')

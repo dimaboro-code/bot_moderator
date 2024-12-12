@@ -35,7 +35,8 @@ async def on_startup(bot: Bot):
                            'capcha_chats': await db_get_capcha_chats()}
     await bot.set_webhook(url=ConfigVars.WEBHOOK_URL,
                           drop_pending_updates=True,
-                          secret_token=ConfigVars.WEBHOOK_SECRET)
+                          secret_token=ConfigVars.WEBHOOK_SECRET,
+                          allowed_updates=dp.resolve_used_update_types())
 
 
 def start_app():
