@@ -4,9 +4,10 @@ from aiogram import Router, F, Bot
 from aiogram.enums import ChatType
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 
 from core import ConfigVars
+from core.models.data_models import Human
 from core.utils.create_redis_pool import get_conn
 from core.services.status import status
 from core.services.unmute import unmute
@@ -95,12 +96,13 @@ async def unmute_handler(message: Message, bot: Bot):
         await message.answer(answer)
 
 
-@user_private_router.message(Command('imnotaspammer'))
-async def imnotaspammer(message: Message, bot: Bot):
-    user_id = message.from_user.id
-    for chat_id in ConfigVars.CHATS:
+@user_private_router.callback_query(Human.filter())
+async def imnotaspammer(call: CallbackQuery, callback_data: Human, bot: Bot):
+    user_id = call.from_user.id
+    chat_id = callback_data.chat_id
+    if chat_id in ConfigVars.CHATS:
         try:
             await bot.approve_chat_join_request(chat_id, user_id)
         except Exception as e:
             print(e)
-    await message.answer('Успешно')
+    await call.answer('Успешно', show_alert=False)

@@ -100,3 +100,9 @@ class AdminFunctions(CallbackData, prefix='show_user'):
 class BanHammer(CallbackData, prefix='banhammer'):
     function: str
     user_id: int
+
+
+class Human(CallbackData, prefix='banhammer'):
+    function: str
+    user_id: int
+    chat_id: int

@@ -16,3 +16,4 @@ heroku.session.sql
 *.env
 /Writerside/
 setup.cfg
+/test.py
