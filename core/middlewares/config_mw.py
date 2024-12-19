@@ -17,8 +17,7 @@ class ConfigMiddleware(BaseMiddleware):
     ) -> Any:
         if isinstance(event.message, Message):
             message = event.message
-            if message.from_user.username:
-                await add_user_to_db(message=message, bot=data['bot'])
+            await add_user_to_db(message=message, bot=data['bot'])
         try:
             await handler(event, data)
         except TelegramBadRequest:

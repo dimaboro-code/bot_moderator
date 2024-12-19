@@ -9,11 +9,12 @@ from core.utils.restrict import restrict
 from core.utils.send_report import send_bug_report, send_mute_report
 
 
-async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
+async def mute(data: UserData, bot: Bot, silent: bool = False, chats: List[int] = ConfigVars.CHATS,
                permissions: types.ChatPermissions = ConfigVars.MUTE_SETTINGS):
     """
     Мьют с занесением данных в бд и отчетом.
     Args:
+        silent: True, если нужно без отчета о мьюте
         data: данные о мьюте в формате UserData
         bot: бот
         chats: Список чатов, в которых мьютим
@@ -34,11 +35,12 @@ async def mute(data: UserData, bot: Bot, chats: List[int] = ConfigVars.CHATS,
         await send_bug_report(problem=problem, **data.as_dict(), bot=bot)
         return False
     # отправляем отчет в канал
-    try:
-        await send_mute_report(**data.as_dict(), bot=bot)
-    except Exception as e:
-        problem = f'Мьют, не удалось отправить отчет. Ошибка: {e}'
-        await send_bug_report(problem=problem, **data.as_dict(), bot=bot)
-        return False
+    if not silent:
+        try:
+            await send_mute_report(**data.as_dict(), bot=bot)
+        except Exception as e:
+            problem = f'Мьют, не удалось отправить отчет. Ошибка: {e}'
+            await send_bug_report(problem=problem, **data.as_dict(), bot=bot)
+            return False
     # Мьют прошел (минимум в одном чате), инфа в базе, отчет в канале
     return True

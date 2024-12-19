@@ -75,7 +75,7 @@ class UserData(BaseData):
             self.admin_username = message.from_user.username
             self.chat_id = message.chat.id
             self.chat_username = message.chat.username
-            self.reason_message = ' '.join(message.text.split()[2:])
+            self.reason_message = ' '.join(message.text.split()[2:]) if isinstance(message.text, str) else ''
             self.is_reply = False
         else:
             raise Exception

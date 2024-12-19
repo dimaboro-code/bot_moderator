@@ -9,7 +9,7 @@ from aiohttp import web
 # settings import
 from core.config import ConfigVars
 # full database import
-from core.database_functions.db_functions import create_db, db_get_strict_chats
+from core.database_functions.db_functions import create_db, db_get_strict_chats, db_get_capcha_chats
 from core.handlers import all_routers
 # GROUP FUNCTION IMPORTS
 from core.middlewares.config_mw import ConfigMiddleware
@@ -31,7 +31,8 @@ async def on_startup(bot: Bot):
     await setup_schedule()
     admins = await get_admins_ids(bot)
     dp['admins'] = admins
-    dp['strict_chats'] = await db_get_strict_chats()
+    dp['chat_settings'] = {'strict_chats': await db_get_strict_chats(),
+                           'capcha_chats': await db_get_capcha_chats()}
     await bot.set_webhook(url=ConfigVars.WEBHOOK_URL,
                           drop_pending_updates=True,
                           secret_token=ConfigVars.WEBHOOK_SECRET)

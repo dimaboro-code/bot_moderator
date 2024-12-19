@@ -242,6 +242,25 @@ async def delete_user(user_id: int, session=async_session):
             print('Не удалось удалить пользователя, сломано: ', e)
 
 
+async def delete_mute(user_id: int, session=async_session):
+    async with session() as session:
+        # Находим пользователя по user_id и удаляем его
+        query = select(Mute).where(user_id == Mute.user_id)
+        try:
+            result: Result = await session.execute(query)
+            mute: Mute = result.scalars().first()
+            if mute:
+                await session.execute(
+                    delete(Mute).where(mute.id == Mute.id)
+                )
+                print(f'Мьют {mute.id} пользователя {user_id} удален')
+            else:
+                print(f'Мьют {mute.id} пользователя {user_id} не удален')
+            await session.commit()
+        except Exception as e:
+            print('Не удалось удалить пользователя, сломано: ', e)
+
+
 async def add_id(username: str, user_id: int, session=async_session):
     async with session() as session:
         try:
@@ -304,21 +323,38 @@ async def db_load_chats(chats_for_db, session=async_session):
     return True
 
 
-async def db_update_strict_chats(strict_chats, not_remove=True, session=async_session):
-    async with session() as session:
-        for chat_id in strict_chats:
-            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not_remove)
-            await session.execute(query)
-            await session.commit()
-    return True
-
-
 async def db_get_strict_chats(session=async_session):
     async with session() as session:
         query = select(DBChat.chat_id).where(DBChat.strict_mode==True)
         result = await session.execute(query)
         strict_chats = result.scalars().all()
         return strict_chats
+
+
+async def db_update_strict_chats(strict_chats, turn_off=False, session=async_session):
+    async with session() as session:
+        for chat_id in strict_chats:
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(strict_mode=not turn_off)
+            await session.execute(query)
+            await session.commit()
+    return True
+
+
+async def db_get_capcha_chats(session=async_session):
+    async with session() as session:
+        query = select(DBChat.chat_id).where(DBChat.capcha==True)
+        result = await session.execute(query)
+        capcha_chats = result.scalars().all()
+        return capcha_chats
+
+
+async def db_update_capcha_chats(capcha_chats, turn_off=False, session=async_session):
+    async with session() as session:
+        for chat_id in capcha_chats:
+            query = update(DBChat).where(DBChat.chat_id == chat_id).values(capcha=not turn_off)
+            await session.execute(query)
+            await session.commit()
+    return True
 
 
 async def delete_old_data(async_session=async_session, days: int = 15, user_id: int = None):
